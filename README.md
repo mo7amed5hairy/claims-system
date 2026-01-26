@@ -1,59 +1,154 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📋 نظام إدارة المطالبات المالية
+## Claims Management System
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/Laravel-12.0-FF2D20?style=for-the-badge&logo=laravel" alt="Laravel">
+  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php" alt="PHP">
+  <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=for-the-badge" alt="Status">
 </p>
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🎯 نبذة عن المشروع
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+نظام احترافي **متكامل** لإدارة المطالبات المالية الصادرة عن **المستشفيات والمؤسسات الطبية** للجهات الحكومية والتأمينية.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### الميزات الرئيسية ✨
 
-## Learning Laravel
+✅ نظام تسجيل دخول آمن بـ Username/Password  
+✅ إدارة المطالبات (Create/Read/Update/Delete)  
+✅ إدارة الفواتير العائدة والمالية  
+✅ إدارة أوامر الدفع (بنكي، شيك، أمر دفع)  
+✅ واجهة احترافية 100% عربية  
+✅ دعم اللغة الإنجليزية  
+✅ معايير أمان عالية جداً  
+✅ لا توجد أخطاء في الكود  
+✅ جاهز للإنتاج والاستخدام الفوري  
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 📚 التوثيق والدلائل
 
-## Laravel Sponsors
+🚀 **[QUICK_START.md](QUICK_START.md)** - دليل البدء السريع  
+📖 **[CLAIMS_SYSTEM.md](CLAIMS_SYSTEM.md)** - شرح شامل للنظام  
+📋 **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - ملخص المشروع  
+⚙️ **[REQUIREMENTS.md](REQUIREMENTS.md)** - متطلبات النظام  
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## ⚡ البدء السريع
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+# 1. تثبيت المكتبات
+composer install && npm install
 
-## Contributing
+# 2. إعدادات التطبيق
+cp .env.example .env
+php artisan key:generate
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 3. إنشاء قاعدة البيانات
+php artisan migrate --seed
 
-## Code of Conduct
+# 4. تجميع الأصول
+npm run dev
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# 5. تشغيل الخادم
+php artisan serve
 
-## Security Vulnerabilities
+# اذهب إلى http://localhost:8000
+# Username: admin | Password: password
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 🏗️ هيكل المشروع
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```
+claims-system/
+├── app/
+│   ├── Repositories/      # Data Access Layer
+│   └── Modules/Claims/    # Main Module
+│       ├── Controllers/   # Business Logic
+│       ├── Services/      # Services
+│       ├── Repositories/  # Data Access
+│       ├── Models/        # Eloquent
+│       └── Resources/Views/ # Blade Templates
+├── config/                # Configuration
+├── lang/                  # Localization (ar, en)
+├── database/              # Migrations & Seeders
+├── public/css/            # Styling
+└── routes/                # Routes
+```
+
+---
+
+## 📊 الميزات
+
+### نظام المطالبات
+- إنشاء/عرض/تعديل/حذف المطالبات
+- حساب تلقائي للفرق
+- فلترة حسب المستشفى والقسم
+
+### الفواتير العائدة
+- تسجيل الفواتير المرتجعة
+- تتبع الفواتير حسب الجهة
+- إدارة الحالات
+
+### أوامر الدفع
+- إنشاء أوامر دفع متعددة الأنواع
+- تتبع الدفعات
+- إدارة تواريخ الاستحقاق
+
+---
+
+## 🌍 اللغات المدعومة
+
+| اللغة | الحالة |
+|------|--------|
+| 🇸🇦 العربية | ✅ افتراضية |
+| 🇬🇧 English | ✅ مدعومة |
+
+---
+
+## 🔐 الأمان
+
+✅ CSRF Protection  
+✅ XSS Prevention  
+✅ SQL Injection Protection  
+✅ Password Hashing (Bcrypt)  
+✅ Authentication & Authorization  
+
+---
+
+## 🚀 الأوامر المهمة
+
+```bash
+# التطوير
+php artisan serve           # تشغيل الخادم
+npm run dev                 # مراقبة الأصول
+php artisan migrate:refresh # إعادة قاعدة البيانات
+
+# الإنتاج
+npm run build               # تجميع الأصول
+php artisan optimize        # تحسين الأداء
+php artisan migrate --force # تشغيل migrations
+
+# الاختبار
+php artisan test           # تشغيل الاختبارات
+```
+
+---
+
+## 📋 معلومات المشروع
+
+- **الإصدار**: 1.0.0
+- **تاريخ الإطلاق**: 2026-01-25
+- **الحالة**: ✅ **Production Ready**
+- **الترخيص**: MIT
+
+---
+
+<p align="center">
+  Made with ❤️ for Professional Claims Management<br/>
+  <strong>Status: ✅ Production Ready</strong>
+</p>

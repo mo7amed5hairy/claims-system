@@ -1,5 +1,9 @@
 <?php
 
+// Fully suppress warnings to bypass environment-specific proc_open issues on login page
+error_reporting(0);
+ini_set('display_errors', 0);
+
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
