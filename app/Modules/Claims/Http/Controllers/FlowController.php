@@ -10,11 +10,12 @@ use App\Modules\Claims\Models\Hospital;
 use App\Modules\Claims\Models\Department;
 use App\Modules\Claims\Models\Claim;
 use App\Modules\Claims\Models\ReturnedInvoice;
+use App\Modules\Claims\Models\ClaimEntity;
 
 class FlowController extends Controller
 {
     /**
-     * Step 2: Select Entity Type
+     * Step 1: Select Entity Type
      */
     public function index()
     {
@@ -39,7 +40,30 @@ class FlowController extends Controller
     public function showOptions()
     {
         $type = session('flow_entity_type');
-        return view('claims::flow.select-options', ['type' => $type]);
+        $query = ClaimEntity::query();
+
+        // Filtering Logic based on User Requirements
+        if ($type === 'contracts') {
+            // Exclude specific entities
+            $query->whereNotIn('name', [
+                'الهيئة العامة للتأمين الصحي',
+                'وزارة الصحة والسكان',
+                'الهيئة العامة للتأمين الصحي الشامل'
+            ]);
+        } elseif ($type === 'ministry') {
+            // Only Ministry of Health
+            $query->where('name', 'وزارة الصحة والسكان');
+        } elseif ($type === 'insurance') {
+            // Only Health Insurance Authority
+            $query->where('name', 'الهيئة العامة للتأمين الصحي');
+        } elseif ($type === 'comprehensive') {
+            // Only Comprehensive Health Insurance
+            $query->where('name', 'الهيئة العامة للتأمين الصحي الشامل');
+        }
+
+        $entities = $query->get();
+
+        return view('claims::flow.select-options', ['type' => $type, 'entities' => $entities]);
     }
 
     public function storeOptions(Request $request)
@@ -65,32 +89,22 @@ class FlowController extends Controller
 
         session([
             'flow_hospital_id' => $request->hospital_id,
-            'flow_department_id' => $request->department_id,
+            'flow_department_id' => $request->department_id
         ]);
 
         return redirect()->route('flow.operations');
     }
 
-    public function operations()
+    public function showOperations()
     {
-        $hospitalId = session('flow_hospital_id');
-        $deptId = session('flow_department_id');
-
-        if (!$hospitalId || !$deptId) {
+        // Ensure flow is complete
+        if (!session('flow_hospital_id') || !session('flow_department_id')) {
             return redirect()->route('dashboard');
         }
 
-        // Calculate Totals for the current context (Hospital & Dept)
-        $totalClaims = Claim::where('hospital_id', $hospitalId)
-                           ->where('department_id', $deptId)
-                           ->sum('claim_value');
+        $hospital = Hospital::find(session('flow_hospital_id'));
+        $department = Department::find(session('flow_department_id'));
 
-        $totalReturns = ReturnedInvoice::where('hospital_id', $hospitalId)
-                                      ->where('department_id', $deptId)
-                                      ->sum('value');
-
-        $netClaims = $totalClaims - $totalReturns;
-
-        return view('claims::flow.operations', compact('totalClaims', 'totalReturns', 'netClaims'));
+        return view('claims::flow.operations', compact('hospital', 'department'));
     }
 }

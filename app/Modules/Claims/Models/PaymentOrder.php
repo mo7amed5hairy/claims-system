@@ -17,7 +17,11 @@ class PaymentOrder extends Model
         'payer_entity_id',
         'payee_hospital_id',
         'electronic_invoice_no',
-        'notes'
+        'invoice_no',
+        'notes',
+        'branch',
+        'location',
+        'beneficiary'
     ];
 
     protected $casts = [

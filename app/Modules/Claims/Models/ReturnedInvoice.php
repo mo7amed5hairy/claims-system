@@ -27,7 +27,10 @@ class ReturnedInvoice extends Model
         'entity_id',
         'reviewer_name',
         'attachments',
-        'reason'
+        'reason',
+        'branch',
+        'location',
+        'beneficiary'
     ];
 
     protected $casts = [

@@ -146,6 +146,14 @@ class PaymentOrderController extends Controller
             $data['invoice_no'] = $data['electronic_invoice_no'];
         }
 
+        // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches
+        $flowOptions = session('flow_options', []);
+        if (isset($flowOptions['entity_id']) && $data['payer_entity_id'] == $flowOptions['entity_id']) {
+            $data['branch'] = $flowOptions['branch'] ?? null;
+            $data['location'] = $flowOptions['location'] ?? null;
+            $data['beneficiary'] = $flowOptions['law'] ?? null;
+        }
+
         // Business Logic Validation: Amount vs Claim Reviewed Value
         if (!empty($request->electronic_invoice_no)) {
             $claim = \App\Modules\Claims\Models\Claim::where('electronic_invoice_no', $request->electronic_invoice_no)->first();

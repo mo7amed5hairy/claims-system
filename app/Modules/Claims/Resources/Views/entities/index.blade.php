@@ -3,11 +3,6 @@
 @section('title', 'إدارة جهات المطالبة')
 
 @section('scripts')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
 <style>
     /* تحسين شكل الجدول */
     .dataTables_wrapper .dataTables_paginate .paginate_button.current {
@@ -47,11 +42,33 @@
         border-radius: 12px;
         box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
     }
+    
+    .dt-buttons {
+        margin-bottom: 15px;
+    }
 </style>
 
 <script>
     $(document).ready(function() {
         $('#entitiesTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="fa-solid fa-file-excel"></i> تصدير إكسل',
+                    className: 'btn-excel',
+                    attr: {
+                        style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
+                    },
+                    exportOptions: {
+                        columns: ':visible'
+                    },
+                    customize: function (xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        $('sheetViews sheetView', sheet).attr('rightToLeft', '1');
+                    }
+                }
+            ],
             "language": {
                 "sProcessing": "جاري التحميل...",
                 "sLengthMenu": "أظهر _MENU_ مدخلات",

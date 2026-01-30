@@ -3,10 +3,6 @@
 @section('title', 'المطالبات')
 
 @section('scripts')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
 <style>
     .dataTables_wrapper .dataTables_paginate .paginate_button.current {
         background: var(--primary-color) !important;
@@ -14,11 +10,32 @@
         border: none !important;
         border-radius: 4px;
     }
+    .dt-buttons {
+        margin-bottom: 15px;
+    }
 </style>
 
 <script>
     $(document).ready(function() {
         $('#claimsTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="fa-solid fa-file-excel"></i> تصدير إكسل',
+                    className: 'btn-excel',
+                    attr: {
+                        style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
+                    },
+                    exportOptions: {
+                        columns: ':visible'
+                    },
+                    customize: function (xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        $('sheetViews sheetView', sheet).attr('rightToLeft', '1');
+                    }
+                }
+            ],
             "language": {
                 "sProcessing": "جاري التحميل...",
                 "sLengthMenu": "أظهر _MENU_ مدخلات",

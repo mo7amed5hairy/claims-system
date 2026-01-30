@@ -79,6 +79,14 @@ class ClaimController extends Controller
         $data['hospital_id'] = session('flow_hospital_id');
         $data['department_id'] = session('flow_department_id');
 
+        // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches
+        $flowOptions = session('flow_options', []);
+        if (isset($flowOptions['entity_id']) && $data['entity_id'] == $flowOptions['entity_id']) {
+            $data['branch'] = $flowOptions['branch'] ?? null;
+            $data['location'] = $flowOptions['location'] ?? null;
+            $data['beneficiary'] = $flowOptions['law'] ?? null;
+        }
+
         // Handle file uploads
         if ($request->hasFile('attachments')) {
             $claimModel = new Claim(); // Temp instance to use trait methods if not using static

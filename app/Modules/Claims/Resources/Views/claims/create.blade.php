@@ -70,7 +70,7 @@
                     <select name="entity_id" class="form-control" required>
                         <option value="">اختر الجهة</option>
                         @foreach($entities as $entity)
-                        <option value="{{ $entity->id }}" {{ old('entity_id') == $entity->id ? 'selected' : '' }}>
+                        <option value="{{ $entity->id }}" {{ old('entity_id', session('flow_options.entity_id')) == $entity->id ? 'selected' : '' }}>
                             {{ $entity->name }}
                         </option>
                         @endforeach

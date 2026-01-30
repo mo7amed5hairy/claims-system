@@ -26,7 +26,10 @@ class Claim extends Model
         'insurance_claim_number',
         'notes',
         'attachments',
-        'status'
+        'status',
+        'branch',
+        'location',
+        'beneficiary'
     ];
 
     protected $casts = [

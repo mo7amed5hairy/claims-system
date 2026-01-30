@@ -38,7 +38,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     // =====================================================
     // Step 4: Operations Panel (Claims, Returns, Payments)
     // =====================================================
-    Route::get('flow/operations', [FlowController::class, 'operations'])->name('flow.operations');
+    Route::get('flow/operations', [FlowController::class, 'showOperations'])->name('flow.operations');
 
     // =====================================================
     // Claims Management
