@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="rtl">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>تسجيل الدخول - نظام إدارة المطالبات المالية</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4188/4188981.png">
+
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&display=swap"
+        rel="stylesheet">
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <div class="auth-container">
         <div class="auth-card">
@@ -24,7 +29,8 @@
                 <!-- Username -->
                 <div class="form-group">
                     <label for="username" class="form-label">اسم المستخدم</label>
-                    <input id="username" type="text" class="form-control" placeholder="أدخل اسم المستخدم" name="username" value="{{ old('username') }}" required autofocus tabindex="1">
+                    <input id="username" type="text" class="form-control" placeholder="أدخل اسم المستخدم"
+                        name="username" value="{{ old('username') }}" required autofocus tabindex="1">
                     @error('username')
                         <div style="color:red; font-size: 0.875rem; margin-top: 0.25rem;">{{ $message }}</div>
                     @enderror
@@ -33,7 +39,8 @@
                 <!-- Password -->
                 <div class="form-group">
                     <label for="password" class="form-label">كلمة المرور</label>
-                    <input id="password" type="password" placeholder="أدخل كلمة المرور" class="form-control" name="password" required tabindex="2">
+                    <input id="password" type="password" placeholder="أدخل كلمة المرور" class="form-control"
+                        name="password" required tabindex="2">
                     @error('password')
                         <div style="color:red; font-size: 0.875rem; margin-top: 0.25rem;">{{ $message }}</div>
                     @enderror
@@ -54,4 +61,5 @@
         </div>
     </div>
 </body>
+
 </html>
