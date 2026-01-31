@@ -5,15 +5,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'نظام المطالبات')</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&display=swap"
-        rel="stylesheet">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4188/4188981.png">
+    <!-- Local Cairo Font -->
+    <link rel="stylesheet" href="{{ asset('modules/claims/css/cairo.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('modules/claims/img/favicon.png') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Local FontAwesome -->
+    <link rel="stylesheet" href="{{ asset('modules/claims/css/all.min.css') }}">
 
     <!-- DataTables & Buttons CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="{{ asset('modules/claims/css/jquery.dataTables.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('modules/claims/css/buttons.dataTables.min.css') }}">
 
     <style>
         /* Navbar Dropdown Styles */
@@ -75,7 +76,7 @@
             z-index: 1000;
             border-radius: 8px;
             overflow: hidden;
-            margin-top: 10px;
+            margin-top: 1px;
         }
 
         .dropdown-content a,
@@ -117,88 +118,88 @@
 <body>
     <div class="app-container">
         @if (auth()->check())
-            <nav class="navbar">
-                <div class="navbar-brand">
-                    {{-- <i class="fa-solid fa-chart-line"></i> --}}
-                    <i class="fa-solid fa-file-circle-check"></i>
-                    <span>
-                        نظام إدارة المطالبات المالية
-                        <br>
-                        Claims Management System
-                    </span>
-                </div>
-                <div class="navbar-menu">
-                    <div class="navbar-user-dropdown">
-                        <button class="navbar-user-btn">
-                            <span>مرحباً، {{ Auth::user()->name }}</span>
-                            @if(Auth::user()->avatar)
-                                <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="user-avatar">
-                            @else
-                                <div class="user-avatar-placeholder">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                </div>
-                            @endif
-                            <i class="fa-solid fa-chevron-down" style="font-size: 12px; margin-right: 5px;"></i>
-                        </button>
-                        <div class="dropdown-content">
-                            <a href="{{ route('dashboard') }}">
-                                <i class="fa-solid fa-home"></i> {{ trans('messages.dashboard') }}
-                            </a>
-                            <a href="{{ route('profile.edit') }}">
-                                <i class="fa-solid fa-user-circle"></i> الملف الشخصي
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="{{ route('claims.index') }}">
-                                <i class="fa-solid fa-file-invoice-dollar"></i> المطالبات
-                            </a>
-                            <a href="{{ route('returns.index') }}">
-                                <i class="fa-solid fa-file-invoice"></i> الفواتير العائدة
-                            </a>
-                            <a href="{{ route('payments.index') }}">
-                                <i class="fa-solid fa-money-check-dollar"></i> أوامر الدفع
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fa-solid fa-sign-out-alt"></i> {{ trans('messages.logout') }}
-                                </button>
-                            </form>
+        <nav class="navbar">
+            <a href="{{ route('dashboard') }}" style="color: #fff !important;" class="navbar-brand">
+                {{-- <i class="fa-solid fa-chart-line"></i> --}}
+                <i class="fa-solid fa-file-circle-check"></i>
+                <span>
+                    نظام إدارة المطالبات المالية
+                    <br>
+                    Claims Management System
+                </span>
+            </a>
+            <div class="navbar-menu">
+                <div class="navbar-user-dropdown">
+                    <button class="navbar-user-btn">
+                        <span>مرحباً، {{ Auth::user()->name }}</span>
+                        @if(Auth::user()->avatar)
+                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="user-avatar">
+                        @else
+                        <div class="user-avatar-placeholder">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                         </div>
+                        @endif
+                        <i class="fa-solid fa-chevron-down" style="font-size: 12px; margin-right: 5px;"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ route('dashboard') }}">
+                            <i class="fa-solid fa-home"></i> {{ trans('messages.dashboard') }}
+                        </a>
+                        <a href="{{ route('profile.edit') }}">
+                            <i class="fa-solid fa-user-circle"></i> الملف الشخصي
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ route('claims.index') }}">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> المطالبات
+                        </a>
+                        <a href="{{ route('returns.index') }}">
+                            <i class="fa-solid fa-file-invoice"></i> الفواتير العائدة
+                        </a>
+                        <a href="{{ route('payments.index') }}">
+                            <i class="fa-solid fa-money-check-dollar"></i> أوامر الدفع
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="dropdown-item">
+                                <i class="fa-solid fa-sign-out-alt"></i> {{ trans('messages.logout') }}
+                            </button>
+                        </form>
                     </div>
                 </div>
-            </nav>
-            <div class="dashboard-container">
-        @endif
+            </div>
+        </nav>
+        <div class="dashboard-container">
+            @endif
 
             @if ($message = Session::get('success'))
-                <div class="alert alert-success">
-                    <i class="fa-solid fa-check-circle"></i> {{ $message }}
-                </div>
+            <div class="alert alert-success">
+                <i class="fa-solid fa-check-circle"></i> {{ $message }}
+            </div>
             @endif
 
             @if ($message = Session::get('error'))
-                <div class="alert alert-error">
-                    <i class="fa-solid fa-exclamation-circle"></i> {{ $message }}
-                </div>
+            <div class="alert alert-error">
+                <i class="fa-solid fa-exclamation-circle"></i> {{ $message }}
+            </div>
             @endif
 
             @yield('content')
 
             @if (auth()->check())
-                </div>
-            @endif
+        </div>
+        @endif
     </div>
 
     <script src="{{ asset('js/app.js') }}"></script>
 
     <!-- DataTables & Buttons JS -->
-    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="{{ asset('modules/claims/js/jquery.min.js') }}"></script>
+    <script src="{{ asset('modules/claims/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('modules/claims/js/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('modules/claims/js/jszip.min.js') }}"></script>
+    <script src="{{ asset('modules/claims/js/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('modules/claims/js/buttons.print.min.js') }}"></script>
 
     @yield('scripts')
 </body>

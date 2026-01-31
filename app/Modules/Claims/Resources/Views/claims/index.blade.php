@@ -10,6 +10,7 @@
         border: none !important;
         border-radius: 4px;
     }
+
     .dt-buttons {
         margin-bottom: 15px;
     }
@@ -19,23 +20,21 @@
     $(document).ready(function() {
         $('#claimsTable').DataTable({
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: '<i class="fa-solid fa-file-excel"></i> تصدير إكسل',
-                    className: 'btn-excel',
-                    attr: {
-                        style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
-                    },
-                    exportOptions: {
-                        columns: ':visible'
-                    },
-                    customize: function (xlsx) {
-                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
-                        $('sheetViews sheetView', sheet).attr('rightToLeft', '1');
-                    }
+            buttons: [{
+                extend: 'excelHtml5',
+                text: '<i class="fa-solid fa-file-excel"></i> تصدير إكسل',
+                className: 'btn-excel',
+                attr: {
+                    style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
+                },
+                exportOptions: {
+                    columns: ':visible'
+                },
+                customize: function(xlsx) {
+                    var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                    $('sheetViews sheetView', sheet).attr('rightToLeft', '1');
                 }
-            ],
+            }],
             "language": {
                 "sProcessing": "جاري التحميل...",
                 "sLengthMenu": "أظهر _MENU_ مدخلات",
@@ -74,9 +73,12 @@
                 <th>#</th>
                 <th>المستشفى / القسم</th>
                 <th>الشهر</th>
+                <th>عدد الفواتير</th>
+                <th>تاريخ المطالبة</th>
                 <th>الجهة</th>
                 <th>قيمة المطالبة</th>
                 <th>المبلغ بعد المراجعة</th>
+                <th>المراجع</th>
                 <th>الفرق</th>
                 <th>المرفقات</th>
                 <th style="text-align: center;">الإجراءات</th>
@@ -91,9 +93,12 @@
                     <div style="color: #64748b; font-size: 11px;"><i class="fa-solid fa-stethoscope"></i> {{ $claim->department->name ?? '-' }}</div>
                 </td>
                 <td>{{ $claim->month }}</td>
+                <td>{{ $claim->invoice_count }}</td>
+                <td>{{ $claim->claim_date->toDateString() }}</td>
                 <td><span style="font-weight: 500;">{{ $claim->entity->name ?? '-' }}</span></td>
                 <td style="color: #0f172a; font-weight: 600;">{{ number_format($claim->claim_value, 2) }} ج.م</td>
                 <td style="color: #10b981;">{{ $claim->reviewed_value ? number_format($claim->reviewed_value, 2) . ' ج.م' : '-' }}</td>
+                <td>{{ $claim->reviewer_name ?? '-' }}</td>
                 <td class="{{ ($claim->difference < 0) ? 'text-danger' : 'text-success' }}" style="font-weight: 600;">
                     {{ $claim->difference ? number_format($claim->difference, 2) . ' ج.م' : '-' }}
                 </td>

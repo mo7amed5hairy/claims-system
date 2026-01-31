@@ -22,7 +22,7 @@
         gap: 4px;
         border: 1px solid #dcfce7;
     }
-    
+
     .dt-buttons {
         margin-bottom: 15px;
     }
@@ -32,23 +32,21 @@
     $(document).ready(function() {
         $('#returnsTable').DataTable({
             dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: '<i class="fa-solid fa-file-excel"></i> تصدير إكسل',
-                    className: 'btn-excel',
-                    attr: {
-                        style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
-                    },
-                    exportOptions: {
-                        columns: ':visible'
-                    },
-                    customize: function (xlsx) {
-                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
-                        $('sheetViews sheetView', sheet).attr('rightToLeft', '1');
-                    }
+            buttons: [{
+                extend: 'excelHtml5',
+                text: '<i class="fa-solid fa-file-excel"></i> تصدير إكسل',
+                className: 'btn-excel',
+                attr: {
+                    style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
+                },
+                exportOptions: {
+                    columns: ':visible'
+                },
+                customize: function(xlsx) {
+                    var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                    $('sheetViews sheetView', sheet).attr('rightToLeft', '1');
                 }
-            ],
+            }],
             "language": {
                 "sProcessing": "جاري التحميل...",
                 "sLengthMenu": "أظهر _MENU_ مدخلات",
@@ -101,8 +99,11 @@
                 <th>#</th>
                 <th>المستشفى / القسم</th>
                 <th>الشهر</th>
+                <th>تاريخ الفاتورة</th>
                 <th>الجهة</th>
                 <th>عدد الفواتير</th>
+                <th>خصومات</th>
+                <th>ضرائب</th>
                 <th>المبلغ النهائي</th>
                 <th>المراجع</th>
                 <th style="text-align: center;">الإجراءات</th>
@@ -117,6 +118,7 @@
                     <div style="color: #64748b; font-size: 11px;"><i class="fa-solid fa-stethoscope"></i> {{ $invoice->department->name ?? '-' }}</div>
                 </td>
                 <td>{{ $invoice->month }}</td>
+                <td>{{ $invoice->return_date->toDateString() }}</td>
                 <td>
                     <div style="font-weight: 500;">{{ $invoice->entity->name ?? '-' }}</div>
                     @if($invoice->attachments && count($invoice->attachments) > 0)
