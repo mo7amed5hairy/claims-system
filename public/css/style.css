@@ -35,13 +35,18 @@ body {
     font-family: "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-primary);
     /* background-color: #ffffff; */
-    background: linear-gradient(135deg, #E2E7ED 0%, #f1f1f1  100%);
+    background: linear-gradient(135deg, #E2E7ED 0%, #f1f1f1 100%);
     line-height: 1.6;
     direction: rtl;
 }
 
-.text-danger { color: var(--danger-color) !important; }
-.text-success { color: var(--secondary-color) !important; }
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.text-success {
+    color: var(--secondary-color) !important;
+}
 
 
 /* =====================================================
@@ -66,11 +71,9 @@ body {
     right: -50%;
     width: 100%;
     height: 100%;
-    background: radial-gradient(
-        circle,
-        rgba(255, 255, 255, 0.1) 1px,
-        transparent 1px
-    );
+    background: radial-gradient(circle,
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px);
     background-size: 20px 20px;
     animation: float 20s infinite linear;
 }
@@ -79,6 +82,7 @@ body {
     0% {
         transform: translate(0, 0);
     }
+
     100% {
         transform: translate(50px, 50px);
     }
@@ -101,6 +105,7 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -143,8 +148,7 @@ body {
     border-radius: 16px;
     padding: 40px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    border-top: 4px solid
-        linear-gradient(90deg, var(--primary-light), var(--secondary-color));
+    border-top: 4px solid linear-gradient(90deg, var(--primary-light), var(--secondary-color));
 }
 
 .form-group {
@@ -156,7 +160,7 @@ body {
     font-size: 15px;
     font-weight: 600;
     /* color: var(--text-primary); */
-    color:#697484;
+    color: #697484;
     margin-bottom: 10px;
     text-align: right;
     display: flex;
@@ -165,7 +169,8 @@ body {
 }
 
 .form-label i {
-    color: var(--primary-light);
+    /* color: var(--primary-light); */
+    color: #667eea;
     font-size: 16px;
 }
 
@@ -218,13 +223,17 @@ body {
 }
 
 @media (max-width: 1200px) {
-    .form-row-4, .form-row-3 {
+
+    .form-row-4,
+    .form-row-3 {
         grid-template-columns: 1fr 1fr;
     }
 }
 
 @media (max-width: 768px) {
-    .form-row-4, .form-row-3 {
+
+    .form-row-4,
+    .form-row-3 {
         grid-template-columns: 1fr;
     }
 }
@@ -250,7 +259,8 @@ body {
 }
 
 .section-title i {
-    color: var(--primary-light);
+    /* color: var(--primary-light); */
+    color: #667eea;
     font-size: 18px;
 }
 
@@ -287,8 +297,9 @@ body {
     gap: 8px;
     min-height: 48px;
     flex: 1;
-    font-family:'Cairo' !important;
+    font-family: 'Cairo' !important;
 }
+
 .btn-login {
     padding: 14px 28px;
     font-size: 14px;
@@ -304,13 +315,14 @@ body {
     gap: 8px;
     min-height: 48px;
     flex: 1;
-    font-family:'Cairo' !important;
+    font-family: 'Cairo' !important;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
+    /* background-color: var(--primary-color); */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
 
@@ -428,7 +440,7 @@ body {
 
 .breadcrumb-separator {
     /* color: var(--border-color); */
-    color:#787c84;
+    color: #787c84;
     font-size: 12px;
 }
 
@@ -443,7 +455,7 @@ input[type="checkbox"] {
     accent-color: var(--primary-color);
 }
 
-input[type="checkbox"] + label {
+input[type="checkbox"]+label {
     cursor: pointer;
     user-select: none;
     color: var(--text-secondary);
@@ -558,7 +570,8 @@ a:hover {
     transform: translateY(-1px);
 }
 
-.selection-card.active, .selection-card:has(input:checked) {
+.selection-card.active,
+.selection-card:has(input:checked) {
     border-color: var(--primary-color);
     background: #f0f7ff;
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
@@ -586,7 +599,7 @@ a:hover {
     transition: all 0.2s ease;
 }
 
-.selection-card input:checked + .card-content .card-icon {
+.selection-card input:checked+.card-content .card-icon {
     background: var(--primary-color);
     color: white;
 }
@@ -609,7 +622,7 @@ a:hover {
     text-overflow: ellipsis;
 }
 
-.selection-card input:checked + .card-content .card-title {
+.selection-card input:checked+.card-content .card-title {
     color: var(--primary-color);
 }
 
@@ -626,12 +639,12 @@ a:hover {
     background: white;
 }
 
-.selection-card input:checked + .card-content .card-indicator {
+.selection-card input:checked+.card-content .card-indicator {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
 }
 
-.selection-card input:checked + .card-content .card-indicator::after {
+.selection-card input:checked+.card-content .card-indicator::after {
     content: "✓";
     color: white;
     font-size: 10px;
@@ -641,8 +654,8 @@ a:hover {
 
 
 
-.selection-card input:checked + .card-content + .card-indicator,
-.selection-card input:checked ~ .card-indicator {
+.selection-card input:checked+.card-content+.card-indicator,
+.selection-card input:checked~.card-indicator {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
 }
@@ -653,7 +666,7 @@ a:hover {
     display: none;
 }
 
-.selection-card input:checked ~ .card-indicator .checkmark {
+.selection-card input:checked~.card-indicator .checkmark {
     display: block;
 }
 
@@ -661,11 +674,11 @@ a:hover {
     display: block;
 }
 
-.hospital-card input[type="radio"]:checked ~ .card-content {
+.hospital-card input[type="radio"]:checked~.card-content {
     color: var(--primary-color);
 }
 
-.hospital-card input[type="radio"]:checked ~ .card-content .card-title {
+.hospital-card input[type="radio"]:checked~.card-content .card-title {
     color: var(--primary-color);
     font-weight: 700;
 }
@@ -675,7 +688,7 @@ a:hover {
 }
 
 /* Add checkmark icon */
-.selection-card input:checked ~ .card-indicator::after {
+.selection-card input:checked~.card-indicator::after {
     content: "✓";
     color: white;
     font-weight: bold;
@@ -724,11 +737,9 @@ a:hover {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(
-        90deg,
-        var(--primary-light),
-        var(--secondary-color)
-    );
+    background: linear-gradient(90deg,
+            var(--primary-light),
+            var(--secondary-color));
 }
 
 .operation-card:hover {
@@ -791,7 +802,7 @@ a:hover {
 .dashboard-container {
     min-height: 100vh;
     /* background: linear-gradient(135deg, #f8f9fa 0%, #e6f3ff 100%); */
-    background: linear-gradient(135deg, #E2E7ED 0%, #f1f1f1  100%);
+    background: linear-gradient(135deg, #E2E7ED 0%, #f1f1f1 100%);
     padding: 50px 20px;
     max-width: 1400px;
     margin: 0 auto;
@@ -846,6 +857,7 @@ a:hover {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -875,11 +887,9 @@ a:hover {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(
-        90deg,
-        var(--primary-light),
-        var(--secondary-color)
-    );
+    background: linear-gradient(90deg,
+            var(--primary-light),
+            var(--secondary-color));
 }
 
 .card:hover {
@@ -889,18 +899,18 @@ a:hover {
 }
 
 .card-icon {
-  font-size: 24px;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 45px;
-  height: 45px;
-  background: linear-gradient( 135deg, var(--primary-light), var(--primary-dark) );
-  color: white;
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
-  transition: var(--transition);
+    font-size: 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+    color: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    transition: var(--transition);
 }
 
 .card:hover .card-icon {
@@ -941,28 +951,32 @@ a:hover {
    ===================================================== */
 
 .table-container {
-    background: rgba(255, 255, 255, 0.6); /* Semi-transparent */
+    background: rgba(255, 255, 255, 0.6);
+    /* Semi-transparent */
     backdrop-filter: blur(10px);
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
     border: 1px solid rgba(255, 255, 255, 0.18);
     margin-bottom: 30px;
-    padding: 10px; /* Internal spacing */
+    padding: 10px;
+    /* Internal spacing */
 }
 
 .table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 8px; /* Gap between rows */
+    border-spacing: 0 8px;
+    /* Gap between rows */
     background: transparent !important;
     text-align: center;
 }
 
 .table thead {
-  background: rgba(32, 86, 223, 0.07) !important;
-  backdrop-filter: blur(200px) !important;
+    background: rgba(32, 86, 223, 0.07) !important;
+    backdrop-filter: blur(200px) !important;
 }
+
 .table thead th {
     background: transparent;
     padding: 20px 16px;
@@ -982,13 +996,13 @@ a:hover {
 
 .table tbody tr {
     background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     transition: all 0.3s ease;
 }
 
 .table tbody tr:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     background-color: #fcfdfe;
 }
 
@@ -1010,8 +1024,9 @@ a:hover {
 }
 
 .dataTables_wrapper .dataTables_filter {
-  margin-bottom: 1rem !important;
+    margin-bottom: 1rem !important;
 }
+
 /* Attachment Badge Styles */
 .attachment-badges {
     display: flex;
@@ -1043,10 +1058,21 @@ a:hover {
     font-size: 16px;
 }
 
-.badge-pdf { color: #ef4444; }
-.badge-image { color: #10b981; }
-.badge-excel { color: #059669; }
-.attachment-badge:hover i { color: white; }
+.badge-pdf {
+    color: #ef4444;
+}
+
+.badge-image {
+    color: #10b981;
+}
+
+.badge-excel {
+    color: #059669;
+}
+
+.attachment-badge:hover i {
+    color: white;
+}
 
 
 /* =====================================================
@@ -1098,7 +1124,8 @@ a:hover {
 
 .navbar {
     /* background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); */
-background: linear-gradient(135deg, #434c5e 0%, #193e63 100%);
+    /* background: linear-gradient(135deg, #434c5e 0%, #193e63 100%); */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 16px 32px;
     display: flex;
@@ -1337,7 +1364,8 @@ background: linear-gradient(135deg, #434c5e 0%, #193e63 100%);
     gap: 15px;
 }
 
-.drop-zone:hover, .drop-zone.dragover {
+.drop-zone:hover,
+.drop-zone.dragover {
     border-color: #3b82f6;
     background: #eff6ff;
     box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1);
@@ -1399,8 +1427,15 @@ background: linear-gradient(135deg, #434c5e 0%, #193e63 100%);
 }
 
 @keyframes slideInDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .file-icon {
@@ -1489,7 +1524,7 @@ background: linear-gradient(135deg, #434c5e 0%, #193e63 100%);
 
 .btn-action:hover {
     transform: translateY(-3px);
-    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -1498,8 +1533,22 @@ background: linear-gradient(135deg, #434c5e 0%, #193e63 100%);
 }
 
 /* File Type Icon Utility Classes */
-.icon-pdf { background-color: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; }
-.icon-image { background-color: rgba(16, 185, 129, 0.1) !important; color: #10b981 !important; }
-.icon-excel { background-color: rgba(5, 150, 105, 0.1) !important; color: #059669 !important; }
-.icon-default { background-color: rgba(59, 130, 246, 0.1) !important; color: #3b82f6 !important; }
+.icon-pdf {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+}
 
+.icon-image {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    color: #10b981 !important;
+}
+
+.icon-excel {
+    background-color: rgba(5, 150, 105, 0.1) !important;
+    color: #059669 !important;
+}
+
+.icon-default {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    color: #3b82f6 !important;
+}
