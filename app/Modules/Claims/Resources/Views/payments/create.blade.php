@@ -31,7 +31,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label"><i class="fa-solid fa-list-check"></i> نوع الحساب</label>
-                    <select name="account_type" class="form-control" required>
+                    <select name="account_type" class="form-control select2" required>
                         <option value="">اختر النوع</option>
                         <option value="بنكى" {{ old('account_type') == 'بنكى' ? 'selected' : '' }}>بنكى</option>
                         <option value="أمر دفع برقم مؤسسى" {{ old('account_type') == 'أمر دفع برقم مؤسسى' ? 'selected' : '' }}>أمر دفع برقم مؤسسى</option>
@@ -64,7 +64,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label"><i class="fa-solid fa-building"></i> الجهة المسددة</label>
-                    <select name="payer_entity_id" class="form-control" required>
+                    <select name="payer_entity_id" class="form-control select2" required>
                         <option value="">اختر الجهة</option>
                         @foreach($entities as $entity)
                         <option value="{{ $entity->id }}" {{ old('payer_entity_id') == $entity->id ? 'selected' : '' }}>{{ $entity->name }}</option>
@@ -97,4 +97,21 @@
         </form>
     </div>
 </div>
+@endsection
+
+
+
+@section('scripts')
+<link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
+<script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
+<script src="{{ asset('js/select2.min.js') }}"></script>
+
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            dir: "rtl",
+            width: '100%'
+        });
+    });
+</script>
 @endsection

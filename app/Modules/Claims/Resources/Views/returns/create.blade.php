@@ -36,7 +36,7 @@
                 <div class="form-row-3">
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-calendar"></i> شهر المطالبة</label>
-                        <select name="month" class="form-control" required>
+                        <select name="month" class="form-control select2" required>
                             <option value="">اختر الشهر</option>
                             @foreach(['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'] as $m)
                             <option value="{{ $m }}" {{ old('month') == $m ? 'selected' : '' }}>{{ $m }}</option>
@@ -53,7 +53,7 @@
 
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-building"></i> جهة المطالبة</label>
-                        <select name="entity_id" class="form-control" required>
+                        <select name="entity_id" class="form-control select2" required>
                             <option value="">اختر الجهة</option>
                             @foreach($entities as $entity)
                             <option value="{{ $entity->id }}" {{ old('entity_id', session('flow_options.entity_id')) == $entity->id ? 'selected' : '' }}>{{ $entity->name }}</option>
@@ -158,6 +158,21 @@
         </form>
     </div>
 </div>
+
+@section('scripts')
+<link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
+<script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
+<script src="{{ asset('js/select2.min.js') }}"></script>
+
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            dir: "rtl",
+            width: '100%'
+        });
+    });
+</script>
+@endsection
 
 <script>
     function calculateFinal() {

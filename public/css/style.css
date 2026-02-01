@@ -501,7 +501,7 @@ a:hover {
 }
 
 .select2-container .select2-selection--single {
-    height: 35px !important;
+    height: 58px !important;
 }
 
 .column-header {
@@ -1551,4 +1551,99 @@ a:hover {
 .icon-default {
     background-color: rgba(59, 130, 246, 0.1) !important;
     color: #3b82f6 !important;
+}
+
+
+/* container */
+.select2-container {
+    width: 100% !important;
+}
+
+/* main select box */
+.select2-container--default .select2-selection--single {
+    background-color: #fff;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    height: 56px;
+    /* ارتفاع ثابت */
+    padding: 0 16px !important;
+    /* padding أفقي بس */
+    display: flex;
+    align-items: center;
+    /* يوسّط النص */
+    position: relative;
+}
+
+
+.select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__arrow {
+    left: 6px !important;
+    right: auto;
+}
+
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 26px;
+    position: absolute;
+    top: 10px !important;
+    right: 1px;
+    width: 20px;
+    right: 0px;
+}
+
+/* selected text */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #444;
+    line-height: 3 !important;
+    padding: 0 !important;
+    font-size: 15px;
+}
+
+/* arrow */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 14px;
+    width: 24px;
+}
+
+/* RTL arrow fix */
+.select2-container--default[dir="rtl"] .select2-selection--single .select2-selection__arrow {
+    left: 14px;
+    right: auto;
+}
+
+/* remove default focus shadow */
+.select2-container--default .select2-selection--single:focus {
+    outline: none;
+}
+
+/* focus / open state */
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #667eea !important;
+}
+
+/* dropdown */
+.select2-dropdown {
+    border-radius: 12px !important;
+    border: 1px solid #e5e7eb !important;
+    overflow: hidden;
+}
+
+/* options */
+.select2-results__option {
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+/* hover option */
+.select2-results__option--highlighted {
+    background-color: #667eea !important;
+    color: #fff !important;
+}
+
+/* selected option */
+.select2-results__option--selected {
+    background-color: #f3f4f6 !important;
+    color: #111 !important;
 }

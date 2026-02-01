@@ -62,6 +62,7 @@ class ClaimController extends Controller
      */
     public function store(Request $request)
     {
+        // Validate inputs
         $data = $request->validate([
             'invoice_count' => 'required|numeric|min:1',
             'month' => 'required|string',
@@ -74,30 +75,33 @@ class ClaimController extends Controller
             'insurance_claim_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xls,xlsx|max:10240',
+            'branch' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'beneficiary' => 'nullable|string|max:255',
         ]);
 
+        // Hospital & Department from session
         $data['hospital_id'] = session('flow_hospital_id');
         $data['department_id'] = session('flow_department_id');
 
-        // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches
-        $flowOptions = session('flow_options', []);
-        if (isset($flowOptions['entity_id']) && $data['entity_id'] == $flowOptions['entity_id']) {
-            $data['branch'] = $flowOptions['branch'] ?? null;
-            $data['location'] = $flowOptions['location'] ?? null;
-            $data['beneficiary'] = $flowOptions['law'] ?? null;
-        }
+        // Flow Options: take directly from form inputs
+        $data['branch'] = $request->input('branch');          // من الفورم
+        $data['location'] = $request->input('location');      // من الفورم
+        $data['beneficiary'] = $request->input('beneficiary');// من الفورم
 
-        // Handle file uploads
+        // Handle file uploads if any
         if ($request->hasFile('attachments')) {
-            $claimModel = new Claim(); // Temp instance to use trait methods if not using static
+            $claimModel = new Claim(); // Temp instance to use trait methods if needed
             $data['attachments'] = $claimModel->uploadMultipleMedia($request->file('attachments'));
         }
 
+        // Create the claim
         $claim = $this->claimService->createClaim($data);
 
         return redirect()->route('claims.index')
             ->with('success', trans('messages.claim_created_successfully'));
     }
+
 
     /**
      * Show edit claim form
