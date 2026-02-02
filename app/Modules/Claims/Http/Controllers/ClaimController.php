@@ -129,6 +129,9 @@ class ClaimController extends Controller
             'insurance_claim_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xls,xlsx|max:10240',
+            'branch' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'beneficiary' => 'nullable|string|max:255',
         ]);
 
         // Handle file uploads/replacements

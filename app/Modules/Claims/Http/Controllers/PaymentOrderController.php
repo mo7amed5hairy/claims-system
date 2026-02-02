@@ -77,6 +77,9 @@ class PaymentOrderController extends Controller
                 }),
             ],
             'notes' => 'nullable|string',
+            'branch' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'beneficiary' => 'nullable|string|max:255',
         ], [
             'electronic_invoice_no.exists' => 'رقم الفاتورة الإلكترونية غير موجود في نظام المطالبات للجهة المختارة.',
         ]);
@@ -92,8 +95,8 @@ class PaymentOrderController extends Controller
         $claim = \App\Modules\Claims\Models\Claim::where('electronic_invoice_no', $request->electronic_invoice_no)->first();
 
         if ($claim) {
-            $maxAmount = (float)$claim->reviewed_value;
-            $paymentAmount = (float)$request->amount;
+            $maxAmount = (float) $claim->reviewed_value;
+            $paymentAmount = (float) $request->amount;
 
             if ($paymentAmount > $maxAmount) {
                 return back()->withErrors([
@@ -137,6 +140,9 @@ class PaymentOrderController extends Controller
                 }),
             ],
             'notes' => 'nullable|string',
+            'branch' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'beneficiary' => 'nullable|string|max:255',
         ], [
             'electronic_invoice_no.exists' => 'رقم الفاتورة الإلكترونية غير موجود في نظام المطالبات للجهة المختارة.',
         ]);
@@ -159,8 +165,8 @@ class PaymentOrderController extends Controller
             $claim = \App\Modules\Claims\Models\Claim::where('electronic_invoice_no', $request->electronic_invoice_no)->first();
 
             if ($claim) {
-                $maxAmount = (float)$claim->reviewed_value;
-                $paymentAmount = (float)$request->amount;
+                $maxAmount = (float) $claim->reviewed_value;
+                $paymentAmount = (float) $request->amount;
 
                 if ($paymentAmount > $maxAmount) {
                     return back()->withErrors([

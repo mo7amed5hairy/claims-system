@@ -224,137 +224,135 @@
             </form>
         </div>
     </div>
+@endsection
 
+@section('scripts')
+    <link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
+    <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ asset('js/select2.min.js') }}"></script>
 
-    @section('scripts')
-        <link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
-        <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
-        <script src="{{ asset('js/select2.min.js') }}"></script>
-
-        <script>
-            $(document).ready(function () {
-                $('.select2').select2({
-                    dir: "rtl",
-                    width: '100%'
-                });
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                dir: "rtl",
+                width: '100%'
             });
-        </script>
+        });
+    </script>
 
-        <script>
-            $(document).ready(function () {
-                $('.select2').select2({ dir: "rtl", width: '100%' });
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({ dir: "rtl", width: '100%' });
 
-                const entitySelect = $('#entitySelect');
-                const branchContainer = $('#branchContainer');
-                const branchSelect = $('#branchSelect');
-                const subContainer = $('#subContainer');
-                const subSelect = $('#subSelect');
-                const subLabel = $('#subLabel');
-                const lawsContainer = $('#lawsContainer');
-                const lawsSelect = $('#lawsSelect');
+            const entitySelect = $('#entitySelect');
+            const branchContainer = $('#branchContainer');
+            const branchSelect = $('#branchSelect');
+            const subContainer = $('#subContainer');
+            const subSelect = $('#subSelect');
+            const subLabel = $('#subLabel');
+            const lawsContainer = $('#lawsContainer');
+            const lawsSelect = $('#lawsSelect');
 
-                function resetSub() {
-                    subSelect.empty().append('<option value="">اختر الاختيار</option>');
-                    subContainer.hide();
+            function resetSub() {
+                subSelect.empty().append('<option value="">اختر الاختيار</option>');
+                subContainer.hide();
 
-                    lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                    lawsContainer.hide();
+                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                lawsContainer.hide();
+            }
+
+            function fillBranchOptions(metadata, selectedBranch = '') {
+                branchSelect.empty().append('<option value="">اختر الفرع</option>');
+                if (metadata?.branches?.length) {
+                    metadata.branches.forEach(branch => {
+                        branchSelect.append(`<option value="${branch}">${branch}</option>`);
+                    });
+                    branchContainer.show();
+                    if (selectedBranch) branchSelect.val(selectedBranch).trigger('change');
+                } else {
+                    branchContainer.hide();
+                }
+            }
+
+            function fillSubOptions(metadata, branchVal, selectedSub = '') {
+                subSelect.empty().append('<option value="">اختر الاختيار</option>');
+                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                lawsContainer.hide();
+
+                if (!branchVal) return;
+
+                let subItems = [];
+                let labelText = 'المحافظات / المواقع';
+
+                if (metadata.laws) { // التأمين الصحي الشامل
+                    subItems = metadata.governorates || [];
+                    labelText = 'المحافظات';
+                } else if (metadata.governorates) {
+                    subItems = metadata.governorates;
+                    labelText = 'المحافظات';
+                } else if (metadata.locations) {
+                    subItems = metadata.locations;
+                    labelText = 'المواقع';
                 }
 
-                function fillBranchOptions(metadata, selectedBranch = '') {
-                    branchSelect.empty().append('<option value="">اختر الفرع</option>');
-                    if (metadata?.branches?.length) {
-                        metadata.branches.forEach(branch => {
-                            branchSelect.append(`<option value="${branch}">${branch}</option>`);
-                        });
-                        branchContainer.show();
-                        if (selectedBranch) branchSelect.val(selectedBranch).trigger('change');
-                    } else {
-                        branchContainer.hide();
-                    }
+                if (subItems.length) {
+                    subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
+                    subLabel.text(labelText);
+                    subContainer.show();
+                    if (selectedSub) subSelect.val(selectedSub).trigger('change');
                 }
+            }
 
-                function fillSubOptions(metadata, branchVal, selectedSub = '') {
-                    subSelect.empty().append('<option value="">اختر الاختيار</option>');
-                    lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                    lawsContainer.hide();
+            function fillLawsOptions(metadata, subVal, selectedLaw = '') {
+                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                if (!metadata.laws || !subVal) return;
 
-                    if (!branchVal) return;
+                metadata.laws.forEach(item => lawsSelect.append(`<option value="${item}">${item}</option>`));
+                lawsContainer.show();
+                if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
+            }
 
-                    let subItems = [];
-                    let labelText = 'المحافظات / المواقع';
+            entitySelect.on('change', function () {
+                const selectedOption = $(this).find('option:selected');
+                const metadata = selectedOption.data('metadata');
 
-                    if (metadata.laws) { // التأمين الصحي الشامل
-                        subItems = metadata.governorates || [];
-                        labelText = 'المحافظات';
-                    } else if (metadata.governorates) {
-                        subItems = metadata.governorates;
-                        labelText = 'المحافظات';
-                    } else if (metadata.locations) {
-                        subItems = metadata.locations;
-                        labelText = 'المواقع';
-                    }
-
-                    if (subItems.length) {
-                        subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
-                        subLabel.text(labelText);
-                        subContainer.show();
-                        if (selectedSub) subSelect.val(selectedSub).trigger('change');
-                    }
-                }
-
-                function fillLawsOptions(metadata, subVal, selectedLaw = '') {
-                    lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                    if (!metadata.laws || !subVal) return;
-
-                    metadata.laws.forEach(item => lawsSelect.append(`<option value="${item}">${item}</option>`));
-                    lawsContainer.show();
-                    if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
-                }
-
-                entitySelect.on('change', function () {
-                    const selectedOption = $(this).find('option:selected');
-                    const metadata = selectedOption.data('metadata');
-
-                    // ملء الفروع فقط إذا موجودة
-                    fillBranchOptions(metadata);
-                    resetSub();
-                });
-
-                branchSelect.on('change', function () {
-                    const branchVal = $(this).val() || '';
-                    const metadata = entitySelect.find('option:selected').data('metadata');
-                    fillSubOptions(metadata, branchVal);
-                });
-
-                subSelect.on('change', function () {
-                    const subVal = $(this).val() || '';
-                    const metadata = entitySelect.find('option:selected').data('metadata');
-                    fillLawsOptions(metadata, subVal);
-                });
-
-                // ==== تهيئة الصفحة عند التحميل فقط إذا فيه اختيارات سابقة موجودة ====
-                const initialEntity = '{{ session("flow_options.entity_id", "") }}';
-                const initialBranch = '{{ session("flow_options.branch", "") }}';
-                const initialSub = '{{ session("flow_options.location", "") }}';
-                const initialLaw = '{{ session("flow_options.law", "") }}';
-
-                if (initialEntity) {
-                    entitySelect.val(initialEntity).trigger('change');
-                    const selectedOption = entitySelect.find('option:selected');
-                    const metadata = selectedOption.data('metadata');
-
-                    if (initialBranch) fillBranchOptions(metadata, initialBranch);
-                    if (initialSub) fillSubOptions(metadata, initialBranch, initialSub);
-                    if (initialLaw) fillLawsOptions(metadata, initialSub, initialLaw);
-                }
+                // ملء الفروع فقط إذا موجودة
+                fillBranchOptions(metadata);
+                resetSub();
             });
 
+            branchSelect.on('change', function () {
+                const branchVal = $(this).val() || '';
+                const metadata = entitySelect.find('option:selected').data('metadata');
+                fillSubOptions(metadata, branchVal);
+            });
+
+            subSelect.on('change', function () {
+                const subVal = $(this).val() || '';
+                const metadata = entitySelect.find('option:selected').data('metadata');
+                fillLawsOptions(metadata, subVal);
+            });
+
+            // ==== تهيئة الصفحة عند التحميل فقط إذا فيه اختيارات سابقة موجودة ====
+            const initialEntity = '{{ session("flow_options.entity_id", "") }}';
+            const initialBranch = '{{ session("flow_options.branch", "") }}';
+            const initialSub = '{{ session("flow_options.location", "") }}';
+            const initialLaw = '{{ session("flow_options.law", "") }}';
+
+            if (initialEntity) {
+                entitySelect.val(initialEntity).trigger('change');
+                const selectedOption = entitySelect.find('option:selected');
+                const metadata = selectedOption.data('metadata');
+
+                if (initialBranch) fillBranchOptions(metadata, initialBranch);
+                if (initialSub) fillSubOptions(metadata, initialBranch, initialSub);
+                if (initialLaw) fillLawsOptions(metadata, initialSub, initialLaw);
+            }
+        });
 
 
-        </script>
 
-    @endsection
+    </script>
 
     <script>
         function calculateDiff() {
@@ -422,22 +420,22 @@
             }
 
             div.innerHTML = `
-                                                                                                                                                                                                    <div class="file-icon" style="background: ${color}15; color: ${color};">
-                                                                                                                                                                                                        <i class="fa-solid ${icon}"></i>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                    <div class="file-details">
-                                                                                                                                                                                                        <div class="file-name">${file.name}</div>
-                                                                                                                                                                                                        <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                                                                                                                                                                                                        <div class="progress-container" style="display: block;">
-                                                                                                                                                                                                            <div class="progress-bar"></div>
+                                                                                                                                                                                                        <div class="file-icon" style="background: ${color}15; color: ${color};">
+                                                                                                                                                                                                            <i class="fa-solid ${icon}"></i>
                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                    <div class="file-actions">
-                                                                                                                                                                                                        <button type="button" class="btn-remove" title="حذف وإلغاء">
-                                                                                                                                                                                                            <i class="fa-solid fa-trash-can"></i>
-                                                                                                                                                                                                        </button>
-                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                `;
+                                                                                                                                                                                                        <div class="file-details">
+                                                                                                                                                                                                            <div class="file-name">${file.name}</div>
+                                                                                                                                                                                                            <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                                                                                                                                                                                            <div class="progress-container" style="display: block;">
+                                                                                                                                                                                                                <div class="progress-bar"></div>
+                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                        <div class="file-actions">
+                                                                                                                                                                                                            <button type="button" class="btn-remove" title="حذف وإلغاء">
+                                                                                                                                                                                                                <i class="fa-solid fa-trash-can"></i>
+                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                    `;
 
             div.querySelector('.btn-remove').onclick = () => {
                 if (div.uploadInterval) clearInterval(div.uploadInterval);
@@ -508,6 +506,4 @@
             }
         }
     </script>
-
-
 @endsection

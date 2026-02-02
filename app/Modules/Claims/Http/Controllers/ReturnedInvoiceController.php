@@ -76,11 +76,14 @@ class ReturnedInvoiceController extends Controller
             'reviewer_name' => 'nullable|string|max:255',
             'reason' => 'nullable|string',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xls,xlsx|max:10240',
+            'branch' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'beneficiary' => 'nullable|string|max:255',
         ]);
 
         // Smart Validation for Electronic Invoice Number
         $invoiceNo = $request->electronic_invoice_no;
-        $selectedEntityId = (int)$request->entity_id;
+        $selectedEntityId = (int) $request->entity_id;
 
         $claim = \App\Modules\Claims\Models\Claim::where('electronic_invoice_no', $invoiceNo)->first();
 
@@ -88,7 +91,7 @@ class ReturnedInvoiceController extends Controller
             return back()->withErrors(['electronic_invoice_no' => 'عفواً، رقم الفاتورة الإلكترونية هذا غير مسجل في نظام المطالبات. يرجى التأكد من الرقم الصحيح.'])->withInput();
         }
 
-        if ((int)$claim->entity_id !== $selectedEntityId) {
+        if ((int) $claim->entity_id !== $selectedEntityId) {
             $correctEntity = \App\Modules\Claims\Models\ClaimEntity::find($claim->entity_id);
             $entityName = $correctEntity ? $correctEntity->name : 'جهة أخرى';
             return back()->withErrors([
@@ -97,8 +100,8 @@ class ReturnedInvoiceController extends Controller
         }
 
         // Business Logic Validation: Invoice Count
-        $returnedCount = (int)$request->returned_invoice_count;
-        $originalCount = (int)$claim->invoice_count;
+        $returnedCount = (int) $request->returned_invoice_count;
+        $originalCount = (int) $claim->invoice_count;
 
         if ($returnedCount > $originalCount) {
             return back()->withErrors([
@@ -107,8 +110,8 @@ class ReturnedInvoiceController extends Controller
         }
 
         // Business Logic Validation: Return Value
-        $returnedValue = (float)$request->value;
-        $originalValue = (float)$claim->claim_value;
+        $returnedValue = (float) $request->value;
+        $originalValue = (float) $claim->claim_value;
 
         if ($returnedValue > $originalValue) {
             return back()->withErrors([
@@ -117,8 +120,8 @@ class ReturnedInvoiceController extends Controller
         }
 
         // Business Logic Validation: Final Amount vs Reviewed Value
-        $finalAmount = (float)$request->final_amount;
-        $claimReviewedValue = (float)$claim->reviewed_value;
+        $finalAmount = (float) $request->final_amount;
+        $claimReviewedValue = (float) $claim->reviewed_value;
 
         if ($claimReviewedValue > 0 && $finalAmount > $claimReviewedValue) {
             return back()->withErrors([
@@ -131,11 +134,12 @@ class ReturnedInvoiceController extends Controller
         $data['department_id'] = session('flow_department_id');
 
         // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches
+        // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches AND not provided in form
         $flowOptions = session('flow_options', []);
         if (isset($flowOptions['entity_id']) && $data['entity_id'] == $flowOptions['entity_id']) {
-            $data['branch'] = $flowOptions['branch'] ?? null;
-            $data['location'] = $flowOptions['location'] ?? null;
-            $data['beneficiary'] = $flowOptions['law'] ?? null;
+            $data['branch'] = $data['branch'] ?: ($flowOptions['branch'] ?? null);
+            $data['location'] = $data['location'] ?: ($flowOptions['location'] ?? null);
+            $data['beneficiary'] = $data['beneficiary'] ?: ($flowOptions['law'] ?? null);
         }
 
         // Handle file uploads
@@ -178,11 +182,14 @@ class ReturnedInvoiceController extends Controller
             'reviewer_name' => 'nullable|string|max:255',
             'reason' => 'nullable|string',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xls,xlsx|max:10240',
+            'branch' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'beneficiary' => 'nullable|string|max:255',
         ]);
 
         // Smart Validation for Electronic Invoice Number
         $invoiceNo = $request->electronic_invoice_no;
-        $selectedEntityId = (int)$request->entity_id;
+        $selectedEntityId = (int) $request->entity_id;
 
         $claim = \App\Modules\Claims\Models\Claim::where('electronic_invoice_no', $invoiceNo)->first();
 
@@ -190,7 +197,7 @@ class ReturnedInvoiceController extends Controller
             return back()->withErrors(['electronic_invoice_no' => 'عفواً، رقم الفاتورة الإلكترونية هذا غير مسجل في نظام المطالبات. يرجى التأكد من الرقم الصحيح.'])->withInput();
         }
 
-        if ((int)$claim->entity_id !== $selectedEntityId) {
+        if ((int) $claim->entity_id !== $selectedEntityId) {
             $correctEntity = \App\Modules\Claims\Models\ClaimEntity::find($claim->entity_id);
             $entityName = $correctEntity ? $correctEntity->name : 'جهة أخرى';
             return back()->withErrors([
@@ -199,8 +206,8 @@ class ReturnedInvoiceController extends Controller
         }
 
         // Business Logic Validation: Invoice Count
-        $returnedCount = (int)$request->returned_invoice_count;
-        $originalCount = (int)$claim->invoice_count;
+        $returnedCount = (int) $request->returned_invoice_count;
+        $originalCount = (int) $claim->invoice_count;
 
         if ($returnedCount > $originalCount) {
             return back()->withErrors([
@@ -209,8 +216,8 @@ class ReturnedInvoiceController extends Controller
         }
 
         // Business Logic Validation: Return Value
-        $returnedValue = (float)$request->value;
-        $originalValue = (float)$claim->claim_value;
+        $returnedValue = (float) $request->value;
+        $originalValue = (float) $claim->claim_value;
 
         if ($returnedValue > $originalValue) {
             return back()->withErrors([
@@ -219,9 +226,9 @@ class ReturnedInvoiceController extends Controller
         }
 
         // Business Logic Validation: Final Amount vs Reviewed Value (considering old return values)
-        $finalAmount = (float)$request->final_amount;
-        $oldFinalAmount = (float)$return->final_amount;
-        $claimReviewedValue = (float)$claim->reviewed_value + $oldFinalAmount; // Add back old value for comparison
+        $finalAmount = (float) $request->final_amount;
+        $oldFinalAmount = (float) $return->final_amount;
+        $claimReviewedValue = (float) $claim->reviewed_value + $oldFinalAmount; // Add back old value for comparison
 
         if ($claimReviewedValue > 0 && $finalAmount > $claimReviewedValue) {
             return back()->withErrors([
