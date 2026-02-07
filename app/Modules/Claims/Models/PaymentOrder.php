@@ -16,12 +16,14 @@ class PaymentOrder extends Model
         'due_date',
         'payer_entity_id',
         'payee_hospital_id',
+        'department_id',
         'electronic_invoice_no',
         'invoice_no',
         'notes',
         'branch',
         'location',
-        'beneficiary'
+        'beneficiary',
+        'user_id'
     ];
 
     protected $casts = [
@@ -37,5 +39,15 @@ class PaymentOrder extends Model
     public function payeeHospital(): BelongsTo
     {
         return $this->belongsTo(Hospital::class, 'payee_hospital_id');
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
     }
 }

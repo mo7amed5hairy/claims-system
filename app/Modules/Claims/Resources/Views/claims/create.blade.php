@@ -18,11 +18,6 @@
 
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-file-invoice-dollar"></i> إنشاء مطالبة جديدة</h1>
-        <p class="page-subtitle">
-            <span><i class="fa-solid fa-hospital"></i> {{ $hospital->name }}</span>
-            <span style="margin: 0 8px;">•</span>
-            <span><i class="fa-solid fa-stethoscope"></i> {{ $department->name }}</span>
-        </p>
     </div>
 
     <div class="form-container">
@@ -30,38 +25,30 @@
             <form action="{{ route('claims.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Main Info Row: 4 Columns -->
+                <!-- Hospital and Department Row -->
                 <div class="form-row-4">
+
                     <div class="form-group">
-                        <label class="form-label">
-                            <i class="fa-solid fa-calculator"></i> عدد الفواتير
-                        </label>
-                        <input type="number" name="invoice_count" class="form-control" min="1"
-                            value="{{ old('invoice_count') }}" required>
-                        @error('invoice_count') <span class="error-message">{{ $message }}</span> @enderror
+                        <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
+                        <select name="hospital_id" id="hospitalSelect" class="form-control select2" required>
+                            <option value="">اختر المستشفى</option>
+                            @foreach($allHospitals as $hosp)
+                                <option value="{{ $hosp->id }}">
+                                    {{ $hosp->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('hospital_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">
-                            <i class="fa-solid fa-calendar"></i> الشهر
-                        </label>
-                        <select name="month" class="form-control select2" required>
-                            <option value="">اختر الشهر</option>
-                            <option value="يناير" {{ old('month') == 'يناير' ? 'selected' : '' }}>يناير</option>
-                            <option value="فبراير" {{ old('month') == 'فبراير' ? 'selected' : '' }}>فبراير</option>
-                            <option value="مارس" {{ old('month') == 'مارس' ? 'selected' : '' }}>مارس</option>
-                            <option value="أبريل" {{ old('month') == 'أبريل' ? 'selected' : '' }}>أبريل</option>
-                            <option value="مايو" {{ old('month') == 'مايو' ? 'selected' : '' }}>مايو</option>
-                            <option value="يونيو" {{ old('month') == 'يونيو' ? 'selected' : '' }}>يونيو</option>
-                            <option value="يوليو" {{ old('month') == 'يوليو' ? 'selected' : '' }}>يوليو</option>
-                            <option value="أغسطس" {{ old('month') == 'أغسطس' ? 'selected' : '' }}>أغسطس</option>
-                            <option value="سبتمبر" {{ old('month') == 'سبتمبر' ? 'selected' : '' }}>سبتمبر</option>
-                            <option value="أكتوبر" {{ old('month') == 'أكتوبر' ? 'selected' : '' }}>أكتوبر</option>
-                            <option value="نوفمبر" {{ old('month') == 'نوفمبر' ? 'selected' : '' }}>نوفمبر</option>
-                            <option value="ديسمبر" {{ old('month') == 'ديسمبر' ? 'selected' : '' }}>ديسمبر</option>
+                        <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
+                        <select name="department_id" id="departmentSelect" class="form-control select2" required>
+                            <option value="">اختر القسم</option>
                         </select>
-                        @error('month') <span class="error-message">{{ $message }}</span> @enderror
+                        @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
+
 
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-building"></i> الجهة</label>
@@ -94,6 +81,13 @@
                         </select>
                     </div>
 
+
+                </div>
+
+                <!-- Main Info Row: 4 Columns -->
+                <div class="form-row-4">
+
+
                     <!-- قائمة المستفيدين / القوانين -->
                     <div class="form-group" id="lawsContainer" style="display: none;">
                         <label class="form-label"><i class="fa-solid fa-file-lines"></i> المستفيدين / القوانين</label>
@@ -101,6 +95,39 @@
                             <option value="">اختر المستفيد</option>
                         </select>
                     </div>
+
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fa-solid fa-calculator"></i> عدد الفواتير
+                        </label>
+                        <input type="number" name="invoice_count" class="form-control" min="1"
+                            value="{{ old('invoice_count') }}" required>
+                        @error('invoice_count') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fa-solid fa-calendar"></i> الشهر
+                        </label>
+                        <select name="month" class="form-control select2" required>
+                            <option value="">اختر الشهر</option>
+                            <option value="يناير" {{ old('month') == 'يناير' ? 'selected' : '' }}>يناير</option>
+                            <option value="فبراير" {{ old('month') == 'فبراير' ? 'selected' : '' }}>فبراير</option>
+                            <option value="مارس" {{ old('month') == 'مارس' ? 'selected' : '' }}>مارس</option>
+                            <option value="أبريل" {{ old('month') == 'أبريل' ? 'selected' : '' }}>أبريل</option>
+                            <option value="مايو" {{ old('month') == 'مايو' ? 'selected' : '' }}>مايو</option>
+                            <option value="يونيو" {{ old('month') == 'يونيو' ? 'selected' : '' }}>يونيو</option>
+                            <option value="يوليو" {{ old('month') == 'يوليو' ? 'selected' : '' }}>يوليو</option>
+                            <option value="أغسطس" {{ old('month') == 'أغسطس' ? 'selected' : '' }}>أغسطس</option>
+                            <option value="سبتمبر" {{ old('month') == 'سبتمبر' ? 'selected' : '' }}>سبتمبر</option>
+                            <option value="أكتوبر" {{ old('month') == 'أكتوبر' ? 'selected' : '' }}>أكتوبر</option>
+                            <option value="نوفمبر" {{ old('month') == 'نوفمبر' ? 'selected' : '' }}>نوفمبر</option>
+                            <option value="ديسمبر" {{ old('month') == 'ديسمبر' ? 'selected' : '' }}>ديسمبر</option>
+                        </select>
+                        @error('month') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
 
 
 
@@ -192,6 +219,31 @@
                     </div>
                 </div>
 
+                <!-- Delivery Information Section -->
+                <div class="form-section"
+                    style="padding: 20px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; margin-bottom: 25px;">
+                    <h3 class="section-title" style="color: #334155;">
+                        <i class="fa-solid fa-truck-fast"></i> بيانات تسليم المطالبة
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fa-solid fa-calendar-check"></i> تاريخ التسليم
+                            </label>
+                            <input type="date" name="delivery_date" class="form-control" value="{{ old('delivery_date') }}">
+                            @error('delivery_date') <span class="error-message">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fa-solid fa-upload"></i> مرفقات التسليم
+                            </label>
+                            <input type="file" name="delivery_attachments[]" class="form-control" multiple>
+                            <small class="text-muted" style="font-size: 10px;">يمكنك اختيار ملفات متعددة (صور، PDF،
+                                إكسل)</small>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Attachments Section -->
                 <div class="form-section">
                     <h3 class="section-title">
@@ -233,17 +285,60 @@
 
     <script>
         $(document).ready(function () {
+            // Consolidated Select2 Initialization
             $('.select2').select2({
                 dir: "rtl",
-                width: '100%'
+                width: '100%',
+                closeOnSelect: true
+            }).on('select2:select', function (e) {
+                $(this).select2('close');
             });
         });
     </script>
 
     <script>
         $(document).ready(function () {
-            $('.select2').select2({ dir: "rtl", width: '100%' });
+            // Select2 auto-close handled in app.blade.php globally
 
+            // Hospital & Department Logic
+            const hospitalsData = @json($allHospitals);
+            const hospitalSelect = $('#hospitalSelect');
+            const departmentSelect = $('#departmentSelect');
+
+            // Initial Values
+            const initialHospitalId = "{{ old('hospital_id', $hospital->id ?? '') }}";
+            const initialDepartmentId = "{{ old('department_id', $department->id ?? '') }}";
+
+            function populateDepartments(hospitalId, selectedDeptId = '') {
+                departmentSelect.empty().append('<option value="">اختر القسم</option>');
+
+                const hospital = hospitalsData.find(h => h.id == hospitalId);
+                if (hospital && hospital.departments) {
+                    hospital.departments.forEach(dept => {
+                        departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                    });
+                }
+
+                if (selectedDeptId) {
+                    departmentSelect.val(selectedDeptId).trigger('change');
+                }
+            }
+
+            hospitalSelect.on('change', function () {
+                const hospId = $(this).val();
+                populateDepartments(hospId);
+            });
+
+            // Set initial hospital and department
+            if (initialHospitalId) {
+                hospitalSelect.val(initialHospitalId).trigger('change');
+                // We need to wait for change to fire or call manually, but we also need to pass the dept ID
+                // Trigger change calls the listener which clears the dept. So we must call populate directly.
+                populateDepartments(initialHospitalId, initialDepartmentId);
+            }
+
+
+            // Entity & Dynamic Fields Logic
             const entitySelect = $('#entitySelect');
             const branchContainer = $('#branchContainer');
             const branchSelect = $('#branchSelect');
@@ -254,32 +349,54 @@
             const lawsSelect = $('#lawsSelect');
 
             function resetSub() {
-                subSelect.empty().append('<option value="">اختر الاختيار</option>');
-                subContainer.hide();
-
-                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                lawsContainer.hide();
+                branchContainer.slideUp(300);
+                subContainer.slideUp(300);
+                lawsContainer.slideUp(300);
             }
 
             function fillBranchOptions(metadata, selectedBranch = '') {
                 branchSelect.empty().append('<option value="">اختر الفرع</option>');
+
+                // Special Case: Universal Health Insurance -> Skip Branches
+                // Check name of selected entity
+                const selectedEntityName = entitySelect.find('option:selected').text().trim();
+                // Special Case: Universal Health Insurance (Detected by laws in metadata) -> Skip Branches
+                if (metadata && metadata.laws) {
+                    branchContainer.slideUp(300);
+                    // If we skip branches, we must trigger the next step (Sub/Governorates) directly.
+                    // But fillSubOptions usually expects a branchVal. 
+                    // However, if we skip branches, logic implies we go straight to governorates using metadata.
+                    // We can pass a dummy value or modify fillSubOptions to not require branchVal if it's this entity.
+                    fillSubOptions(metadata, 'SKIP_BRANCH', '{{ old("location") }}');
+                    return;
+                }
+
                 if (metadata?.branches?.length) {
                     metadata.branches.forEach(branch => {
                         branchSelect.append(`<option value="${branch}">${branch}</option>`);
                     });
-                    branchContainer.show();
+                    branchContainer.slideDown(300);
                     if (selectedBranch) branchSelect.val(selectedBranch).trigger('change');
                 } else {
-                    branchContainer.hide();
+                    branchContainer.slideUp(300);
+                    // If no branches, try to show next level
+                    fillSubOptions(metadata, 'NO_BRANCH', '{{ old("location") }}');
                 }
             }
 
             function fillSubOptions(metadata, branchVal, selectedSub = '') {
                 subSelect.empty().append('<option value="">اختر الاختيار</option>');
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                lawsContainer.hide();
+                lawsContainer.slideUp(300);
 
-                if (!branchVal) return;
+                // Allow processing if branchVal is a special indicator (SKIP_BRANCH, NO_BRANCH)
+                // or if it's a valid branch value.
+                if (!branchVal && branchVal !== 'SKIP_BRANCH' && branchVal !== 'NO_BRANCH') return;
+
+                if (!metadata) {
+                    subContainer.slideUp(300);
+                    return;
+                }
 
                 let subItems = [];
                 let labelText = 'المحافظات / المواقع';
@@ -298,17 +415,22 @@
                 if (subItems.length) {
                     subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
                     subLabel.text(labelText);
-                    subContainer.show();
+                    subContainer.slideDown(300);
                     if (selectedSub) subSelect.val(selectedSub).trigger('change');
+                } else {
+                    subContainer.slideUp(300);
                 }
             }
 
             function fillLawsOptions(metadata, subVal, selectedLaw = '') {
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                if (!metadata.laws || !subVal) return;
+                if (!metadata.laws || !subVal) {
+                    lawsContainer.slideUp(300);
+                    return;
+                }
 
                 metadata.laws.forEach(item => lawsSelect.append(`<option value="${item}">${item}</option>`));
-                lawsContainer.show();
+                lawsContainer.slideDown(300);
                 if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
             }
 
@@ -316,9 +438,12 @@
                 const selectedOption = $(this).find('option:selected');
                 const metadata = selectedOption.data('metadata');
 
-                // ملء الفروع فقط إذا موجودة
+                // Fill Branches (or skip if Universal Health)
                 fillBranchOptions(metadata);
-                resetSub();
+                // resetSub is called inside fillBranchOptions indirectly if we show branches, 
+                // but if we skip, we call fillSubOptions directly.
+                // Actually resetSub was doing cleanup. Let's keep it safe.
+                // resetSub(); // Removed because fillBranchOptions handles flow
             });
 
             branchSelect.on('change', function () {
@@ -344,8 +469,17 @@
                 const selectedOption = entitySelect.find('option:selected');
                 const metadata = selectedOption.data('metadata');
 
-                if (initialBranch) fillBranchOptions(metadata, initialBranch);
-                if (initialSub) fillSubOptions(metadata, initialBranch, initialSub);
+                if (initialBranch) {
+                    fillBranchOptions(metadata, initialBranch);
+                } else if (metadata && metadata.laws) {
+                    // For UHI, skip branch and fill sub directly
+                    fillSubOptions(metadata, 'SKIP_BRANCH', initialSub);
+                }
+
+                if (initialSub && (!metadata || !metadata.laws)) {
+                    fillSubOptions(metadata, initialBranch || 'NO_BRANCH', initialSub);
+                }
+
                 if (initialLaw) fillLawsOptions(metadata, initialSub, initialLaw);
             }
         });
@@ -420,22 +554,22 @@
             }
 
             div.innerHTML = `
-                                                                                                                                                                                                        <div class="file-icon" style="background: ${color}15; color: ${color};">
-                                                                                                                                                                                                            <i class="fa-solid ${icon}"></i>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                        <div class="file-details">
-                                                                                                                                                                                                            <div class="file-name">${file.name}</div>
-                                                                                                                                                                                                            <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                                                                                                                                                                                                            <div class="progress-container" style="display: block;">
-                                                                                                                                                                                                                <div class="progress-bar"></div>
-                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                        <div class="file-actions">
-                                                                                                                                                                                                            <button type="button" class="btn-remove" title="حذف وإلغاء">
-                                                                                                                                                                                                                <i class="fa-solid fa-trash-can"></i>
-                                                                                                                                                                                                            </button>
-                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                    `;
+                                                                                                                                                                                                                                                                <div class="file-icon" style="background: ${color}15; color: ${color};">
+                                                                                                                                                                                                                                                                    <i class="fa-solid ${icon}"></i>
+                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                <div class="file-details">
+                                                                                                                                                                                                                                                                    <div class="file-name">${file.name}</div>
+                                                                                                                                                                                                                                                                    <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                                                                                                                                                                                                                                                    <div class="progress-container" style="display: block;">
+                                                                                                                                                                                                                                                                        <div class="progress-bar"></div>
+                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                <div class="file-actions">
+                                                                                                                                                                                                                                                                    <button type="button" class="btn-remove" title="حذف وإلغاء">
+                                                                                                                                                                                                                                                                        <i class="fa-solid fa-trash-can"></i>
+                                                                                                                                                                                                                                                                    </button>
+                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                            `;
 
             div.querySelector('.btn-remove').onclick = () => {
                 if (div.uploadInterval) clearInterval(div.uploadInterval);

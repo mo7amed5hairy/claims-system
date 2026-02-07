@@ -19,11 +19,6 @@
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-edit"></i> تعديل مطالبة <span
                 style="color: var(--primary-color);">#{{ $claim->id }}</span></h1>
-        <p class="page-subtitle">
-            <span><i class="fa-solid fa-hospital"></i> {{ $claim->hospital->name ?? '-' }}</span>
-            <span style="margin: 0 8px;">•</span>
-            <span><i class="fa-solid fa-stethoscope"></i> {{ $claim->department->name ?? '-' }}</span>
-        </p>
     </div>
 
     <div class="form-container">
@@ -31,6 +26,35 @@
             <form action="{{ route('claims.update', $claim->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+
+                <!-- Hospital and Department Row -->
+                <div class="form-row">
+
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
+                        <select name="hospital_id" id="hospitalSelect" class="form-control select2" required>
+                            <option value="">اختر المستشفى</option>
+                            @foreach($allHospitals as $hosp)
+                                <option value="{{ $hosp->id }}" {{ (old('hospital_id', $claim->hospital_id) == $hosp->id) ? 'selected' : '' }}>
+                                    {{ $hosp->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('hospital_id') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
+                        <select name="department_id" id="departmentSelect" class="form-control select2" required>
+                            <option value="">اختر القسم</option>
+                            <!-- Departments will be populated by JS, but if we have a selected hospital, we can preload them if we wanted. 
+                                 But since we are using JS source of truth for allHospitals, we'll let JS handle it on load. 
+                                 Or we can loop departments if we passed them.
+                            -->
+                        </select>
+                        @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+                </div>
 
                 <!-- Main Info Row: 4 Columns -->
                 <div class="form-row-4">
@@ -179,14 +203,50 @@
                             </div>
                         </div>
 
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fa-solid fa-note-sticky"></i> ملاحظات
+                        </label>
+                        <textarea name="notes" class="form-control" rows="4">{{ old('notes', $claim->notes) }}</textarea>
+                        @error('notes') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <!-- Delivery Information Section -->
+                <div class="form-section" style="padding: 20px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; margin-bottom: 25px;">
+                    <h3 class="section-title" style="color: #334155;">
+                        <i class="fa-solid fa-truck-fast"></i> بيانات تسليم المطالبة
+                    </h3>
+                    <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">
-                                <i class="fa-solid fa-note-sticky"></i> ملاحظات
+                                <i class="fa-solid fa-calendar-check"></i> تاريخ التسليم
                             </label>
-                            <textarea name="notes" class="form-control" rows="4">{{ old('notes', $claim->notes) }}</textarea>
-                            @error('notes') <span class="error-message">{{ $message }}</span> @enderror
+                            <input type="date" name="delivery_date" class="form-control" value="{{ old('delivery_date', $claim->delivery_date ? $claim->delivery_date->format('Y-m-d') : '') }}">
+                            @error('delivery_date') <span class="error-message">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fa-solid fa-upload"></i> مرفقات التسليم (استبدال)
+                            </label>
+                            <input type="file" name="delivery_attachments[]" class="form-control" multiple>
+                            <small class="text-muted" style="font-size: 10px;">تحميل ملفات جديدة سيستبدل المرفقات القديمة لبيانات التسليم.</small>
                         </div>
                     </div>
+
+                    @if($claim->delivery_attachments && count($claim->delivery_attachments) > 0)
+                        <div class="form-section" style="margin-top: 15px;">
+                            <label class="form-label" style="font-size: 12px; color: #64748b;">مرفقات التسليم الحالية:</label>
+                            <div class="file-item" style="display: flex; justify-content: flex-start; flex-direction: row; gap: 2rem;">
+                                @foreach($claim->delivery_attachments as $path)
+                                    <a href="{{ asset('storage/' . $path) }}" target="_blank" class="fa-solid fa-paperclip" style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; text-decoration: none; border: 1px solid #e2e8f0;">
+                                        <i class="fa-solid fa-file-arrow-down"></i>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
 
                     <!-- Existing Attachments Section -->
                     @if($claim->attachments && count($claim->attachments) > 0)
@@ -274,98 +334,144 @@
             <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
             <script src="{{ asset('js/select2.min.js') }}"></script>
 
-            <script>
-                $(document).ready(function () {
-                    $('.select2').select2({ dir: "rtl", width: '100%' });
+    <script>
+        $(document).ready(function () {
+            // Select2 auto-close handled in app.blade.php globally
 
-                    const entitySelect = $('#entitySelect');
-                    const branchContainer = $('#branchContainer');
-                    const branchSelect = $('#branchSelect');
-                    const subContainer = $('#subContainer');
-                    const subSelect = $('#subSelect');
-                    const subLabel = $('#subLabel');
-                    const lawsContainer = $('#lawsContainer');
-                    const lawsSelect = $('#lawsSelect');
+            // Hospital & Department Logic
+            const hospitalsData = @json($allHospitals);
+            const hospitalSelect = $('#hospitalSelect');
+            const departmentSelect = $('#departmentSelect');
+            
+            // Initial Values
+            const initialHospitalId = "{{ old('hospital_id', $claim->hospital_id) }}";
+            const initialDepartmentId = "{{ old('department_id', $claim->department_id) }}";
 
-                    function resetSub() {
-                        subSelect.empty().append('<option value="">اختر الاختيار</option>');
-                        subContainer.hide();
-
-                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                        lawsContainer.hide();
-                    }
-
-                    function fillBranchOptions(metadata, selectedBranch = '') {
-                        branchSelect.empty().append('<option value="">اختر الفرع</option>');
-                        if (metadata?.branches?.length) {
-                            metadata.branches.forEach(branch => {
-                                branchSelect.append(`<option value="${branch}">${branch}</option>`);
-                            });
-                            branchContainer.show();
-                            if (selectedBranch) branchSelect.val(selectedBranch).trigger('change');
-                        } else {
-                            branchContainer.hide();
-                        }
-                    }
-
-                    function fillSubOptions(metadata, branchVal, selectedSub = '') {
-                        subSelect.empty().append('<option value="">اختر الاختيار</option>');
-                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                        lawsContainer.hide();
-
-                        if (!branchVal) return;
-
-                        let subItems = [];
-                        let labelText = 'المحافظات / المواقع';
-
-                        if (metadata.laws) { // التأمين الصحي الشامل
-                            subItems = metadata.governorates || [];
-                            labelText = 'المحافظات';
-                        } else if (metadata.governorates) {
-                            subItems = metadata.governorates;
-                            labelText = 'المحافظات';
-                        } else if (metadata.locations) {
-                            subItems = metadata.locations;
-                            labelText = 'المواقع';
-                        }
-
-                        if (subItems.length) {
-                            subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
-                            subLabel.text(labelText);
-                            subContainer.show();
-                            if (selectedSub) subSelect.val(selectedSub).trigger('change');
-                        }
-                    }
-
-                    function fillLawsOptions(metadata, subVal, selectedLaw = '') {
-                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                        if (!metadata.laws || !subVal) return;
-
-                        metadata.laws.forEach(item => lawsSelect.append(`<option value="${item}">${item}</option>`));
-                        lawsContainer.show();
-                        if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
-                    }
-
-                    entitySelect.on('change', function () {
-                        const selectedOption = $(this).find('option:selected');
-                        const metadata = selectedOption.data('metadata');
-
-                        // ملء الفروع فقط إذا موجودة
-                        fillBranchOptions(metadata);
-                        resetSub();
+            function populateDepartments(hospitalId, selectedDeptId = '') {
+                departmentSelect.empty().append('<option value="">اختر القسم</option>');
+                
+                const hospital = hospitalsData.find(h => h.id == hospitalId);
+                if (hospital && hospital.departments) {
+                    hospital.departments.forEach(dept => {
+                        departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
                     });
+                }
+                
+                if (selectedDeptId) {
+                    departmentSelect.val(selectedDeptId).trigger('change');
+                }
+            }
 
-                    branchSelect.on('change', function () {
-                        const branchVal = $(this).val() || '';
-                        const metadata = entitySelect.find('option:selected').data('metadata');
-                        fillSubOptions(metadata, branchVal);
-                    });
+            hospitalSelect.on('change', function() {
+                const hospId = $(this).val();
+                populateDepartments(hospId);
+            });
 
-                    subSelect.on('change', function () {
-                        const subVal = $(this).val() || '';
-                        const metadata = entitySelect.find('option:selected').data('metadata');
-                        fillLawsOptions(metadata, subVal);
+            // Set initial hospital and department
+            if (initialHospitalId) {
+                // hospitalSelect value is already set by Blade 'selected' attribute
+                // We just need to populate departments
+                populateDepartments(initialHospitalId, initialDepartmentId);
+            }
+
+
+            const entitySelect = $('#entitySelect');
+            const branchContainer = $('#branchContainer');
+            const branchSelect = $('#branchSelect');
+            const subContainer = $('#subContainer');
+            const subSelect = $('#subSelect');
+            const subLabel = $('#subLabel');
+            const lawsContainer = $('#lawsContainer');
+            const lawsSelect = $('#lawsSelect');
+
+                subContainer.slideUp(300);
+                lawsContainer.slideUp(300);
+
+            function fillBranchOptions(metadata, selectedBranch = '') {
+                branchSelect.empty().append('<option value="">اختر الفرع</option>');
+
+                // Special Case: Universal Health Insurance -> Skip Branches
+                const selectedEntityName = entitySelect.find('option:selected').text().trim();
+                // Special Case: Universal Health Insurance (Detected by laws in metadata) -> Skip Branches
+                if (metadata && metadata.laws) {
+                    branchContainer.slideUp(300);
+                    fillSubOptions(metadata, 'SKIP_BRANCH', '{{ old("location", $claim->location) }}');
+                    return;
+                }
+
+                if (metadata?.branches?.length) {
+                    metadata.branches.forEach(branch => {
+                        branchSelect.append(`<option value="${branch}">${branch}</option>`);
                     });
+                    branchContainer.slideDown(300);
+                    if (selectedBranch) branchSelect.val(selectedBranch).trigger('change');
+                } else {
+                    branchContainer.slideUp(300);
+                    fillSubOptions(metadata, 'NO_BRANCH', '{{ old("location", $claim->location) }}');
+                }
+            }
+
+            function fillSubOptions(metadata, branchVal, selectedSub = '') {
+                subSelect.empty().append('<option value="">اختر الاختيار</option>');
+                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                lawsContainer.slideUp(300);
+
+                if (!branchVal && branchVal !== 'SKIP_BRANCH' && branchVal !== 'NO_BRANCH') return;
+
+                let subItems = [];
+                let labelText = 'المحافظات / المواقع';
+
+                if (metadata.laws) { // التأمين الصحي الشامل
+                    subItems = metadata.governorates || [];
+                    labelText = 'المحافظات';
+                } else if (metadata.governorates) {
+                    subItems = metadata.governorates;
+                    labelText = 'المحافظات';
+                } else if (metadata.locations) {
+                    subItems = metadata.locations;
+                    labelText = 'المواقع';
+                }
+
+                if (subItems.length) {
+                    subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
+                    subLabel.text(labelText);
+                    subContainer.slideDown(300);
+                    if (selectedSub) subSelect.val(selectedSub).trigger('change');
+                } else {
+                    subContainer.slideUp(300);
+                }
+            }
+
+            function fillLawsOptions(metadata, subVal, selectedLaw = '') {
+                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                if (!metadata.laws || !subVal) {
+                    lawsContainer.slideUp(300);
+                    return;
+                }
+
+                metadata.laws.forEach(item => lawsSelect.append(`<option value="${item}">${item}</option>`));
+                lawsContainer.slideDown(300);
+                if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
+            }
+
+            entitySelect.on('change', function () {
+                const selectedOption = $(this).find('option:selected');
+                const metadata = selectedOption.data('metadata');
+                fillBranchOptions(metadata);
+                // resetSub(); // Handled by flow
+            });
+
+            branchSelect.on('change', function () {
+                const branchVal = $(this).val() || '';
+                const metadata = entitySelect.find('option:selected').data('metadata');
+                fillSubOptions(metadata, branchVal);
+            });
+
+            subSelect.on('change', function () {
+                const subVal = $(this).val() || '';
+                const metadata = entitySelect.find('option:selected').data('metadata');
+                fillLawsOptions(metadata, subVal);
+            });
 
                     // ==== تهيئة الصفحة عند التحميل ====
                     const initialEntity = '{{ old("entity_id", $claim->entity_id) }}';

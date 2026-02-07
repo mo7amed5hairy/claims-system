@@ -29,10 +29,8 @@ class PaymentOrderController extends Controller
      */
     public function index()
     {
-        $hospitalId = session('flow_hospital_id');
-        $deptId = session('flow_department_id');
-
-        $orders = PaymentOrder::with(['payerEntity', 'payeeHospital'])->get();
+        $this->authorize('viewAny', PaymentOrder::class);
+        $orders = PaymentOrder::with(['payerEntity', 'payeeHospital', 'department', 'user'])->orderBy('id', 'desc')->get();
 
         return view('claims::payments.index', compact('orders'));
     }
@@ -42,19 +40,17 @@ class PaymentOrderController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', PaymentOrder::class);
         $hospitalId = session('flow_hospital_id');
         $deptId = session('flow_department_id');
 
-        if (!$hospitalId || !$deptId) {
-            return redirect()->route('flow.hospital')
-                ->with('error', trans('messages.select_hospital_first'));
-        }
+        $hospital = $hospitalId ? Hospital::find($hospitalId) : null;
+        $department = $deptId ? Department::find($deptId) : null;
 
-        $hospital = Hospital::find($hospitalId);
-        $department = Department::find($deptId);
         $entities = ClaimEntity::all();
+        $allHospitals = Hospital::with('departments')->get();
 
-        return view('claims::payments.create', compact('hospital', 'department', 'entities'));
+        return view('claims::payments.create', compact('hospital', 'department', 'entities', 'allHospitals'));
     }
 
     /**
@@ -62,12 +58,15 @@ class PaymentOrderController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', PaymentOrder::class);
         $data = $request->validate([
             'account_type' => 'required|in:بنكى,أمر دفع برقم مؤسسى,شيك نقدى',
             'gp_number' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
             'payer_entity_id' => 'required|exists:claim_entities,id',
+            'payee_hospital_id' => 'required|exists:hospitals,id',
+            'department_id' => 'required|exists:departments,id',
             'electronic_invoice_no' => [
                 'required',
                 'string',
@@ -84,12 +83,7 @@ class PaymentOrderController extends Controller
             'electronic_invoice_no.exists' => 'رقم الفاتورة الإلكترونية غير موجود في نظام المطالبات للجهة المختارة.',
         ]);
 
-        $data['payee_hospital_id'] = session('flow_hospital_id');
         $data['invoice_no'] = $data['electronic_invoice_no'];
-
-        if (!$data['payee_hospital_id']) {
-            return back()->with('error', 'يجب تحديد المستشفى أولاً');
-        }
 
         // Business Logic Validation: Amount vs Claim Reviewed Value
         $claim = \App\Modules\Claims\Models\Claim::where('electronic_invoice_no', $request->electronic_invoice_no)->first();
@@ -105,6 +99,8 @@ class PaymentOrderController extends Controller
             }
         }
 
+        $data['user_id'] = auth()->id();
+
         $this->paymentOrderService->createPaymentOrder($data);
 
         return redirect()->route('payments.index')
@@ -116,8 +112,12 @@ class PaymentOrderController extends Controller
      */
     public function edit(PaymentOrder $payment)
     {
+        $this->authorize('update', $payment);
         $entities = ClaimEntity::all();
-        return view('claims::payments.edit', compact('payment', 'entities'));
+        $allHospitals = Hospital::with('departments')->get();
+        // $departments = $payment->payeeHospital ? $payment->payeeHospital->departments : collect(); // loaded via JS data or simple check
+
+        return view('claims::payments.edit', compact('payment', 'entities', 'allHospitals'));
     }
 
     /**
@@ -125,12 +125,15 @@ class PaymentOrderController extends Controller
      */
     public function update(Request $request, PaymentOrder $payment)
     {
+        $this->authorize('update', $payment);
         $data = $request->validate([
             'account_type' => 'required|in:بنكى,أمر دفع برقم مؤسسى,شيك نقدى',
             'gp_number' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
             'payer_entity_id' => 'required|exists:claim_entities,id',
+            'payee_hospital_id' => 'required|exists:hospitals,id',
+            'department_id' => 'required|exists:departments,id',
             'electronic_invoice_no' => [
                 'nullable',
                 'string',
@@ -187,6 +190,7 @@ class PaymentOrderController extends Controller
      */
     public function destroy(PaymentOrder $payment)
     {
+        $this->authorize('delete', $payment);
         $this->paymentOrderService->deletePaymentOrder($payment->id);
 
         return redirect()->route('payments.index')

@@ -16,11 +16,6 @@
 
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-edit"></i> تعديل فاتورة عائدة</h1>
-        <p class="page-subtitle">
-            <span><i class="fa-solid fa-hospital"></i> {{ $return->hospital->name ?? '-' }}</span>
-            <span style="margin: 0 8px;">•</span>
-            <span><i class="fa-solid fa-stethoscope"></i> {{ $return->department->name ?? '-' }}</span>
-        </p>
     </div>
 
     <div class="form-container">
@@ -28,6 +23,30 @@
             <form action="{{ route('returns.update', $return->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+
+                <!-- Hospital and Department Row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
+                        <select name="hospital_id" id="hospitalSelect" class="form-control select2" required>
+                            <option value="">اختر المستشفى</option>
+                            @foreach($allHospitals as $hosp)
+                                <option value="{{ $hosp->id }}" {{ old('hospital_id', $return->hospital_id) == $hosp->id ? 'selected' : '' }}>
+                                    {{ $hosp->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('hospital_id') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
+                        <select name="department_id" id="departmentSelect" class="form-control select2" required>
+                            <option value="">اختر القسم</option>
+                        </select>
+                        @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+                </div>
 
                 <!-- Main Info Section: 3 Columns -->
                 <div class="form-section">
@@ -237,7 +256,48 @@
 
     <script>
         $(document).ready(function () {
-            $('.select2').select2({ dir: "rtl", width: '100%' });
+            $('.select2').select2({
+                dir: "rtl",
+                width: '100%',
+                closeOnSelect: true
+            }).on('select2:select', function (e) {
+                $(this).select2('close');
+            });
+
+            // Hospital & Department Logic
+            const hospitalsData = @json($allHospitals);
+            const hospitalSelect = $('#hospitalSelect');
+            const departmentSelect = $('#departmentSelect');
+
+            // Initial Values
+            const initialHospitalId = "{{ old('hospital_id', $return->hospital_id) }}";
+            const initialDepartmentId = "{{ old('department_id', $return->department_id) }}";
+
+            function populateDepartments(hospitalId, selectedDeptId = '') {
+                departmentSelect.empty().append('<option value="">اختر القسم</option>');
+
+                const hospital = hospitalsData.find(h => h.id == hospitalId);
+                if (hospital && hospital.departments) {
+                    hospital.departments.forEach(dept => {
+                        departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                    });
+                }
+
+                if (selectedDeptId) {
+                    departmentSelect.val(selectedDeptId).trigger('change');
+                }
+            }
+
+            hospitalSelect.on('change', function () {
+                const hospId = $(this).val();
+                populateDepartments(hospId);
+            });
+
+            // Set initial hospital and department
+            if (initialHospitalId) {
+                hospitalSelect.val(initialHospitalId).trigger('change');
+                populateDepartments(initialHospitalId, initialDepartmentId);
+            }
 
             const entitySelect = $('#entitySelect');
             const branchContainer = $('#branchContainer');
@@ -248,33 +308,43 @@
             const lawsContainer = $('#lawsContainer');
             const lawsSelect = $('#lawsSelect');
 
-            function resetSub() {
-                subSelect.empty().append('<option value="">اختر الاختيار</option>');
-                subContainer.hide();
-
-                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                lawsContainer.hide();
-            }
+            subContainer.slideUp(300);
+            lawsContainer.slideUp(300);
 
             function fillBranchOptions(metadata, selectedBranch = '') {
                 branchSelect.empty().append('<option value="">اختر الفرع</option>');
+
+                // Special Case: Universal Health Insurance -> Skip Branches
+                // Special Case: Universal Health Insurance (Detected by laws in metadata) -> Skip Branches
+                if (metadata && metadata.laws) {
+                    branchContainer.slideUp(300);
+                    fillSubOptions(metadata, 'SKIP_BRANCH', '{{ old("location", $return->location) }}');
+                    return;
+                }
+
                 if (metadata?.branches?.length) {
                     metadata.branches.forEach(branch => {
                         branchSelect.append(`<option value="${branch}">${branch}</option>`);
                     });
-                    branchContainer.show();
+                    branchContainer.slideDown(300);
                     if (selectedBranch) branchSelect.val(selectedBranch).trigger('change');
                 } else {
-                    branchContainer.hide();
+                    branchContainer.slideUp(300);
+                    fillSubOptions(metadata, 'NO_BRANCH', '{{ old("location", $return->location) }}');
                 }
             }
 
             function fillSubOptions(metadata, branchVal, selectedSub = '') {
                 subSelect.empty().append('<option value="">اختر الاختيار</option>');
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                lawsContainer.hide();
+                lawsContainer.slideUp(300);
 
-                if (!branchVal) return;
+                if (!branchVal && branchVal !== 'SKIP_BRANCH' && branchVal !== 'NO_BRANCH') return;
+
+                if (!metadata) {
+                    subContainer.slideUp(300);
+                    return;
+                }
 
                 let subItems = [];
                 let labelText = 'المحافظات / المواقع';
@@ -293,17 +363,22 @@
                 if (subItems.length) {
                     subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
                     subLabel.text(labelText);
-                    subContainer.show();
+                    subContainer.slideDown(300);
                     if (selectedSub) subSelect.val(selectedSub).trigger('change');
+                } else {
+                    subContainer.slideUp(300);
                 }
             }
 
             function fillLawsOptions(metadata, subVal, selectedLaw = '') {
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                if (!metadata.laws || !subVal) return;
+                if (!metadata.laws || !subVal) {
+                    lawsContainer.slideUp(300);
+                    return;
+                }
 
                 metadata.laws.forEach(item => lawsSelect.append(`<option value="${item}">${item}</option>`));
-                lawsContainer.show();
+                lawsContainer.slideDown(300);
                 if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
             }
 
@@ -386,15 +461,15 @@
             const div = document.createElement('div');
             div.className = 'file-item';
             div.innerHTML = `
-                            <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-                            <div class="file-details">
-                                <div class="file-name">${file.name}</div>
-                                <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                            </div>
-                            <div class="file-actions">
-                                <button type="button" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        `;
+                                                        <div class="file-icon"><i class="fa-solid fa-file"></i></div>
+                                                        <div class="file-details">
+                                                            <div class="file-name">${file.name}</div>
+                                                            <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                                        </div>
+                                                        <div class="file-actions">
+                                                            <button type="button" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
+                                                        </div>
+                                                    `;
             div.querySelector('.btn-remove').onclick = () => {
                 selectedFiles = selectedFiles.filter(f => f !== file);
                 div.remove();

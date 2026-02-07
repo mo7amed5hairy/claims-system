@@ -4,6 +4,19 @@ namespace App\Modules\Claims;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Gate;
+
+// Models & Policies
+use App\Modules\Claims\Models\Claim;
+use App\Modules\Claims\Policies\ClaimPolicy;
+use App\Modules\Claims\Models\ReturnedInvoice;
+use App\Modules\Claims\Policies\ReturnedInvoicePolicy;
+use App\Modules\Claims\Models\PaymentOrder;
+use App\Modules\Claims\Policies\PaymentOrderPolicy;
+use App\Modules\Claims\Models\Hospital;
+use App\Modules\Claims\Policies\HospitalPolicy;
+use App\Modules\Claims\Models\ClaimEntity;
+use App\Modules\Claims\Policies\EntityPolicy;
 
 // Repositories
 use App\Modules\Claims\Repositories\HospitalRepository;
@@ -50,6 +63,26 @@ class ClaimsModuleServiceProvider extends ServiceProvider
 
         // Load Routes
         $this->registerRoutes();
+
+        // Register Policies
+        $this->registerPolicies();
+    }
+
+    /**
+     * Register module policies
+     */
+    protected function registerPolicies()
+    {
+        Gate::policy(Claim::class, ClaimPolicy::class);
+        Gate::policy(ReturnedInvoice::class, ReturnedInvoicePolicy::class);
+        Gate::policy(PaymentOrder::class, PaymentOrderPolicy::class);
+        Gate::policy(Hospital::class, HospitalPolicy::class);
+        Gate::policy(ClaimEntity::class, EntityPolicy::class);
+
+        // Define gate for admin-only access
+        Gate::define('admin-access', function ($user) {
+            return $user->role === 'admin';
+        });
     }
 
     /**

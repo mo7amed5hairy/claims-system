@@ -26,6 +26,7 @@ class User extends Authenticatable
         'role',
         'active',
         'avatar',
+        'permissions',
     ];
 
     /**
@@ -48,6 +49,27 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permissions' => 'array',
         ];
+    }
+
+    /**
+     * Check if user has a specific permission
+     * 
+     * @param string $module (claims, returns, payments)
+     * @param string $action (view, add, edit, delete)
+     * @return bool
+     */
+    public function hasPermission($module, $action)
+    {
+        if ($this->role === 'admin') {
+            return true;
+        }
+
+        if (!$this->permissions || !isset($this->permissions[$module])) {
+            return false;
+        }
+
+        return in_array($action, $this->permissions[$module]);
     }
 }

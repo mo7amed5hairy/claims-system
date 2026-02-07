@@ -26,6 +26,7 @@ class ClaimEntityController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', ClaimEntity::class);
         $entities = ClaimEntity::all();
         return view('claims::entities.index', compact('entities'));
     }
@@ -45,7 +46,7 @@ class ClaimEntityController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:claim_entities,name',
-            'type' => 'required|string|max:255',
+            'type' => 'nullable|string|max:255',
         ]);
 
         $this->entityService->createEntity($data);
@@ -69,7 +70,7 @@ class ClaimEntityController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:claim_entities,name,' . $entity->id,
-            'type' => 'required|string|max:255',
+            'type' => 'nullable|string|max:255',
         ]);
 
         $this->entityService->updateEntity($entity->id, $data);

@@ -61,9 +61,11 @@
 @section('content')
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-file-invoice-dollar"></i> المطالبات</h1>
+        @can('create', App\Modules\Claims\Models\Claim::class)
         <a href="{{ route('claims.create') }}" class="btn btn-primary" style="margin-top: 0;">
             <i class="fa-solid fa-plus"></i> إضافة مطالبة جديدة
         </a>
+        @endcan
     </div>
 
     <div class="table-container">
@@ -71,10 +73,14 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>أضيف بواسطة</th>
                     <th>المستشفى / القسم</th>
                     <th>الشهر</th>
                     <th>عدد الفواتير</th>
                     <th>تاريخ المطالبة</th>
+                    <th>رقم الفاتورة الإلكترونية</th>
+                    <th>تاريخ التسليم</th>
+                    <th>الحالة</th>
                     <th>الجهة</th>
                     <th>قيمة المطالبة</th>
                     <th>المبلغ بعد المراجعة</th>
@@ -86,8 +92,18 @@
             </thead>
             <tbody>
                 @foreach($claims as $claim)
-                    <tr>
+                    @php
+                        $isNew = $claim->created_at->gt(now()->subMinutes(5));
+                    @endphp
+                    <tr style="{{ $isNew ? 'background-color: #f0fdf4; border-right: 4px solid #22c55e;' : '' }}">
                         <td><span style="font-weight: 700; color: var(--primary-color);">#{{ $claim->id }}</span></td>
+                        <td>
+                            <div style="font-size: 12px; font-weight: 600; color: #475569;">
+                                <i class="fa-solid fa-user-pen" style="font-size: 10px; color: #94a3b8;"></i> 
+                                {{ $claim->user->name ?? 'النظام' }}
+                            </div>
+                            <div style="font-size: 10px; color: #94a3b8;">{{ $claim->created_at->format('Y-m-d H:i') }}</div>
+                        </td>
                         <td>
                             <div style="font-weight: 600; color: #1e293b; font-size: 13px;">{{ $claim->hospital->name ?? '-' }}
                             </div>
@@ -97,6 +113,44 @@
                         <td>{{ $claim->month }}</td>
                         <td>{{ $claim->invoice_count }}</td>
                         <td>{{ $claim->claim_date->toDateString() }}</td>
+                        <td style="font-weight: 500;">
+                            {{ $claim->electronic_invoice_no ?? '-' }}
+                        </td>
+                        <td>
+                            @if($claim->delivery_date)
+                                <div style="font-size: 12px; font-weight: 600;">{{ $claim->delivery_date->toDateString() }}</div>
+                                @if($claim->delivery_attachments && is_array($claim->delivery_attachments))
+                                    <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                        @foreach($claim->delivery_attachments as $path)
+                                            <a href="{{ asset('storage/' . $path) }}" target="_blank" style="color: #64748b; font-size: 10px;"><i class="fa-solid fa-paperclip"></i></a>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            @else
+                                <span style="color: #cbd5e1;">-</span>
+                            @endif
+                        </td>
+                        <td>
+                            @php
+                                $status = $claim->payment_status;
+                                $badgeColor = '#ef4444'; // Red for Unpaid
+                                $badgeIcon = 'fa-times-circle';
+                                $badgeText = 'غير مسددة';
+                                
+                                if($status == 'paid') {
+                                    $badgeColor = '#10b981'; // Green
+                                    $badgeIcon = 'fa-check-circle';
+                                    $badgeText = 'مسددة';
+                                } elseif($status == 'partial') {
+                                    $badgeColor = '#f59e0b'; // Amber
+                                    $badgeIcon = 'fa-hourglass-half'; 
+                                    $badgeText = 'مسددة جزئياً';
+                                }
+                            @endphp
+                            <span style="background-color: {{ $badgeColor }}20; color: {{ $badgeColor }}; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fa-solid {{ $badgeIcon }}"></i> {{ $badgeText }}
+                            </span>
+                        </td>
                         <td>
                             <div style="font-weight:800;font-size:12px;">
                                 {{ $claim->entity->name ?? '-' }}
@@ -148,10 +202,14 @@
                         </td>
                         <td style="text-align: center;">
                             <div style="display: flex; gap: 8px; justify-content: center;">
+                                @can('update', $claim)
                                 <a href="{{ route('claims.edit', $claim->id) }}" class="btn-action"
                                     style="background: #eff6ff; color: #3b82f6;" title="تعديل">
                                     <i class="fa-solid fa-edit"></i>
                                 </a>
+                                @endcan
+                                
+                                @can('delete', $claim)
                                 <form action="{{ route('claims.destroy', $claim->id) }}" method="POST" style="display: inline;"
                                     onsubmit="return confirm('هل أنت متأكد من حذف هذه المطالبة؟');">
                                     @csrf @method('DELETE')
@@ -159,6 +217,7 @@
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>
+                                @endcan
                             </div>
                         </td>
                     </tr>

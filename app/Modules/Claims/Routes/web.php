@@ -7,6 +7,7 @@ use App\Modules\Claims\Http\Controllers\ClaimEntityController;
 use App\Modules\Claims\Http\Controllers\HospitalController;
 use App\Modules\Claims\Http\Controllers\ReturnedInvoiceController;
 use App\Modules\Claims\Http\Controllers\PaymentOrderController;
+use App\Modules\Claims\Http\Controllers\UserController;
 
 /**
  * =====================================================
@@ -16,25 +17,25 @@ use App\Modules\Claims\Http\Controllers\PaymentOrderController;
  */
 
 Route::middleware('auth')->prefix('dashboard')->group(function () {
-    
+
     // =====================================================
     // Step 1: Dashboard - Select Entity Type
     // =====================================================
     Route::get('/', [FlowController::class, 'index'])->name('dashboard');
     Route::post('flow/type', [FlowController::class, 'storeType'])->name('flow.store-type');
-    
+
     // =====================================================
     // Step 2: Select Entity Options (Insurance/Ministry/etc)
     // =====================================================
     Route::get('flow/options', [FlowController::class, 'showOptions'])->name('flow.options');
     Route::post('flow/options', [FlowController::class, 'storeOptions'])->name('flow.store-options');
-    
+
     // =====================================================
     // Step 3: Select Hospital & Department
     // =====================================================
     Route::get('flow/hospital', [FlowController::class, 'showHospital'])->name('flow.hospital');
     Route::post('flow/hospital', [FlowController::class, 'storeHospital'])->name('flow.store-hospital');
-    
+
     // =====================================================
     // Step 4: Operations Panel (Claims, Returns, Payments)
     // =====================================================
@@ -95,5 +96,17 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::get('/', [HospitalController::class, 'index'])->name('index');
         Route::post('/', [HospitalController::class, 'store'])->name('store');
         Route::post('{hospital}/departments', [HospitalController::class, 'storeDepartment'])->name('departments.store');
+    });
+
+    // =====================================================
+    // User Management (Admin Only)
+    // =====================================================
+    Route::middleware('can:admin-access')->prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('{user}', [UserController::class, 'update'])->name('update');
+        Route::delete('{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 });

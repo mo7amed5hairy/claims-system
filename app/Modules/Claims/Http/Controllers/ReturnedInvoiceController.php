@@ -29,10 +29,8 @@ class ReturnedInvoiceController extends Controller
      */
     public function index()
     {
-        $hospitalId = session('flow_hospital_id');
-        $deptId = session('flow_department_id');
-
-        $invoices = ReturnedInvoice::with(['hospital', 'department', 'entity'])->get();
+        $this->authorize('viewAny', ReturnedInvoice::class);
+        $invoices = ReturnedInvoice::with(['hospital', 'department', 'entity', 'user'])->orderBy('id', 'desc')->get();
 
         return view('claims::returns.index', compact('invoices'));
     }
@@ -42,19 +40,17 @@ class ReturnedInvoiceController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', ReturnedInvoice::class);
         $hospitalId = session('flow_hospital_id');
         $deptId = session('flow_department_id');
 
-        if (!$hospitalId || !$deptId) {
-            return redirect()->route('flow.hospital')
-                ->with('error', trans('messages.select_hospital_first'));
-        }
+        $hospital = $hospitalId ? Hospital::find($hospitalId) : null;
+        $department = $deptId ? Department::find($deptId) : null;
 
-        $hospital = Hospital::find($hospitalId);
-        $department = Department::find($deptId);
         $entities = ClaimEntity::all();
+        $allHospitals = Hospital::with('departments')->get();
 
-        return view('claims::returns.create', compact('hospital', 'department', 'entities'));
+        return view('claims::returns.create', compact('hospital', 'department', 'entities', 'allHospitals'));
     }
 
     /**
@@ -62,7 +58,10 @@ class ReturnedInvoiceController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $this->authorize('create', ReturnedInvoice::class);
+        $data = $request->validate([
+            'hospital_id' => 'required|exists:hospitals,id',
+            'department_id' => 'required|exists:departments,id',
             'month' => 'required|string',
             'return_date' => 'required|date',
             'value' => 'required|numeric|min:0',
@@ -129,12 +128,7 @@ class ReturnedInvoiceController extends Controller
             ])->withInput();
         }
 
-        $data = $request->all();
-        $data['hospital_id'] = session('flow_hospital_id');
-        $data['department_id'] = session('flow_department_id');
-
         // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches
-        // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches AND not provided in form
         $flowOptions = session('flow_options', []);
         if (isset($flowOptions['entity_id']) && $data['entity_id'] == $flowOptions['entity_id']) {
             $data['branch'] = $data['branch'] ?: ($flowOptions['branch'] ?? null);
@@ -148,6 +142,8 @@ class ReturnedInvoiceController extends Controller
             $data['attachments'] = $invoiceModel->uploadMultipleMedia($request->file('attachments'));
         }
 
+        $data['user_id'] = auth()->id();
+
         $this->returnedInvoiceService->createReturnedInvoice($data);
 
         return redirect()->route('returns.index')
@@ -159,8 +155,10 @@ class ReturnedInvoiceController extends Controller
      */
     public function edit(ReturnedInvoice $return)
     {
+        $this->authorize('update', $return);
         $entities = ClaimEntity::all();
-        return view('claims::returns.edit', compact('return', 'entities'));
+        $allHospitals = Hospital::with('departments')->get();
+        return view('claims::returns.edit', compact('return', 'entities', 'allHospitals'));
     }
 
     /**
@@ -168,7 +166,10 @@ class ReturnedInvoiceController extends Controller
      */
     public function update(Request $request, ReturnedInvoice $return)
     {
-        $request->validate([
+        $this->authorize('update', $return);
+        $data = $request->validate([
+            'hospital_id' => 'required|exists:hospitals,id',
+            'department_id' => 'required|exists:departments,id',
             'month' => 'required|string',
             'return_date' => 'required|date',
             'value' => 'required|numeric|min:0',
@@ -236,8 +237,6 @@ class ReturnedInvoiceController extends Controller
             ])->withInput();
         }
 
-        $data = $request->all();
-
         // Handle file uploads/replacements
         if ($request->hasFile('attachments')) {
             $data['attachments'] = $return->replaceMultipleMedia(
@@ -257,6 +256,7 @@ class ReturnedInvoiceController extends Controller
      */
     public function destroy(ReturnedInvoice $return)
     {
+        $this->authorize('delete', $return);
         $this->returnedInvoiceService->deleteReturnedInvoice($return->id);
 
         return redirect()->route('returns.index')

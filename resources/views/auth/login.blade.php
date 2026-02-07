@@ -8,11 +8,10 @@
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4188/4188981.png">
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('modules/claims/css/cairo.css') }}">
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('modules/claims/css/all.min.css') }}">
 </head>
 
 <body>
@@ -28,7 +27,7 @@
 
                 <!-- Username -->
                 <div class="form-group">
-                    <label for="username" class="form-label">اسم المستخدم</label>
+                    <label for="username" class="form-label" style="display: none;">اسم المستخدم</label>
                     <input id="username" type="text" class="form-control" placeholder="أدخل اسم المستخدم"
                         name="username" value="{{ old('username') }}" required autofocus tabindex="1">
                     @error('username')
@@ -38,7 +37,7 @@
 
                 <!-- Password -->
                 <div class="form-group">
-                    <label for="password" class="form-label">كلمة المرور</label>
+                    <label for="password" class="form-label" style="display: none;">كلمة المرور</label>
                     <input id="password" type="password" placeholder="أدخل كلمة المرور" class="form-control"
                         name="password" required tabindex="2">
                     @error('password')

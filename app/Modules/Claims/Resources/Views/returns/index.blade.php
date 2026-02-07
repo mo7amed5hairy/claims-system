@@ -87,9 +87,11 @@
 
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-undo"></i> الفواتير العائدة</h1>
-        <a href="{{ route('returns.create') }}" class="btn btn-primary" style="margin-top: 0;">
-            <i class="fa-solid fa-plus"></i> إضافة فاتورة عائدة
-        </a>
+        @can('create', App\Modules\Claims\Models\ReturnedInvoice::class)
+            <a href="{{ route('returns.create') }}" class="btn btn-primary" style="margin-top: 0;">
+                <i class="fa-solid fa-plus"></i> إضافة فاتورة عائدة
+            </a>
+        @endcan
     </div>
 
     <div class="table-container">
@@ -97,6 +99,7 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>أضيف بواسطة</th>
                     <th>المستشفى / القسم</th>
                     <th>الشهر</th>
                     <th>تاريخ الفاتورة</th>
@@ -112,11 +115,21 @@
             </thead>
             <tbody>
                 @foreach($invoices as $invoice)
-                    <tr>
+                    @php
+                        $isNew = $invoice->created_at && $invoice->created_at->gt(now()->subMinutes(5));
+                    @endphp
+                    <tr style="{{ $isNew ? 'background-color: #f0fdf4; border-right: 4px solid #22c55e;' : '' }}">
                         <td>
                             <span style="font-weight:700;color:var(--primary-color);">
                                 #{{ $invoice->id }}
                             </span>
+                        </td>
+                        <td>
+                            <div style="font-size: 11px; font-weight: 600; color: #475569;">
+                                <i class="fa-solid fa-user-pen" style="font-size: 10px; color: #94a3b8;"></i>
+                                {{ $invoice->user->name ?? 'النظام' }}
+                            </div>
+                            <div style="font-size: 9px; color: #94a3b8;">{{ $invoice->created_at?->format('Y-m-d H:i') }}</div>
                         </td>
 
                         <td>
@@ -177,17 +190,20 @@
 
                         <td style="text-align:center;">
                             <div style="display:flex;gap:8px;justify-content:center;">
-                                <a href="{{ route('returns.edit', $invoice->id) }}" class="btn-action" title="تعديل">
-                                    <i class="fa-solid fa-edit"></i>
-                                </a>
-
-                                <form action="{{ route('returns.destroy', $invoice->id) }}" method="POST"
-                                    onsubmit="return confirm('هل أنت متأكد؟');">
-                                    @csrf @method('DELETE')
-                                    <button class="btn-remove">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
+                                        @can('update', $invoice)
+                                            <a href="{{ route('returns.edit', $invoice->id) }}" class="btn-action" title="تعديل">
+                                                <i class="fa-solid fa-edit"></i>
+                                            </a>
+                                        @endcan
+                                @can('delete', $invoice)
+                                            <form action="{{ route('returns.destroy', $invoice->id) }}" method="POST"
+                                        onsubmit="return confirm('هل أنت متأكد؟');">
+                                        @csrf @method('DELETE')
+                                        <button class="btn-remove">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endcan
                             </div>
                         </td>
                     </tr>

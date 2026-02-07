@@ -30,7 +30,8 @@ class ReturnedInvoice extends Model
         'reason',
         'branch',
         'location',
-        'beneficiary'
+        'beneficiary',
+        'user_id'
     ];
 
     protected $casts = [
@@ -56,5 +57,10 @@ class ReturnedInvoice extends Model
     public function entity(): BelongsTo
     {
         return $this->belongsTo(ClaimEntity::class, 'entity_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
     }
 }

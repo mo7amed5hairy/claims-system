@@ -24,6 +24,31 @@
                 @csrf
                 @method('PUT')
 
+                <!-- Hospital and Department Row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
+                        <select name="payee_hospital_id" id="hospitalSelect" class="form-control select2" required>
+                            <option value="">اختر المستشفى</option>
+                            @foreach($allHospitals as $hosp)
+                                <option value="{{ $hosp->id }}" {{ (old('payee_hospital_id', $payment->payee_hospital_id) == $hosp->id) ? 'selected' : '' }}>
+                                    {{ $hosp->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('payee_hospital_id') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
+                        <select name="department_id" id="departmentSelect" class="form-control select2" required>
+                            <option value="">اختر القسم</option>
+                            <!-- Departments filled by JS -->
+                        </select>
+                        @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-list-check"></i> نوع الحساب</label>
@@ -140,7 +165,48 @@
 
     <script>
         $(document).ready(function () {
-            $('.select2').select2({ dir: "rtl", width: '100%' });
+            $('.select2').select2({
+                dir: "rtl",
+                width: '100%',
+                closeOnSelect: true
+            }).on('select2:select', function (e) {
+                $(this).select2('close');
+            });
+
+            // Hospital & Department Logic
+            const hospitalsData = @json($allHospitals);
+            const hospitalSelect = $('#hospitalSelect');
+            const departmentSelect = $('#departmentSelect');
+
+            // Initial Values (note input name payee_hospital_id)
+            const initialHospitalId = "{{ old('payee_hospital_id', $payment->payee_hospital_id) }}";
+            const initialDepartmentId = "{{ old('department_id', $payment->department_id) }}";
+
+            function populateDepartments(hospitalId, selectedDeptId = '') {
+                departmentSelect.empty().append('<option value="">اختر القسم</option>');
+
+                const hospital = hospitalsData.find(h => h.id == hospitalId);
+                if (hospital && hospital.departments) {
+                    hospital.departments.forEach(dept => {
+                        departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                    });
+                }
+
+                if (selectedDeptId) {
+                    departmentSelect.val(selectedDeptId).trigger('change');
+                }
+            }
+
+            hospitalSelect.on('change', function () {
+                const hospId = $(this).val();
+                populateDepartments(hospId);
+            });
+
+            if (initialHospitalId) {
+                // Manually trigger population because blade 'selected' handles visual selection 
+                // but we need to fill the dependent dropdown
+                populateDepartments(initialHospitalId, initialDepartmentId);
+            }
 
             const entitySelect = $('#entitySelect');
             const branchContainer = $('#branchContainer');
@@ -151,33 +217,43 @@
             const lawsContainer = $('#lawsContainer');
             const lawsSelect = $('#lawsSelect');
 
-            function resetSub() {
-                subSelect.empty().append('<option value="">اختر الاختيار</option>');
-                subContainer.hide();
-
-                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                lawsContainer.hide();
-            }
+            subContainer.slideUp(300);
+            lawsContainer.slideUp(300);
 
             function fillBranchOptions(metadata, selectedBranch = '') {
                 branchSelect.empty().append('<option value="">اختر الفرع</option>');
+
+                // Special Case: Universal Health Insurance -> Skip Branches
+                // Special Case: Universal Health Insurance (Detected by laws in metadata) -> Skip Branches
+                if (metadata && metadata.laws) {
+                    branchContainer.slideUp(300);
+                    fillSubOptions(metadata, 'SKIP_BRANCH', '{{ old("location", $payment->location) }}');
+                    return;
+                }
+
                 if (metadata?.branches?.length) {
                     metadata.branches.forEach(branch => {
                         branchSelect.append(`<option value="${branch}">${branch}</option>`);
                     });
-                    branchContainer.show();
+                    branchContainer.slideDown(300);
                     if (selectedBranch) branchSelect.val(selectedBranch).trigger('change');
                 } else {
-                    branchContainer.hide();
+                    branchContainer.slideUp(300);
+                    fillSubOptions(metadata, 'NO_BRANCH', '{{ old("location", $payment->location) }}');
                 }
             }
 
             function fillSubOptions(metadata, branchVal, selectedSub = '') {
                 subSelect.empty().append('<option value="">اختر الاختيار</option>');
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                lawsContainer.hide();
+                lawsContainer.slideUp(300);
 
-                if (!branchVal) return;
+                if (!branchVal && branchVal !== 'SKIP_BRANCH' && branchVal !== 'NO_BRANCH') return;
+
+                if (!metadata) {
+                    subContainer.slideUp(300);
+                    return;
+                }
 
                 let subItems = [];
                 let labelText = 'المحافظات / المواقع';
@@ -196,17 +272,22 @@
                 if (subItems.length) {
                     subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
                     subLabel.text(labelText);
-                    subContainer.show();
+                    subContainer.slideDown(300);
                     if (selectedSub) subSelect.val(selectedSub).trigger('change');
+                } else {
+                    subContainer.slideUp(300);
                 }
             }
 
             function fillLawsOptions(metadata, subVal, selectedLaw = '') {
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                if (!metadata.laws || !subVal) return;
+                if (!metadata.laws || !subVal) {
+                    lawsContainer.slideUp(300);
+                    return;
+                }
 
                 metadata.laws.forEach(item => lawsSelect.append(`<option value="${item}">${item}</option>`));
-                lawsContainer.show();
+                lawsContainer.slideDown(300);
                 if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
             }
 
@@ -214,7 +295,7 @@
                 const selectedOption = $(this).find('option:selected');
                 const metadata = selectedOption.data('metadata');
                 fillBranchOptions(metadata);
-                resetSub();
+                // resetSub(); // Handled by flow
             });
 
             branchSelect.on('change', function () {
@@ -232,16 +313,24 @@
             // Initialize with existing values
             const initialEntity = '{{ old("payer_entity_id", $payment->payer_entity_id) }}';
             const initialBranch = '{{ old("branch", $payment->branch) }}';
-            const initialSub = '{{ old("location", $payment->location) }}';
-            const initialLaw = '{{ old("beneficiary", $payment->beneficiary) }}';
+            // sub/law handled by triggers if we set initialBranch correctly inside flow
+            // But we can call logic manually to be safe
 
             if (initialEntity) {
                 const selectedOption = entitySelect.find('option:selected');
                 if (selectedOption.length) {
                     const metadata = selectedOption.data('metadata');
-                    fillBranchOptions(metadata, initialBranch);
-                    if (initialBranch) fillSubOptions(metadata, initialBranch, initialSub);
-                    if (initialSub) fillLawsOptions(metadata, initialSub, initialLaw);
+
+                    if (initialBranch) {
+                        fillBranchOptions(metadata, initialBranch);
+                    } else if (metadata && metadata.laws) {
+                        // For UHI, skip branch and fill sub directly
+                        fillSubOptions(metadata, 'SKIP_BRANCH', '{{ old("location", $payment->location) }}');
+                    }
+
+                    if ('{{ old("location", $payment->location) }}' && (!metadata || !metadata.laws)) {
+                        fillSubOptions(metadata, initialBranch || 'NO_BRANCH', '{{ old("location", $payment->location) }}');
+                    }
                 }
             }
         });

@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" id="next_btn" class="btn btn-primary" disabled>
                         <i class="fa-solid fa-arrow-left"></i> التالي
                     </button>
                     <a href="{{ route('dashboard') }}" class="btn btn-secondary">
@@ -83,70 +83,164 @@
         $(document).ready(function () {
             $('.select2').select2({
                 dir: "rtl",
-                width: '100%'
+                width: '100%',
+                closeOnSelect: true
+            }).on('select2:select', function (e) {
+                $(this).select2('close');
             });
 
             const entities = @json($entities);
 
+            const nextBtn = $('#next_btn');
+
+            function validateFlow() {
+                const entityId = $('#entity_select').val();
+                if (!entityId) {
+                    disableNext();
+                    return;
+                }
+
+                const entity = entities.find(e => e.id == entityId);
+                const entityName = $('#entity_select').find('option:selected').text().trim();
+                const metadata = entity ? entity.metadata : null;
+
+                if (!metadata || (Object.keys(metadata).length === 0)) {
+                    enableNext();
+                    return;
+                }
+
+                let isValid = true;
+
+                // Standard (HI/MoH) -> Require Entity + Branch + Location
+                if (!metadata.laws) {
+                    if (metadata.branches && metadata.branches.length > 0) {
+                        if (!$('#branch_select').val()) isValid = false;
+                    }
+                    let locations = metadata.locations || metadata.governorates;
+                    if (locations && locations.length > 0) {
+                        if (!$('#location_select').val()) isValid = false;
+                    }
+                }
+                // UHI -> Require Entity + Location + Law (Ignore Branch)
+                else {
+                    let locations = metadata.locations || metadata.governorates;
+                    if (locations && locations.length > 0) {
+                        if (!$('#location_select').val()) isValid = false;
+                    }
+                    if (metadata.laws && metadata.laws.length > 0) {
+                        if (!$('#law_select').val()) isValid = false;
+                    }
+                }
+
+                if (isValid) {
+                    enableNext();
+                } else {
+                    disableNext();
+                }
+            }
+
+            function enableNext() {
+                nextBtn.prop('disabled', false).css('opacity', '1').css('cursor', 'pointer');
+            }
+
+            function disableNext() {
+                nextBtn.prop('disabled', true).css('opacity', '0.6').css('cursor', 'not-allowed');
+            }
+
+            // Monitor changes on all selects for validation
+            $('select').on('change', function () {
+                setTimeout(validateFlow, 100);
+            });
+
             $('#entity_select').on('change', function () {
                 const entityId = $(this).val();
-                const entity = entities.find(e => e.id == entityId);
 
-                // Reset and hide all dynamic fields
-                $('#branches_container, #locations_container, #laws_container').slideUp();
-                $('#branch_select, #location_select, #law_select').empty().append('<option value="">اختر...</option>');
+                // 1. Hide following steps smoothly
+                $('#branches_container, #locations_container, #laws_container').slideUp(400);
+
+                // 2. Clear values
+                $('#branch_select, #location_select, #law_select').val('').trigger('change.select2');
+
+                if (!entityId) return;
+
+                const entity = entities.find(e => e.id == entityId);
+                const entityName = $(this).find('option:selected').text().trim();
 
                 if (entity && entity.metadata) {
                     const data = entity.metadata;
 
-                    // Level 1: Branches
-                    if (data.branches && data.branches.length > 0) {
-                        $('#branches_container').slideDown();
+                    // Special Case: UHI -> Skip Branch, Show Governorate
+                    if (data.laws) {
+                        $('#branch_select').empty().append('<option value="">اختر...</option>');
+
+                        let locations = data.locations || data.governorates;
+                        if (locations && locations.length > 0) {
+                            $('#location_select').empty().append('<option value="">اختر المحافظة...</option>');
+                            locations.forEach(l => {
+                                $('#location_select').append(new Option(l, l));
+                            });
+                            $('#locations_container').stop(true, true).delay(400).slideDown(400);
+                        }
+                    }
+                    // Normal Case: Show Branches
+                    else if (data.branches && data.branches.length > 0) {
+                        $('#branch_select').empty().append('<option value="">اختر الفرع...</option>');
                         data.branches.forEach(b => {
                             $('#branch_select').append(new Option(b, b));
                         });
+                        $('#branches_container').stop(true, true).delay(400).slideDown(400);
                     }
                 }
             });
 
             $('#branch_select').on('change', function () {
+                const branchVal = $(this).val();
+
+                // 1. Hide following steps
+                $('#locations_container, #laws_container').slideUp(400);
+                $('#location_select, #law_select').val('').trigger('change.select2');
+
+                if (!branchVal) return;
+
                 const entityId = $('#entity_select').val();
                 const entity = entities.find(e => e.id == entityId);
 
-                // Reset downstream
-                $('#locations_container, #laws_container').slideUp();
-                $('#location_select, #law_select').empty().append('<option value="">اختر...</option>');
-
-                if (!entity || !entity.metadata) return;
-                const data = entity.metadata;
-
-                let locations = data.locations || data.governorates;
-                if (locations && locations.length > 0) {
-                    $('#locations_container').slideDown();
-                    locations.forEach(l => {
-                        $('#location_select').append(new Option(l, l));
-                    });
+                if (entity && entity.metadata) {
+                    const data = entity.metadata;
+                    let locations = data.locations || data.governorates;
+                    if (locations && locations.length > 0) {
+                        $('#location_select').empty().append('<option value="">اختر المحافظة...</option>');
+                        locations.forEach(l => {
+                            $('#location_select').append(new Option(l, l));
+                        });
+                        $('#locations_container').stop(true, true).delay(400).slideDown(400);
+                    }
                 }
             });
 
             $('#location_select').on('change', function () {
+                const locVal = $(this).val();
+
+                // 1. Hide following steps
+                $('#laws_container').slideUp(400);
+                $('#law_select').val('').trigger('change.select2');
+
+                if (!locVal) return;
+
                 const entityId = $('#entity_select').val();
                 const entity = entities.find(e => e.id == entityId);
 
-                $('#laws_container').slideUp();
-                $('#law_select').empty().append('<option value="">اختر...</option>');
-
-                if (!entity || !entity.metadata) return;
-                const data = entity.metadata;
-
-                // Level 3: Laws (for Comprehensive)
-                if (data.laws && data.laws.length > 0) {
-                    $('#laws_container').slideDown();
-                    data.laws.forEach(l => {
+                if (entity && entity.metadata && entity.metadata.laws && entity.metadata.laws.length > 0) {
+                    $('#law_select').empty().append('<option value="">اختر المستفيد...</option>');
+                    entity.metadata.laws.forEach(l => {
                         $('#law_select').append(new Option(l, l));
                     });
+                    $('#laws_container').stop(true, true).delay(400).slideDown(400);
                 }
             });
+
+            // Run initial check
+            validateFlow();
         });
     </script>
 @endsection
