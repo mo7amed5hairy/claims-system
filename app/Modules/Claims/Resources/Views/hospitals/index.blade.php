@@ -158,13 +158,13 @@
             $('#deptForm').attr('action', `/hospitals/${id}/departments`);
             // Reset modal rows to one
             $('#addDeptModal .dept-rows').html(`
-                                <div class="dept-input-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                    <input type="text" name="departments[]" class="form-control" placeholder="اسم القسم" required>
-                                    <button type="button" class="btn btn-outline-danger remove-dept-row" onclick="$(this).parent().remove()" style="padding: 0 12px; display: none;">
-                                        <i class="fa-solid fa-times"></i>
-                                    </button>
-                                </div>
-                            `);
+                                    <div class="dept-input-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                        <input type="text" name="departments[]" class="form-control" placeholder="اسم القسم" required>
+                                        <button type="button" class="btn btn-outline-danger remove-dept-row" onclick="$(this).parent().remove()" style="padding: 0 12px; display: none;">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    </div>
+                                `);
             $('#addDeptModal').css('display', 'flex').fadeIn();
         }
 

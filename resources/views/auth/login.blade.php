@@ -28,8 +28,9 @@
                 <!-- Username -->
                 <div class="form-group">
                     <label for="username" class="form-label" style="display: none;">اسم المستخدم</label>
-                    <input id="username" type="text" class="form-control" placeholder="أدخل اسم المستخدم"
-                        name="username" value="{{ old('username') }}" required autofocus tabindex="1">
+                    <input id="username" style="background-color: #bcdafb1f !important;" type="text"
+                        class="form-control" placeholder="أدخل اسم المستخدم" name="username"
+                        value="{{ old('username') }}" required autofocus tabindex="1">
                     @error('username')
                         <div style="color:red; font-size: 0.875rem; margin-top: 0.25rem;">{{ $message }}</div>
                     @enderror
@@ -38,8 +39,8 @@
                 <!-- Password -->
                 <div class="form-group">
                     <label for="password" class="form-label" style="display: none;">كلمة المرور</label>
-                    <input id="password" type="password" placeholder="أدخل كلمة المرور" class="form-control"
-                        name="password" required tabindex="2">
+                    <input id="password" style="background-color: #bcdafb1f !important;" type="password"
+                        placeholder="أدخل كلمة المرور" class="form-control" name="password" required tabindex="2">
                     @error('password')
                         <div style="color:red; font-size: 0.875rem; margin-top: 0.25rem;">{{ $message }}</div>
                     @enderror

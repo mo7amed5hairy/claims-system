@@ -12,10 +12,19 @@
         <a href="{{ route('flow.operations') }}" class="breadcrumb-item">العمليات</a>
         <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-left"></i></span>
         <span class="breadcrumb-item active">تسجيل فاتورة عائدة</span>
+
     </div>
 
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-undo"></i> تسجيل فاتورة عائدة</h1>
+
+        @if($hospital && $department)
+            <p class="page-subtitle">
+                <span><i class="fa-solid fa-hospital"></i> {{ $hospital->name }}</span>
+                <span style="margin: 0 8px;">•</span>
+                <span><i class="fa-solid fa-stethoscope"></i> {{ $department->name }}</span>
+            </p>
+        @endif
     </div>
 
     <div class="form-container">
@@ -24,7 +33,7 @@
                 @csrf
 
                 <!-- Hospital and Department Row -->
-                <div class="form-row">
+                <div class="form-row form-section">
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
                         <select name="hospital_id" id="hospitalSelect" class="form-control select2" required>
@@ -387,7 +396,7 @@
                 const selectedOption = entitySelect.find('option:selected');
                 if (selectedOption.length) {
                     const metadata = selectedOption.data('metadata');
-                    
+
                     if (initialBranch) {
                         fillBranchOptions(metadata, initialBranch);
                     } else if (metadata && metadata.laws) {
@@ -450,15 +459,15 @@
             const div = document.createElement('div');
             div.className = 'file-item';
             div.innerHTML = `
-                                                                    <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-                                                                    <div class="file-details">
-                                                                        <div class="file-name">${file.name}</div>
-                                                                        <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                                                                    </div>
-                                                                    <div class="file-actions">
-                                                                        <button type="button" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
-                                                                    </div>
-                                                                `;
+                                                                                <div class="file-icon"><i class="fa-solid fa-file"></i></div>
+                                                                                <div class="file-details">
+                                                                                    <div class="file-name">${file.name}</div>
+                                                                                    <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                                                                </div>
+                                                                                <div class="file-actions">
+                                                                                    <button type="button" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
+                                                                                </div>
+                                                                            `;
             div.querySelector('.btn-remove').onclick = () => {
                 selectedFiles = selectedFiles.filter(f => f !== file);
                 div.remove();

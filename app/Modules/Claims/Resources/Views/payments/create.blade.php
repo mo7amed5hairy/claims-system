@@ -26,6 +26,14 @@
 
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-credit-card"></i> تسجيل أمر دفع</h1>
+
+        @if($hospital && $department)
+            <p class="page-subtitle">
+                <span><i class="fa-solid fa-hospital"></i> {{ $hospital->name }}</span>
+                <span style="margin: 0 8px;">•</span>
+                <span><i class="fa-solid fa-stethoscope"></i> {{ $department->name }}</span>
+            </p>
+        @endif
     </div>
 
     <div class="form-container">

@@ -18,6 +18,13 @@
 
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-file-invoice-dollar"></i> إنشاء مطالبة جديدة</h1>
+        @if($hospital && $department)
+            <p class="page-subtitle">
+                <span><i class="fa-solid fa-hospital"></i> {{ $hospital->name }}</span>
+                <span style="margin: 0 8px;">•</span>
+                <span><i class="fa-solid fa-stethoscope"></i> {{ $department->name }}</span>
+            </p>
+        @endif
     </div>
 
     <div class="form-container">
@@ -26,7 +33,7 @@
                 @csrf
 
                 <!-- Hospital and Department Row -->
-                <div class="form-row-4">
+                <div class="form-row-4 form-section">
 
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
@@ -85,7 +92,7 @@
                 </div>
 
                 <!-- Main Info Row: 4 Columns -->
-                <div class="form-row-4">
+                <div class="form-row-4 form-section">
 
 
                     <!-- قائمة المستفيدين / القوانين -->
@@ -554,22 +561,22 @@
             }
 
             div.innerHTML = `
-                                                                                                                                                                                                                                                                <div class="file-icon" style="background: ${color}15; color: ${color};">
-                                                                                                                                                                                                                                                                    <i class="fa-solid ${icon}"></i>
-                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                <div class="file-details">
-                                                                                                                                                                                                                                                                    <div class="file-name">${file.name}</div>
-                                                                                                                                                                                                                                                                    <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                                                                                                                                                                                                                                                                    <div class="progress-container" style="display: block;">
-                                                                                                                                                                                                                                                                        <div class="progress-bar"></div>
-                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                <div class="file-actions">
-                                                                                                                                                                                                                                                                    <button type="button" class="btn-remove" title="حذف وإلغاء">
-                                                                                                                                                                                                                                                                        <i class="fa-solid fa-trash-can"></i>
-                                                                                                                                                                                                                                                                    </button>
-                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                            `;
+                                                                                                                                                                                                                                                                                        <div class="file-icon" style="background: ${color}15; color: ${color};">
+                                                                                                                                                                                                                                                                                            <i class="fa-solid ${icon}"></i>
+                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                        <div class="file-details">
+                                                                                                                                                                                                                                                                                            <div class="file-name">${file.name}</div>
+                                                                                                                                                                                                                                                                                            <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                                                                                                                                                                                                                                                                            <div class="progress-container" style="display: block;">
+                                                                                                                                                                                                                                                                                                <div class="progress-bar"></div>
+                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                        <div class="file-actions">
+                                                                                                                                                                                                                                                                                            <button type="button" class="btn-remove" title="حذف وإلغاء">
+                                                                                                                                                                                                                                                                                                <i class="fa-solid fa-trash-can"></i>
+                                                                                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                    `;
 
             div.querySelector('.btn-remove').onclick = () => {
                 if (div.uploadInterval) clearInterval(div.uploadInterval);

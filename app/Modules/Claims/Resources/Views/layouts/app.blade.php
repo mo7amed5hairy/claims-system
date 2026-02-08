@@ -155,6 +155,9 @@
                             @endif
                             <div class="dropdown-divider"></div>
 
+                            <a href="{{ route('hospitals.index') }}">
+                                <i class="fa-solid fa-hospital"></i> المستشفيات و الأقسام
+                            </a>
                             <a href="{{ route('entities.index') }}">
                                 <i class="fa-solid fa-file-contract"></i> جهات التعاقد
                             </a>

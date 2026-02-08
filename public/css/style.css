@@ -123,7 +123,8 @@ body {
     margin-bottom: 30px;
     font-size: 24px;
     font-weight: 700;
-    color: var(--primary-color);
+    /* color: var(--primary-color); */
+    color: #60589d !important;
     text-align: center;
     justify-content: center;
     flex-direction: column;
@@ -131,7 +132,8 @@ body {
 
 .auth-logo i {
     font-size: 40px;
-    color: var(--primary-color);
+    /* color: var(--primary-color); */
+    color: #60589d !important;
 }
 
 /* =====================================================
