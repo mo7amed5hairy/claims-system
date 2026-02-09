@@ -12,6 +12,16 @@
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('modules/claims/css/all.min.css') }}">
+    <style>
+        .form-control:hover {
+            border-color: #6a72d987 !important;
+        }
+
+        .form-control:focus {
+            border-color: #6a72d987 !important;
+        }
+    </style>
+
 </head>
 
 <body>

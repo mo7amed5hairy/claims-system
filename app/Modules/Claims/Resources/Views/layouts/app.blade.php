@@ -56,13 +56,15 @@
             width: 35px;
             height: 35px;
             border-radius: 50%;
-            background: var(--primary-color);
+            /* background: var(--primary-color); */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             font-size: 14px;
+            text-transform: uppercase;
         }
 
         .dropdown-content {
@@ -136,7 +138,7 @@
                                 <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="user-avatar">
                             @else
                                 <div class="user-avatar-placeholder">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                    <i class="fa-solid fa-user"></i>
                                 </div>
                             @endif
                             <i class="fa-solid fa-chevron-down" style="font-size: 12px; margin-right: 5px;"></i>
