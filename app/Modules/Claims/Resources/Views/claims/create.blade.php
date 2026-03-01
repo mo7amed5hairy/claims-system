@@ -284,7 +284,7 @@
         </div>
     </div>
 @endsection
-
+<!-- 
 @section('scripts')
     <link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
@@ -441,17 +441,89 @@
                 if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
             }
 
+            // entitySelect.on('change', function () {
+            //     const selectedOption = $(this).find('option:selected');
+            //     const metadata = selectedOption.data('metadata');
+
+            //     // Fill Branches (or skip if Universal Health)
+            //     fillBranchOptions(metadata);
+            //     // resetSub is called inside fillBranchOptions indirectly if we show branches, 
+            //     // but if we skip, we call fillSubOptions directly.
+            //     // Actually resetSub was doing cleanup. Let's keep it safe.
+            //     // resetSub(); // Removed because fillBranchOptions handles flow
+            // });
+
+
+
             entitySelect.on('change', function () {
                 const selectedOption = $(this).find('option:selected');
                 const metadata = selectedOption.data('metadata');
 
-                // Fill Branches (or skip if Universal Health)
+                // Reset all containers
+                branchContainer.slideUp(300);
+                subContainer.slideUp(300);
+                lawsContainer.slideUp(300);
+
+                if (!metadata) return;
+
+                // === لو الهيئة العامة للتأمين الصحي أو التأمين الصحي الشامل ===
+                if (metadata.laws) {
+                    // 1. Fill Branches (فروع / قوائم انتظار)
+                    if (metadata.branches && metadata.branches.length > 0) {
+                        branchSelect.empty().append('<option value="">اختر الفرع</option>');
+                        metadata.branches.forEach(branch => {
+                            branchSelect.append(`<option value="${branch}">${branch}</option>`);
+                        });
+                        branchContainer.slideDown(300);
+                    }
+
+                    // مستمع الفرع → يعرض المحافظات / المواقع
+                    branchSelect.off('change').on('change', function () {
+                        subSelect.empty().append('<option value="">اختر المحافظة / الموقع</option>');
+                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                        lawsContainer.slideUp(300);
+
+                        const selectedBranch = $(this).val();
+                        if (!selectedBranch) {
+                            subContainer.slideUp(300);
+                            return;
+                        }
+
+                        let subItems = metadata.locations || metadata.governorates || [];
+                        if (!subItems.length) {
+                            subContainer.slideUp(300);
+                            return;
+                        }
+
+                        subItems.forEach(item => {
+                            subSelect.append(`<option value="${item}">${item}</option>`);
+                        });
+                        subLabel.text(metadata.governorates ? 'المحافظات' : 'المواقع');
+                        subContainer.slideDown(300);
+                    });
+
+                    // مستمع المحافظة → يعرض المستفيدين / القوانين
+                    subSelect.off('change').on('change', function () {
+                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                        const selectedSub = $(this).val();
+                        if (!selectedSub || !metadata.laws) {
+                            lawsContainer.slideUp(300);
+                            return;
+                        }
+
+                        metadata.laws.forEach(law => {
+                            lawsSelect.append(`<option value="${law}">${law}</option>`);
+                        });
+                        lawsContainer.slideDown(300);
+                    });
+
+                    return; // انتهى المعالجة الخاصة بالهيئة
+                }
+
+                // === باقي الحالات العادية ===
                 fillBranchOptions(metadata);
-                // resetSub is called inside fillBranchOptions indirectly if we show branches, 
-                // but if we skip, we call fillSubOptions directly.
-                // Actually resetSub was doing cleanup. Let's keep it safe.
-                // resetSub(); // Removed because fillBranchOptions handles flow
             });
+
 
             branchSelect.on('change', function () {
                 const branchVal = $(this).val() || '';
@@ -561,22 +633,22 @@
             }
 
             div.innerHTML = `
-                                                                                                                                                                                                                                                                                        <div class="file-icon" style="background: ${color}15; color: ${color};">
-                                                                                                                                                                                                                                                                                            <i class="fa-solid ${icon}"></i>
-                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                        <div class="file-details">
-                                                                                                                                                                                                                                                                                            <div class="file-name">${file.name}</div>
-                                                                                                                                                                                                                                                                                            <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                                                                                                                                                                                                                                                                                            <div class="progress-container" style="display: block;">
-                                                                                                                                                                                                                                                                                                <div class="progress-bar"></div>
-                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                        <div class="file-actions">
-                                                                                                                                                                                                                                                                                            <button type="button" class="btn-remove" title="حذف وإلغاء">
-                                                                                                                                                                                                                                                                                                <i class="fa-solid fa-trash-can"></i>
-                                                                                                                                                                                                                                                                                            </button>
-                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                    `;
+                                                                                                                                                                                                                                                                                                                        <div class="file-icon" style="background: ${color}15; color: ${color};">
+                                                                                                                                                                                                                                                                                                                            <i class="fa-solid ${icon}"></i>
+                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                        <div class="file-details">
+                                                                                                                                                                                                                                                                                                                            <div class="file-name">${file.name}</div>
+                                                                                                                                                                                                                                                                                                                            <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                                                                                                                                                                                                                                                                                                            <div class="progress-container" style="display: block;">
+                                                                                                                                                                                                                                                                                                                                <div class="progress-bar"></div>
+                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                        <div class="file-actions">
+                                                                                                                                                                                                                                                                                                                            <button type="button" class="btn-remove" title="حذف وإلغاء">
+                                                                                                                                                                                                                                                                                                                                <i class="fa-solid fa-trash-can"></i>
+                                                                                                                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                    `;
 
             div.querySelector('.btn-remove').onclick = () => {
                 if (div.uploadInterval) clearInterval(div.uploadInterval);
@@ -638,6 +710,330 @@
             fileInput.files = dt.files;
 
             // Reset save button if no files uploading
+            const remainingBars = document.querySelectorAll('.progress-container[style*="display: block"]');
+            if (remainingBars.length === 0) {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = false;
+                saveBtn.style.opacity = '1';
+                saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ المطالبة';
+            }
+        }
+    </script>
+@endsection -->
+
+
+
+
+
+@section('scripts')
+    <link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
+    <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ asset('js/select2.min.js') }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Consolidated Select2 Initialization
+            $('.select2').select2({
+                dir: "rtl",
+                width: '100%',
+                closeOnSelect: true
+            }).on('select2:select', function (e) {
+                $(this).select2('close');
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Select2 auto-close handled in app.blade.php globally
+
+            // Hospital & Department Logic
+            const hospitalsData = @json($allHospitals);
+            const hospitalSelect = $('#hospitalSelect');
+            const departmentSelect = $('#departmentSelect');
+
+            // Initial Values
+            const initialHospitalId = "{{ old('hospital_id', $hospital->id ?? '') }}";
+            const initialDepartmentId = "{{ old('department_id', $department->id ?? '') }}";
+
+            function populateDepartments(hospitalId, selectedDeptId = '') {
+                departmentSelect.empty().append('<option value="">اختر القسم</option>');
+
+                const hospital = hospitalsData.find(h => h.id == hospitalId);
+                if (hospital && hospital.departments) {
+                    hospital.departments.forEach(dept => {
+                        departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                    });
+                }
+
+                if (selectedDeptId) {
+                    departmentSelect.val(selectedDeptId).trigger('change');
+                }
+            }
+
+            hospitalSelect.on('change', function () {
+                const hospId = $(this).val();
+                populateDepartments(hospId);
+            });
+
+            // Set initial hospital and department
+            if (initialHospitalId) {
+                hospitalSelect.val(initialHospitalId).trigger('change');
+                populateDepartments(initialHospitalId, initialDepartmentId);
+            }
+
+
+            // Entity & Dynamic Fields Logic
+            const entitySelect = $('#entitySelect');
+            const branchContainer = $('#branchContainer');
+            const branchSelect = $('#branchSelect');
+            const subContainer = $('#subContainer');
+            const subSelect = $('#subSelect');
+            const subLabel = $('#subLabel');
+            const lawsContainer = $('#lawsContainer');
+            const lawsSelect = $('#lawsSelect');
+
+            function updateSelectData(selectElement, placeholder, optionsArray) {
+                let html = '<option value="">' + placeholder + '</option>';
+                if (optionsArray && optionsArray.length) {
+                    optionsArray.forEach(item => {
+                        html += '<option value="' + item + '">' + item + '</option>';
+                    });
+                }
+
+                // تدمير Select2 الحالي لإعادة بنائه بشكل نظيف
+                try {
+                    selectElement.select2('destroy');
+                } catch (e) { }
+
+                selectElement.html(html);
+
+                // إعادة التهيئة
+                selectElement.select2({ dir: "rtl", width: '100%', closeOnSelect: true });
+            }
+
+            function clearLowerFields(level) {
+                if (level <= 1) {
+                    updateSelectData(branchSelect, 'اختر الفرع', []);
+                    branchContainer.slideUp(300);
+                }
+                if (level <= 2) {
+                    updateSelectData(subSelect, 'اختر المحافظة / الموقع', []);
+                    subContainer.slideUp(300);
+                }
+                if (level <= 3) {
+                    updateSelectData(lawsSelect, 'اختر المستفيد', []);
+                    lawsContainer.slideUp(300);
+                }
+            }
+
+            entitySelect.on('change', function () {
+                const selectedOption = $(this).find('option:selected');
+                const metadata = selectedOption.data('metadata');
+
+                clearLowerFields(1);
+
+                if (!metadata) return;
+
+                if (metadata.branches && metadata.branches.length > 0) {
+                    updateSelectData(branchSelect, 'اختر الفرع', metadata.branches);
+                    branchContainer.slideDown(300);
+                } else {
+                    let subItems = metadata.locations || metadata.governorates || [];
+                    if (subItems.length > 0) {
+                        updateSelectData(subSelect, 'اختر المحافظة / الموقع', subItems);
+                        subLabel.text(metadata.governorates ? 'المحافظات' : 'المواقع');
+                        subContainer.slideDown(300);
+                    }
+                }
+            });
+
+            branchSelect.on('change', function () {
+                const branchVal = $(this).val();
+                const metadata = entitySelect.find('option:selected').data('metadata');
+
+                clearLowerFields(2);
+
+                if (!branchVal || !metadata) return;
+
+                let subItems = metadata.locations || metadata.governorates || [];
+                if (subItems.length > 0) {
+                    updateSelectData(subSelect, 'اختر المحافظة / الموقع', subItems);
+                    subLabel.text(metadata.governorates ? 'المحافظات' : 'المواقع');
+                    subContainer.slideDown(300);
+                }
+            });
+
+            subSelect.on('change', function () {
+                const subVal = $(this).val();
+                const metadata = entitySelect.find('option:selected').data('metadata');
+
+                clearLowerFields(3);
+
+                if (!subVal || !metadata) return;
+
+                if (metadata.laws && metadata.laws.length > 0) {
+                    updateSelectData(lawsSelect, 'اختر المستفيد', metadata.laws);
+                    lawsContainer.slideDown(300);
+                }
+            });
+
+            const initialEntity = '{{ session("flow_options.entity_id", "") }}';
+            const initialBranch = '{{ session("flow_options.branch", "") }}';
+            const initialSub = '{{ session("flow_options.location", "") }}';
+            const initialLaw = '{{ session("flow_options.law", "") }}';
+
+            if (initialEntity) {
+                entitySelect.val(initialEntity).trigger('change');
+                if (initialBranch) {
+                    branchSelect.val(initialBranch).trigger('change');
+                }
+                if (initialSub) {
+                    subSelect.val(initialSub).trigger('change');
+                }
+                if (initialLaw) {
+                    lawsSelect.val(initialLaw).trigger('change');
+                }
+            }
+        });
+    </script>
+
+    <script>
+        function calculateDiff() {
+            const claim = parseFloat(document.getElementById('claimValue').value) || 0;
+            const reviewed = parseFloat(document.getElementById('reviewedValue').value) || 0;
+            document.getElementById('differenceValue').value = (reviewed - claim).toFixed(2);
+        }
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        let selectedFiles = [];
+
+        dropZone.onclick = () => fileInput.click();
+
+        fileInput.onchange = (e) => handleFiles(e.target.files);
+
+        dropZone.ondragover = (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        };
+
+        dropZone.ondragleave = () => dropZone.classList.remove('dragover');
+
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        };
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) return;
+
+                selectedFiles.push(file);
+                const fileItem = createFileItem(file);
+                fileList.appendChild(fileItem);
+
+                simulateProgress(fileItem);
+            });
+            syncInput();
+        }
+
+        function createFileItem(file) {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.setAttribute('data-name', file.name);
+
+            const extension = file.name.split('.').pop().toLowerCase();
+            let icon = 'fa-file-lines';
+            let color = '#3b82f6';
+
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+                icon = 'fa-file-image';
+                color = '#10b981';
+            } else if (extension === 'pdf') {
+                icon = 'fa-file-pdf';
+                color = '#ef4444';
+            } else if (['xls', 'xlsx', 'csv'].includes(extension)) {
+                icon = 'fa-file-excel';
+                color = '#059669';
+            }
+
+            div.innerHTML = `
+                            <div class="file-icon" style="background: ${color}15; color: ${color};">
+                                <i class="fa-solid ${icon}"></i>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name">${file.name}</div>
+                                <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                <div class="progress-container" style="display: block;">
+                                    <div class="progress-bar"></div>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <button type="button" class="btn-remove" title="حذف وإلغاء">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        `;
+
+            div.querySelector('.btn-remove').onclick = () => {
+                if (div.uploadInterval) clearInterval(div.uploadInterval);
+                selectedFiles = selectedFiles.filter(f => f !== file);
+                div.style.transition = 'all 0.3s ease';
+                div.style.opacity = '0';
+                div.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    div.remove();
+                    syncInput();
+                }, 300);
+            };
+
+            return div;
+        }
+
+        function simulateProgress(fileItem) {
+            const bar = fileItem.querySelector('.progress-bar');
+            const container = fileItem.querySelector('.progress-container');
+            let width = 0;
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = '0.7';
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...';
+
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        container.style.transition = 'all 0.5s ease';
+                        container.style.opacity = '0';
+                        setTimeout(() => {
+                            container.style.display = 'none';
+                            const remainingBars = document.querySelectorAll('.progress-container[style*="display: block"]');
+                            if (remainingBars.length === 0) {
+                                saveBtn.disabled = false;
+                                saveBtn.style.opacity = '1';
+                                saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ المطالبة';
+                            }
+                        }, 500);
+                    }, 500);
+                } else {
+                    width += Math.random() * 10;
+                    if (width > 100) width = 100;
+                    bar.style.width = width + '%';
+                }
+            }, 150);
+
+            fileItem.uploadInterval = interval;
+        }
+
+        function syncInput() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+
             const remainingBars = document.querySelectorAll('.progress-container[style*="display: block"]');
             if (remainingBars.length === 0) {
                 const saveBtn = document.getElementById('saveBtn');

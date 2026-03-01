@@ -387,19 +387,27 @@
                 subContainer.slideUp(300);
                 lawsContainer.slideUp(300);
 
+            function fixMetadata(metadata, entityName) {
+                if (!metadata) return null;
+                // Forcefully ensure "التأمين الصحي" entities have all 3 levels
+                if (entityName.includes('التأمين الصحي')) {
+                    if (!metadata.laws || metadata.laws.length === 0) {
+                        metadata.laws = ['طلبة', 'مواليد', 'منتفعين', 'امرأة معيلة'];
+                    }
+                    if (!metadata.branches || metadata.branches.length === 0) {
+                        metadata.branches = ['فروع', 'قوائم انتظار'];
+                    }
+                    if (!metadata.locations || metadata.locations.length === 0) {
+                        metadata.locations = metadata.governorates || ['القاهرة', 'الجيزة', 'رئاسة الحي', 'القليوبية', 'الأقصر', 'الإسماعيلية', 'بورسعيد'];
+                    }
+                }
+                return metadata;
+            }
+
             function fillBranchOptions(metadata, selectedBranch = '') {
                 branchSelect.empty().append('<option value="">اختر الفرع</option>');
-
-                // Special Case: Universal Health Insurance -> Skip Branches
-                const selectedEntityName = entitySelect.find('option:selected').text().trim();
-                // Special Case: Universal Health Insurance (Detected by laws in metadata) -> Skip Branches
-                if (metadata && metadata.laws) {
-                    branchContainer.slideUp(300);
-                    fillSubOptions(metadata, 'SKIP_BRANCH', '{{ old("location", $claim->location) }}');
-                    return;
-                }
-
-                if (metadata?.branches?.length) {
+                
+                if (metadata && metadata.branches && metadata.branches.length > 0) {
                     metadata.branches.forEach(branch => {
                         branchSelect.append(`<option value="${branch}">${branch}</option>`);
                     });
@@ -416,23 +424,16 @@
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
                 lawsContainer.slideUp(300);
 
-                if (!branchVal && branchVal !== 'SKIP_BRANCH' && branchVal !== 'NO_BRANCH') return;
-
-                let subItems = [];
-                let labelText = 'المحافظات / المواقع';
-
-                if (metadata.laws) { // التأمين الصحي الشامل
-                    subItems = metadata.governorates || [];
-                    labelText = 'المحافظات';
-                } else if (metadata.governorates) {
-                    subItems = metadata.governorates;
-                    labelText = 'المحافظات';
-                } else if (metadata.locations) {
-                    subItems = metadata.locations;
-                    labelText = 'المواقع';
+                if (!branchVal && branchVal !== 'NO_BRANCH') return;
+                if (!metadata) {
+                    subContainer.slideUp(300);
+                    return;
                 }
 
-                if (subItems.length) {
+                let subItems = metadata.locations || metadata.governorates || [];
+                let labelText = metadata.locations ? 'المواقع' : 'المحافظات';
+
+                if (subItems.length > 0) {
                     subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
                     subLabel.text(labelText);
                     subContainer.slideDown(300);
@@ -444,7 +445,7 @@
 
             function fillLawsOptions(metadata, subVal, selectedLaw = '') {
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                if (!metadata.laws || !subVal) {
+                if (!metadata || !metadata.laws || !metadata.laws.length || !subVal) {
                     lawsContainer.slideUp(300);
                     return;
                 }
@@ -456,50 +457,55 @@
 
             entitySelect.on('change', function () {
                 const selectedOption = $(this).find('option:selected');
-                const metadata = selectedOption.data('metadata');
+                const entityName = selectedOption.text().trim();
+                let metadata = selectedOption.data('metadata');
+                
+                metadata = fixMetadata(metadata, entityName);
+                selectedOption.data('metadata', metadata); // Cache the fix
+                
                 fillBranchOptions(metadata);
-                // resetSub(); // Handled by flow
             });
 
             branchSelect.on('change', function () {
                 const branchVal = $(this).val() || '';
-                const metadata = entitySelect.find('option:selected').data('metadata');
+                const selectedOption = entitySelect.find('option:selected');
+                const metadata = fixMetadata(selectedOption.data('metadata'), selectedOption.text().trim());
                 fillSubOptions(metadata, branchVal);
             });
 
             subSelect.on('change', function () {
                 const subVal = $(this).val() || '';
-                const metadata = entitySelect.find('option:selected').data('metadata');
+                const selectedOption = entitySelect.find('option:selected');
+                const metadata = fixMetadata(selectedOption.data('metadata'), selectedOption.text().trim());
                 fillLawsOptions(metadata, subVal);
             });
 
-                    // ==== تهيئة الصفحة عند التحميل ====
-                    const initialEntity = '{{ old("entity_id", $claim->entity_id) }}';
-                    const initialBranch = '{{ old("branch", $claim->branch) }}';
-                    const initialSub = '{{ old("location", $claim->location) }}';
-                    const initialLaw = '{{ old("beneficiary", $claim->beneficiary) }}';
+            // ==== تهيئة الصفحة عند التحميل ====
+            const initialEntity = '{{ old("entity_id", $claim->entity_id) }}';
+            const initialBranch = '{{ old("branch", $claim->branch) }}';
+            const initialSub = '{{ old("location", $claim->location) }}';
+            const initialLaw = '{{ old("beneficiary", $claim->beneficiary) }}';
 
-                    if (initialEntity) {
-                        entitySelect.val(initialEntity).trigger('change');
-                        const selectedOption = entitySelect.find('option:selected');
-                        if (selectedOption.length) {
-                            const metadata = selectedOption.data('metadata');
+            if (initialEntity) {
+                entitySelect.val(initialEntity).trigger('change');
+                const selectedOption = entitySelect.find('option:selected');
+                let metadata = selectedOption.data('metadata');
+                const entityName = selectedOption.text().trim();
+                
+                if (selectedOption.length) {
+                    metadata = fixMetadata(metadata, entityName);
+                    selectedOption.data('metadata', metadata);
 
-                            // We need a slight timeout or wait for change event propagation if we were relying on it, 
-                            // but here we are calling functions directly so it should be fine.
-                            // However, calling trigger('change') on entitySelect above calls fillBranchOptions and resetSub.
-                            // So we need to override that with the initial values.
-
-                            // Wait for the first change event to finish? Or just call logic manually.
-                            // The 'change' handler calls fillBranchOptions(metadata) without selectedBranch.
-                            // So we should re-call it with initialBranch.
-
-                            fillBranchOptions(metadata, initialBranch);
-                            if (initialBranch) fillSubOptions(metadata, initialBranch, initialSub);
-                            if (initialSub) fillLawsOptions(metadata, initialSub, initialLaw);
-                        }
+                    fillBranchOptions(metadata, initialBranch);
+                    if (initialBranch || (!metadata || !metadata.branches || !metadata.branches.length)) {
+                        fillSubOptions(metadata, initialBranch || 'NO_BRANCH', initialSub);
                     }
-                });
+                    if (initialSub) {
+                        fillLawsOptions(metadata, initialSub, initialLaw);
+                    }
+                }
+            }
+        });
             </script>
 
 
