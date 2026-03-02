@@ -296,120 +296,114 @@
             subContainer.slideUp(300);
             lawsContainer.slideUp(300);
 
-            function fillBranchOptions(metadata, selectedBranch = '') {
-                branchSelect.empty().append('<option value="">اختر الفرع</option>');
-
-                // Special Case: Universal Health Insurance -> Skip Branches
-                // Special Case: Universal Health Insurance (Detected by laws in metadata) -> Skip Branches
-                if (metadata && metadata.laws) {
-                    branchContainer.slideUp(300);
-                    fillSubOptions(metadata, 'SKIP_BRANCH', '{{ old("location", session("flow_options.location")) }}');
-                    return;
-                }
-
-                if (metadata?.branches?.length) {
-                    metadata.branches.forEach(branch => {
-                        branchSelect.append(`<option value="${branch}">${branch}</option>`);
-                    });
-                    branchContainer.slideDown(300);
-                    if (selectedBranch) branchSelect.val(selectedBranch).trigger('change');
-                } else {
-                    branchContainer.slideUp(300);
-                    fillSubOptions(metadata, 'NO_BRANCH', '{{ old("location", session("flow_options.location")) }}');
-                }
-            }
-
-            function fillSubOptions(metadata, branchVal, selectedSub = '') {
-                subSelect.empty().append('<option value="">اختر الاختيار</option>');
-                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                lawsContainer.slideUp(300);
-
-                if (!branchVal && branchVal !== 'SKIP_BRANCH' && branchVal !== 'NO_BRANCH') return;
-
-                if (!metadata) {
-                    subContainer.slideUp(300);
-                    return;
-                }
-
-                let subItems = [];
-                let labelText = 'المحافظات / المواقع';
-
-                if (metadata.laws) {
-                    subItems = metadata.governorates || [];
-                    labelText = 'المحافظات';
-                } else if (metadata.governorates) {
-                    subItems = metadata.governorates;
-                    labelText = 'المحافظات';
-                } else if (metadata.locations) {
-                    subItems = metadata.locations;
-                    labelText = 'المواقع';
-                }
-
-                if (subItems.length) {
-                    subItems.forEach(item => subSelect.append(`<option value="${item}">${item}</option>`));
-                    subLabel.text(labelText);
-                    subContainer.slideDown(300);
-                    if (selectedSub) subSelect.val(selectedSub).trigger('change');
-                } else {
-                    subContainer.slideUp(300);
-                }
-            }
-
-            function fillLawsOptions(metadata, subVal, selectedLaw = '') {
-                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
-                if (!metadata.laws || !subVal) {
-                    lawsContainer.slideUp(300);
-                    return;
-                }
-
-                metadata.laws.forEach(item => lawsSelect.append(`<option value="${item}">${item}</option>`));
-                lawsContainer.slideDown(300);
-                if (selectedLaw) lawsSelect.val(selectedLaw).trigger('change');
-            }
-
             entitySelect.on('change', function () {
                 const selectedOption = $(this).find('option:selected');
                 const metadata = selectedOption.data('metadata');
-                fillBranchOptions(metadata);
-                resetSub();
+
+                // Reset all containers
+                branchContainer.hide();
+                subContainer.hide();
+                lawsContainer.hide();
+
+                if (!metadata) return;
+
+                // === لو الهيئة العامة للتأمين الصحي أو التأمين الصحي الشامل ===
+                if (metadata.laws) {
+                    // 1. Fill Branches (فروع / قوائم انتظار)
+                    if (metadata.branches && metadata.branches.length > 0) {
+                        branchSelect.empty().append('<option value="">اختر الفرع</option>');
+                        metadata.branches.forEach(branch => {
+                            branchSelect.append(`<option value="${branch}">${branch}</option>`);
+                        });
+                        branchSelect.select2('destroy').select2({ dir: "rtl", width: '100%', closeOnSelect: true });
+                        branchContainer.show();
+                    } else {
+                        // لو مفيش فروع، نعرض المحافظة مباشرة
+                        let subItems = metadata.governorates || metadata.locations || [];
+                        if (subItems.length > 0) {
+                            subSelect.empty().append('<option value="">اختر الاختيار</option>');
+                            subItems.forEach(item => {
+                                subSelect.append(`<option value="${item}">${item}</option>`);
+                            });
+                            subSelect.select2('destroy').select2({ dir: "rtl", width: '100%', closeOnSelect: true });
+                            subLabel.text(metadata.governorates ? 'المحافظات' : 'المواقع');
+                            subContainer.show();
+                        }
+                    }
+                } else {
+                    // === باقي الحالات العادية ===
+                    if (metadata.branches && metadata.branches.length > 0) {
+                        branchSelect.empty().append('<option value="">اختر الفرع</option>');
+                        metadata.branches.forEach(branch => {
+                            branchSelect.append(`<option value="${branch}">${branch}</option>`);
+                        });
+                        branchSelect.select2('destroy').select2({ dir: "rtl", width: '100%' });
+                        branchContainer.show();
+                    } else {
+                        branchContainer.hide();
+                        let subItems = metadata.locations || metadata.governorates || [];
+                        if (subItems.length > 0) {
+                            subSelect.empty().append('<option value="">اختر المحافظة / الموقع</option>');
+                            subItems.forEach(item => {
+                                subSelect.append(`<option value="${item}">${item}</option>`);
+                            });
+                            subSelect.select2('destroy').select2({ dir: "rtl", width: '100%' });
+                            subLabel.text(metadata.governorates ? 'المحافظات' : 'المواقع');
+                            subContainer.show();
+                        } else {
+                            subContainer.hide();
+                        }
+                    }
+                }
             });
 
+            // مستمع الفرع → يعرض المحافظة
             branchSelect.on('change', function () {
-                const branchVal = $(this).val() || '';
+                const selectedBranch = $(this).val();
                 const metadata = entitySelect.find('option:selected').data('metadata');
-                fillSubOptions(metadata, branchVal);
+
+                if (!selectedBranch || !metadata) {
+                    subContainer.hide();
+                    return;
+                }
+
+                let subItems = metadata.locations || metadata.governorates || [];
+                if (!subItems.length) {
+                    subContainer.hide();
+                    return;
+                }
+
+                subSelect.empty().append('<option value="">اختر المحافظة / الموقع</option>');
+                subItems.forEach(item => {
+                    subSelect.append(`<option value="${item}">${item}</option>`);
+                });
+                subSelect.select2('destroy').select2({ dir: "rtl", width: '100%', closeOnSelect: true });
+                subLabel.text(metadata.governorates ? 'المحافظات' : 'المواقع');
+                subContainer.show();
             });
 
+            // مستمع المحافظة → يعرض المستفيدين
             subSelect.on('change', function () {
-                const subVal = $(this).val() || '';
+                const selectedSub = $(this).val();
                 const metadata = entitySelect.find('option:selected').data('metadata');
-                fillLawsOptions(metadata, subVal);
+
+                if (!selectedSub || !metadata || !metadata.laws) {
+                    lawsContainer.hide();
+                    return;
+                }
+
+                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                metadata.laws.forEach(law => {
+                    lawsSelect.append(`<option value="${law}">${law}</option>`);
+                });
+                lawsSelect.select2('destroy').select2({ dir: "rtl", width: '100%', closeOnSelect: true });
+                lawsContainer.show();
             });
 
             // Initialize with session or old values
             const initialEntity = '{{ old("entity_id", session("flow_options.entity_id")) }}';
-            const initialBranch = '{{ old("branch", session("flow_options.branch")) }}';
-            const initialSub = '{{ old("location", session("flow_options.location")) }}';
-            const initialLaw = '{{ old("beneficiary", session("flow_options.law")) }}';
-
             if (initialEntity) {
-                const selectedOption = entitySelect.find('option:selected');
-                if (selectedOption.length) {
-                    const metadata = selectedOption.data('metadata');
-
-                    if (initialBranch) {
-                        fillBranchOptions(metadata, initialBranch);
-                    } else if (metadata && metadata.laws) {
-                        // For UHI, skip branch and fill sub directly
-                        fillSubOptions(metadata, 'SKIP_BRANCH', initialSub);
-                    }
-
-                    if (initialSub && (!metadata || !metadata.laws)) {
-                        fillSubOptions(metadata, initialBranch || 'NO_BRANCH', initialSub);
-                    }
-
-                    if (initialLaw) fillLawsOptions(metadata, initialSub, initialLaw);
-                }
+                entitySelect.val(initialEntity).trigger('change');
             }
         });
     </script>
@@ -459,15 +453,15 @@
             const div = document.createElement('div');
             div.className = 'file-item';
             div.innerHTML = `
-                                                                                <div class="file-icon"><i class="fa-solid fa-file"></i></div>
-                                                                                <div class="file-details">
-                                                                                    <div class="file-name">${file.name}</div>
-                                                                                    <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                                                                                </div>
-                                                                                <div class="file-actions">
-                                                                                    <button type="button" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
-                                                                                </div>
-                                                                            `;
+                                                                                    <div class="file-icon"><i class="fa-solid fa-file"></i></div>
+                                                                                    <div class="file-details">
+                                                                                        <div class="file-name">${file.name}</div>
+                                                                                        <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                                                                    </div>
+                                                                                    <div class="file-actions">
+                                                                                        <button type="button" class="btn-remove"><i class="fa-solid fa-trash"></i></button>
+                                                                                    </div>
+                                                                                `;
             div.querySelector('.btn-remove').onclick = () => {
                 selectedFiles = selectedFiles.filter(f => f !== file);
                 div.remove();
