@@ -33,7 +33,7 @@
                 @csrf
 
                 <!-- Hospital and Department Row -->
-                <div class="form-row-4 form-section">
+                <div class="form-row-3 form-section">
 
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
@@ -71,6 +71,11 @@
                     </div>
 
 
+                </div>
+
+                <!-- Row 2: Branches, Governorates, Beneficiaries -->
+                <div class="form-row-3 form-section">
+
                     <!-- قائمة الفروع -->
                     <div class="form-group" id="branchContainer" style="display: none;">
                         <label class="form-label"><i class="fa-solid fa-layer-group"></i> الفروع</label>
@@ -79,30 +84,26 @@
                         </select>
                     </div>
 
-                    <!-- قائمة المحافظات / المواقع -->
+                    <!-- قائمة المحافظة / المواقع -->
                     <div class="form-group" id="subContainer" style="display: none;">
-                        <label class="form-label" id="subLabel"><i class="fa-solid fa-map-marker-alt"></i> المحافظات /
-                            المواقع</label>
+                        <label class="form-label" id="subLabel"><i class="fa-solid fa-map-marker-alt"></i> المحافظة / الموقع</label>
                         <select name="location" id="subSelect" class="form-control select2">
                             <option value="">اختر المحافظة / الموقع</option>
                         </select>
                     </div>
 
-
-                </div>
-
-                <!-- Main Info Row: 4 Columns -->
-                <div class="form-row-4 form-section">
-
-
                     <!-- قائمة المستفيدين / القوانين -->
                     <div class="form-group" id="lawsContainer" style="display: none;">
-                        <label class="form-label"><i class="fa-solid fa-file-lines"></i> المستفيدين / القوانين</label>
+                        <label class="form-label"><i class="fa-solid fa-file-lines"></i> المستفيدين / المنتفعين</label>
                         <select name="beneficiary" id="lawsSelect" class="form-control select2">
                             <option value="">اختر المستفيد</option>
                         </select>
                     </div>
 
+                </div>
+
+                <!-- Row 3: Invoice count, Month, Claim date -->
+                <div class="form-row-3 form-section">
 
                     <div class="form-group">
                         <label class="form-label">
@@ -135,9 +136,6 @@
                         @error('month') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-
-
-
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fa-solid fa-calendar-days"></i> تاريخ المطالبة
@@ -145,6 +143,7 @@
                         <input type="date" name="claim_date" class="form-control" value="{{ old('claim_date') }}" required>
                         @error('claim_date') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
+
                 </div>
 
                 <!-- Financial Section -->
