@@ -18,6 +18,7 @@
                             <th>اسم المستخدم</th>
                             <th>البريد الإلكتروني</th>
                             <th>الدور</th>
+                            <th>نوع المستخدم</th>
                             <th>الحالة</th>
                             <th>الإجراءات</th>
                         </tr>
@@ -33,6 +34,17 @@
                                         <span class="badge badge-admin">مدير نظام</span>
                                     @else
                                         <span class="badge badge-user">مستخدم</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($user->role === 'admin')
+                                        <span class="text-muted">---</span>
+                                    @elseif(is_array($user->user_type) && count($user->user_type) > 0)
+                                        @foreach($user->user_type as $type)
+                                            <span class="badge badge-user-type">{{ $type }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="text-muted">---</span>
                                     @endif
                                 </td>
                                 <td>
@@ -87,12 +99,22 @@
             color: #616161;
         }
 
+        .badge-user-type {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            margin: 0 2px;
+        }
+
         .text-success {
             color: #2e7d32;
         }
 
         .text-danger {
             color: #d32f2f;
+        }
+
+        .text-muted {
+            color: #9e9e9e;
         }
     </style>
 @endsection

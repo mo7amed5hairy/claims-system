@@ -31,8 +31,8 @@
                 <div class="card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                     <i class="fa-solid fa-hospital"></i>
                 </div>
-                <h3 class="card-title">وزارة الصحة</h3>
-                <p class="card-text">إدارة مطالبات الوزارة</p>
+                <h3 class="card-title">مديرية الشئون الصحية</h3>
+                <p class="card-text">إدارة مطالبات مديرية الشئون الصحية</p>
             </button>
 
             <button type="submit" name="entity_type" value="comprehensive" class="card">
@@ -41,6 +41,14 @@
                 </div>
                 <h3 class="card-title">التأمين الصحي الشامل</h3>
                 <p class="card-text">إدارة التأمين الصحي الشامل</p>
+            </button>
+
+            <button type="submit" name="entity_type" value="waiting_lists" class="card">
+                <div class="card-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <i class="fa-solid fa-list-ol"></i>
+                </div>
+                <h3 class="card-title">قوائم الانتظار</h3>
+                <p class="card-text">إدارة قوائم انتظار المستشفيات</p>
             </button>
         </div>
     </form>

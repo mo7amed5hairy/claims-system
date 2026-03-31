@@ -42,6 +42,15 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('flow/operations', [FlowController::class, 'showOperations'])->name('flow.operations');
 
     // =====================================================
+    // Waiting Lists Flow Routes
+    // =====================================================
+    Route::get('flow/waiting-lists', [FlowController::class, 'showWaitingLists'])->name('flow.waiting-lists');
+    Route::get('flow/waiting-lists/insurance', [FlowController::class, 'showWaitingListsInsurance'])->name('flow.waiting-lists-insurance');
+    Route::post('flow/waiting-lists/insurance', [FlowController::class, 'storeWaitingListsInsurance'])->name('flow.store-waiting-lists-insurance');
+    Route::get('flow/waiting-lists/ministry', [FlowController::class, 'showWaitingListsMinistry'])->name('flow.waiting-lists-ministry');
+    Route::post('flow/waiting-lists/ministry', [FlowController::class, 'storeWaitingListsMinistry'])->name('flow.store-waiting-lists-ministry');
+
+    // =====================================================
     // Claims Management
     // =====================================================
     Route::prefix('claims')->name('claims.')->group(function () {

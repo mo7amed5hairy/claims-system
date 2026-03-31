@@ -19,6 +19,11 @@ class ClaimEntityController extends Controller
     public function __construct(EntityService $entityService)
     {
         $this->entityService = $entityService;
+        
+        // Check if user can access non-payments modules (reviewers or admins only)
+        if (!auth()->user()->canAccessNonPayments()) {
+            abort(403, 'Unauthorized access');
+        }
     }
 
     /**

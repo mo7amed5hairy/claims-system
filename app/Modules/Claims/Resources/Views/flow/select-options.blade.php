@@ -13,7 +13,15 @@
 
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-sliders"></i> استكمال البيانات</h1>
-        <p class="page-subtitle">{{ $type === 'contracts' ? 'اختيار خيارات التعاقدات' : 'اختيار الخيارات الفرعية' }}</p>
+        <p class="page-subtitle">
+            @if($type === 'ministry')
+                مديرية الشئون الصحية - اختيار الفروع والمحافظات
+            @elseif($type === 'contracts')
+                اختيار خيارات التعاقدات
+            @else
+                اختيار الخيارات الفرعية
+            @endif
+        </p>
     </div>
 
     <div class="form-container">
@@ -21,18 +29,23 @@
             <form method="POST" action="{{ route('flow.store-options') }}">
                 @csrf
 
-                <!-- Entity Selection -->
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fa-solid fa-building"></i> الجهة
-                    </label>
-                    <select name="entity_id" id="entity_select" class="form-control select2" required>
-                        <option value="">اختر الجهة...</option>
-                        @foreach($entities as $entity)
-                            <option value="{{ $entity->id }}">{{ $entity->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @if($type === 'ministry' && $selectedEntityId)
+                    <!-- Hidden entity_id for ministry (pre-selected) -->
+                    <input type="hidden" name="entity_id" id="entity_select" value="{{ $selectedEntityId }}">
+                @else
+                    <!-- Entity Selection -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fa-solid fa-building"></i> الجهة
+                        </label>
+                        <select name="entity_id" id="entity_select" class="form-control select2" required>
+                            <option value="">اختر الجهة...</option>
+                            @foreach($entities as $entity)
+                                <option value="{{ $entity->id }}">{{ $entity->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
                 <!-- Dynamic Containers -->
                 <div id="branches_container" class="form-group" style="display:none;">
@@ -91,6 +104,9 @@
 
             const entities = @json($entities);
 
+            const isMinistry = {{ $type === 'ministry' ? 'true' : 'false' }};
+            const preselectedEntityId = {{ $selectedEntityId ?? 'null' }};
+
             const nextBtn = $('#next_btn');
 
             function validateFlow() {
@@ -111,7 +127,7 @@
 
                 let isValid = true;
 
-                // Standard (HI/MoH) -> Require Entity + Branch + Location
+                // Standard (HI/MoH) -> Require Entity + Branch + Location + Law (for insurance)
                 if (!metadata.laws) {
                     if (metadata.branches && metadata.branches.length > 0) {
                         if (!$('#branch_select').val()) isValid = false;
@@ -120,22 +136,43 @@
                     if (locations && locations.length > 0) {
                         if (!$('#location_select').val()) isValid = false;
                     }
+                    // For Health Insurance, require law selection
+                    const type = '{{ $type }}';
+                    if (type === 'insurance' && metadata.laws && metadata.laws.length > 0) {
+                        if (!$('#law_select').val()) isValid = false;
+                    }
                 }
-                // UHI -> Require Entity + Location + Law (Ignore Branch)
+                // UHI -> Require Entity + Location only (Law dropdown removed)
                 else {
                     let locations = metadata.locations || metadata.governorates;
                     if (locations && locations.length > 0) {
                         if (!$('#location_select').val()) isValid = false;
                     }
-                    if (metadata.laws && metadata.laws.length > 0) {
-                        if (!$('#law_select').val()) isValid = false;
-                    }
+                    // Law validation removed - no longer required
                 }
 
                 if (isValid) {
                     enableNext();
                 } else {
                     disableNext();
+                }
+            }
+
+            // Auto-trigger entity selection for ministry on page load
+            if (isMinistry && preselectedEntityId) {
+                // Find the entity in entities array
+                const ministryEntity = entities.find(e => e.id == preselectedEntityId);
+                if (ministryEntity && ministryEntity.metadata) {
+                    const data = ministryEntity.metadata;
+
+                    // Show branches directly for ministry
+                    if (data.branches && data.branches.length > 0) {
+                        $('#branch_select').empty().append('<option value="">اختر قائمة الانتظار...</option>');
+                        data.branches.forEach(b => {
+                            $('#branch_select').append(new Option(b, b));
+                        });
+                        $('#branches_container').show();
+                    }
                 }
             }
 
@@ -193,6 +230,38 @@
                 }
             });
 
+            $('#location_select').on('change', function () {
+                const locVal = $(this).val();
+                const type = '{{ $type }}';
+
+                // Hide laws container initially
+                $('#laws_container').slideUp(400);
+                $('#law_select').val('').trigger('change.select2');
+
+                if (!locVal) {
+                    validateFlow();
+                    return;
+                }
+
+                const entityId = $('#entity_select').val();
+                const entity = entities.find(e => e.id == entityId);
+
+                // For Health Insurance: Show laws dropdown after location selection
+                if (type === 'insurance' && entity && entity.metadata && entity.metadata.laws && entity.metadata.laws.length > 0) {
+                    $('#law_select').empty().append('<option value="">اختر المستفيد...</option>');
+                    entity.metadata.laws.forEach(l => {
+                        $('#law_select').append(new Option(l, l));
+                    });
+                    $('#laws_container').stop(true, true).delay(400).slideDown(400);
+                }
+
+                validateFlow();
+            });
+
+            // Run initial check
+            validateFlow();
+
+            // For ministry, trigger change event to set up locations when branch is selected
             $('#branch_select').on('change', function () {
                 const branchVal = $(this).val();
 
@@ -200,7 +269,10 @@
                 $('#locations_container, #laws_container').slideUp(400);
                 $('#location_select, #law_select').val('').trigger('change.select2');
 
-                if (!branchVal) return;
+                if (!branchVal) {
+                    validateFlow();
+                    return;
+                }
 
                 const entityId = $('#entity_select').val();
                 const entity = entities.find(e => e.id == entityId);
@@ -216,31 +288,9 @@
                         $('#locations_container').stop(true, true).delay(400).slideDown(400);
                     }
                 }
+
+                validateFlow();
             });
-
-            $('#location_select').on('change', function () {
-                const locVal = $(this).val();
-
-                // 1. Hide following steps
-                $('#laws_container').slideUp(400);
-                $('#law_select').val('').trigger('change.select2');
-
-                if (!locVal) return;
-
-                const entityId = $('#entity_select').val();
-                const entity = entities.find(e => e.id == entityId);
-
-                if (entity && entity.metadata && entity.metadata.laws && entity.metadata.laws.length > 0) {
-                    $('#law_select').empty().append('<option value="">اختر المستفيد...</option>');
-                    entity.metadata.laws.forEach(l => {
-                        $('#law_select').append(new Option(l, l));
-                    });
-                    $('#laws_container').stop(true, true).delay(400).slideDown(400);
-                }
-            });
-
-            // Run initial check
-            validateFlow();
         });
     </script>
 @endsection

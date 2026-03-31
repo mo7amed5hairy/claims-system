@@ -102,6 +102,26 @@
                     </div>
                 </div>
 
+                <div id="userTypeSection" style="{{ old('role') == 'admin' ? 'display: none;' : '' }}">
+                    <hr>
+                    <h3><i class="fa-solid fa-user-tag"></i> نوع المستخدم</h3>
+                    <p class="text-muted">اختر نوع المستخدم (يمكن اختيار أكثر من نوع):</p>
+                    <div class="form-group">
+                        <div class="d-flex gap-4" style="gap: 30px; display: flex; flex-wrap: wrap;">
+                            <label class="checkbox-container" style="display: inline-flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="user_type[]" value="مراجع" {{ (is_array(old('user_type')) && in_array('مراجع', old('user_type'))) ? 'checked' : '' }}
+                                    style="width: 20px; height: 20px;">
+                                <span>مراجع</span>
+                            </label>
+                            <label class="checkbox-container" style="display: inline-flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="user_type[]" value="معاملات مالية" {{ (is_array(old('user_type')) && in_array('معاملات مالية', old('user_type'))) ? 'checked' : '' }}
+                                    style="width: 20px; height: 20px;">
+                                <span>معاملات مالية</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card-footer" style="padding: 20px 0;">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="fa-solid fa-save"></i> حفظ المستخدم
@@ -141,8 +161,10 @@
             $('#roleSelect').on('change', function () {
                 if ($(this).val() === 'admin') {
                     $('#permissionsSection').slideUp(300);
+                    $('#userTypeSection').slideUp(300);
                 } else {
                     $('#permissionsSection').slideDown(300);
+                    $('#userTypeSection').slideDown(300);
                 }
             });
         });

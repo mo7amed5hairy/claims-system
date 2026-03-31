@@ -48,10 +48,13 @@
                         <select name="payee_hospital_id" id="hospitalSelect" class="form-control select2" required>
                             <option value="">اختر المستشفى</option>
                             @foreach($allHospitals as $hosp)
-                                <option value="{{ $hosp->id }}" {{ (isset($hospital) && $hospital->id == $hosp->id) ? 'selected' : '' }}>
+                                <option value="{{ $hosp->id }}" {{ (isset($hospital) && is_numeric($hospital->id) && $hospital->id == $hosp->id) ? 'selected' : '' }}>
                                     {{ $hosp->name }}
                                 </option>
                             @endforeach
+                            @if(isset($hospital) && !is_numeric($hospital->id))
+                                <option value="{{ $hospital->id }}" selected>{{ $hospital->name }}</option>
+                            @endif
                         </select>
                         @error('payee_hospital_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
@@ -60,7 +63,15 @@
                         <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
                         <select name="department_id" id="departmentSelect" class="form-control select2" required>
                             <option value="">اختر القسم</option>
-                            <!-- Departments filled by JS -->
+                            @foreach($allDepartments as $dept)
+                                @php
+                                    $isSelected = (old('department_id') == $dept->id) || (isset($department) && is_numeric($department->id) && $department->id == $dept->id) || (isset($department) && !is_numeric($department->id) && $department->id == $dept->name);
+                                @endphp
+                                <option value="{{ $dept->id }}" {{ $isSelected ? 'selected' : '' }}>{{ $dept->name }}</option>
+                            @endforeach
+                            @if(isset($department) && !is_numeric($department->id))
+                                <option value="{{ $department->id }}" selected>{{ $department->name }}</option>
+                            @endif
                         </select>
                         @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
@@ -104,7 +115,10 @@
                         <select name="payer_entity_id" id="entitySelect" class="form-control select2" required>
                             <option value="">اختر الجهة</option>
                             @foreach($entities as $entity)
-                                <option value="{{ $entity->id }}" data-metadata='@json($entity->metadata)' {{ old('payer_entity_id') == $entity->id ? 'selected' : '' }}>{{ $entity->name }}</option>
+                                @php
+                                    $isSelected = (old('payer_entity_id') == $entity->id) || (isset($selectedEntityId) && $selectedEntityId == $entity->id);
+                                @endphp
+                                <option value="{{ $entity->id }}" {{ $isSelected ? 'selected' : '' }} data-metadata='@json($entity->metadata)'>{{ $entity->name }}</option>
                             @endforeach
                         </select>
                         @error('payer_entity_id') <span class="error-message">{{ $message }}</span> @enderror
@@ -190,24 +204,47 @@
 
             // Hospital & Department Logic
             const hospitalsData = @json($allHospitals);
+            const allDepartmentsData = @json($allDepartments);
             const hospitalSelect = $('#hospitalSelect');
             const departmentSelect = $('#departmentSelect');
             
             // Initial Values (note input name payee_hospital_id)
             const initialHospitalId = "{{ old('payee_hospital_id', $hospital->id ?? '') }}";
             const initialDepartmentId = "{{ old('department_id', $department->id ?? '') }}";
+            const isWaitingListHospital = initialHospitalId && !$.isNumeric(initialHospitalId);
 
             function populateDepartments(hospitalId, selectedDeptId = '') {
                 departmentSelect.empty().append('<option value="">اختر القسم</option>');
                 
+                // If it's a waiting list hospital (non-numeric), show ALL departments from DB
+                if (hospitalId && !$.isNumeric(hospitalId)) {
+                    // First, if there's a selected department from waiting list (string), add it as selected
+                    if (selectedDeptId && !$.isNumeric(selectedDeptId)) {
+                        departmentSelect.append(`<option value="${selectedDeptId}" selected>${selectedDeptId}</option>`);
+                    }
+                    
+                    // Populate all departments from allDepartmentsData
+                    allDepartmentsData.forEach(dept => {
+                        // Skip if this is the already-added selected department
+                        if (selectedDeptId && dept.name === selectedDeptId) {
+                            return;
+                        }
+                        const isSelected = selectedDeptId == dept.id ? 'selected' : '';
+                        departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
+                    });
+                    departmentSelect.trigger('change');
+                    return;
+                }
+                
                 const hospital = hospitalsData.find(h => h.id == hospitalId);
                 if (hospital && hospital.departments) {
                     hospital.departments.forEach(dept => {
-                        departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                        const isSelected = selectedDeptId == dept.id ? 'selected' : '';
+                        departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
                     });
                 }
                 
-                if (selectedDeptId) {
+                if (selectedDeptId && $.isNumeric(selectedDeptId)) {
                     departmentSelect.val(selectedDeptId).trigger('change');
                 }
             }
@@ -218,9 +255,13 @@
             });
 
             if (initialHospitalId) {
-                // Manually trigger population because blade 'selected' handles visual selection 
-                // but we need to fill the dependent dropdown
-                populateDepartments(initialHospitalId, initialDepartmentId);
+                hospitalSelect.val(initialHospitalId).trigger('change');
+                // For waiting list hospitals, populate all departments
+                if (isWaitingListHospital) {
+                    populateDepartments(initialHospitalId, initialDepartmentId);
+                } else {
+                    populateDepartments(initialHospitalId, initialDepartmentId);
+                }
             }
 
             const entitySelect = $('#entitySelect');
@@ -231,6 +272,15 @@
             const subLabel = $('#subLabel');
             const lawsContainer = $('#lawsContainer');
             const lawsSelect = $('#lawsSelect');
+            
+            // Flow type from PHP session
+            const flowType = '{{ $entityType ?? '' }}';
+            const preselectedBranch = '{{ $branch ?? '' }}';
+            const preselectedLocation = '{{ $location ?? '' }}';
+            
+            console.log('Flow Type:', flowType);
+            console.log('Preselected Branch:', preselectedBranch);
+            console.log('Preselected Location:', preselectedLocation);
 
                 subContainer.slideUp(300);
                 lawsContainer.slideUp(300);
@@ -337,10 +387,70 @@
                 lawsContainer.show();
             });
 
-            // Initialize if old values exist
-            const initialEntity = '{{ old("payer_entity_id") }}';
+            // Initialize entity on page load if pre-selected
+            const initialEntity = '{{ old("payer_entity_id", $selectedEntityId ?? "") }}';
+            console.log('Initial Entity from PHP:', initialEntity);
+            console.log('Preselected values:', { branch: preselectedBranch, location: preselectedLocation });
+            
             if (initialEntity) {
                 entitySelect.val(initialEntity).trigger('change');
+                
+                // Get metadata for the selected entity
+                const selectedOption = entitySelect.find('option:selected');
+                const metadata = selectedOption.data('metadata');
+                
+                console.log('Selected entity metadata:', metadata);
+                
+                if (metadata) {
+                    // Wait for the change event to populate the dropdowns
+                    setTimeout(() => {
+                        // Case 1: Entity has branches (e.g., Ministry flow)
+                        if (preselectedBranch && metadata.branches && metadata.branches.includes(preselectedBranch)) {
+                            console.log('Setting branch to:', preselectedBranch);
+                            branchSelect.val(preselectedBranch).trigger('change');
+                            
+                            // After branch change, wait for locations to populate
+                            setTimeout(() => {
+                                handleLocation(metadata, preselectedLocation);
+                            }, 300);
+                        } 
+                        // Case 2: Entity has NO branches but has locations/governorates (e.g., Insurance, Comprehensive)
+                        else if (preselectedLocation && !preselectedBranch) {
+                            console.log('No branch, handling location directly');
+                            handleLocation(metadata, preselectedLocation);
+                        }
+                    }, 300);
+                }
+            }
+            
+            // Helper function to set location
+            function handleLocation(metadata, locationVal) {
+                if (!locationVal) return;
+                
+                // First populate and show the location dropdown
+                let subItems = metadata.governorates || metadata.locations || [];
+                if (subItems.length > 0) {
+                    subSelect.empty().append('<option value="">اختر المحافظة / الموقع</option>');
+                    subItems.forEach(item => {
+                        const isSelected = (item === locationVal) ? 'selected' : '';
+                        subSelect.append(`<option value="${item}" ${isSelected}>${item}</option>`);
+                    });
+                    subLabel.text(metadata.governorates ? 'المحافظات' : 'المواقع');
+                    subSelect.select2('destroy').select2({ dir: "rtl", width: '100%', closeOnSelect: true });
+                    subContainer.show();
+                    console.log('Location dropdown populated and shown');
+                }
+                
+                // Check if location exists in dropdown
+                const locationExists = subSelect.find('option[value="' + locationVal + '"]').length > 0;
+                console.log('Location exists in dropdown:', locationExists, 'Value:', locationVal);
+                
+                if (locationExists) {
+                    subSelect.val(locationVal).trigger('change');
+                    console.log('Location set to:', locationVal);
+                } else {
+                    console.log('Location not found in dropdown, options are:', subSelect.find('option').map(function() { return $(this).val(); }).get());
+                }
             }
         });
     </script>

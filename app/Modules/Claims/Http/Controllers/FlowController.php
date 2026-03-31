@@ -34,6 +34,11 @@ class FlowController extends Controller
         $request->validate(['entity_type' => 'required|string']);
         session(['flow_entity_type' => $request->entity_type]);
 
+        // Special handling for waiting lists - redirect to waiting lists selection page
+        if ($request->entity_type === 'waiting_lists') {
+            return redirect()->route('flow.waiting-lists');
+        }
+
         return redirect()->route('flow.options');
     }
 
@@ -63,12 +68,26 @@ class FlowController extends Controller
 
         $entities = $query->get();
 
-        return view('claims::flow.select-options', ['type' => $type, 'entities' => $entities]);
+        // For ministry, get the pre-selected entity
+        $selectedEntityId = null;
+        if ($type === 'ministry' && $entities->count() > 0) {
+            $selectedEntityId = $entities->first()->id;
+        }
+
+        return view('claims::flow.select-options', [
+            'type' => $type, 
+            'entities' => $entities,
+            'selectedEntityId' => $selectedEntityId
+        ]);
     }
 
     public function storeOptions(Request $request)
     {
         $data = $request->except(['_token']);
+        
+        // Also store the entity type for reference in create forms
+        $data['entity_type'] = session('flow_entity_type');
+        
         session(['flow_options' => $data]);
 
         return redirect()->route('flow.hospital');
@@ -106,5 +125,73 @@ class FlowController extends Controller
         $department = Department::find(session('flow_department_id'));
 
         return view('claims::flow.operations', compact('hospital', 'department'));
+    }
+
+    /**
+     * Waiting Lists Flow Methods
+     */
+
+    /**
+     * Show waiting lists selection page (Insurance vs Ministry)
+     */
+    public function showWaitingLists()
+    {
+        return view('claims::flow.waiting-lists');
+    }
+
+    /**
+     * Show Health Insurance waiting lists options (Hospitals -> Departments -> Laws)
+     */
+    public function showWaitingListsInsurance()
+    {
+        return view('claims::flow.waiting-list-options');
+    }
+
+    /**
+     * Store Health Insurance waiting lists options
+     */
+    public function storeWaitingListsInsurance(Request $request)
+    {
+        $request->validate([
+            'hospital' => 'required|string',
+            'department' => 'required|string',
+            'law' => 'required|string',
+        ]);
+
+        session([
+            'flow_waiting_list_type' => 'insurance',
+            'flow_hospital_id' => $request->hospital,
+            'flow_department_id' => $request->department,
+            'flow_law' => $request->law,
+        ]);
+
+        return redirect()->route('flow.operations');
+    }
+
+    /**
+     * Show Ministry of Health waiting lists options (Hospitals -> Departments)
+     */
+    public function showWaitingListsMinistry()
+    {
+        return view('claims::flow.ministry-waiting-list');
+    }
+
+    /**
+     * Store Ministry of Health waiting lists options
+     */
+    public function storeWaitingListsMinistry(Request $request)
+    {
+        $request->validate([
+            'hospital' => 'required|string',
+            'department' => 'required|string',
+        ]);
+
+        session([
+            'flow_waiting_list_type' => 'ministry',
+            'flow_hospital_id' => $request->hospital,
+            'flow_department_id' => $request->department,
+        ]);
+
+        return redirect()->route('flow.operations');
     }
 }

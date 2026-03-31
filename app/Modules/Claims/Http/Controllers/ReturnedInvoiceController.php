@@ -22,6 +22,11 @@ class ReturnedInvoiceController extends Controller
     public function __construct(ReturnedInvoiceService $returnedInvoiceService)
     {
         $this->returnedInvoiceService = $returnedInvoiceService;
+        
+        // Check if user can access non-payments modules (reviewers or admins only)
+        if (!auth()->user()->canAccessNonPayments()) {
+            abort(403, 'Unauthorized access');
+        }
     }
 
     /**

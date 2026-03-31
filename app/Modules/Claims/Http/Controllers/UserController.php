@@ -41,6 +41,8 @@ class UserController extends Controller
             'email' => 'nullable|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:admin,user',
+            'user_type' => 'nullable|array',
+            'user_type.*' => 'in:مراجع,معاملات مالية',
             'active' => 'nullable',
             'permissions' => 'nullable|array',
         ]);
@@ -48,6 +50,13 @@ class UserController extends Controller
         $data['password'] = Hash::make($data['password']);
         $data['active'] = $request->has('active');
         $data['permissions'] = $request->input('permissions', []);
+        
+        // Only save user_type if role is user, otherwise set to null
+        if ($data['role'] === 'user') {
+            $data['user_type'] = $request->input('user_type', []);
+        } else {
+            $data['user_type'] = null;
+        }
 
         User::create($data);
 
@@ -73,6 +82,8 @@ class UserController extends Controller
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|in:admin,user',
+            'user_type' => 'nullable|array',
+            'user_type.*' => 'in:مراجع,معاملات مالية',
             'active' => 'nullable',
             'permissions' => 'nullable|array',
         ]);
@@ -85,6 +96,13 @@ class UserController extends Controller
 
         $data['active'] = $request->has('active');
         $data['permissions'] = $request->input('permissions', []);
+        
+        // Only save user_type if role is user, otherwise set to null
+        if ($data['role'] === 'user') {
+            $data['user_type'] = $request->input('user_type', []);
+        } else {
+            $data['user_type'] = null;
+        }
 
         $user->update($data);
 

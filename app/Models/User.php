@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'user_type',
         'active',
         'avatar',
         'permissions',
@@ -50,6 +51,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'permissions' => 'array',
+            'user_type' => 'array',
         ];
     }
 
@@ -71,5 +73,81 @@ class User extends Authenticatable
         }
 
         return in_array($action, $this->permissions[$module]);
+    }
+
+    /**
+     * Check if user is a reviewer (مراجع)
+     * 
+     * @return bool
+     */
+    public function isReviewer()
+    {
+        if ($this->role === 'admin') {
+            return false;
+        }
+        
+        return is_array($this->user_type) && in_array('مراجع', $this->user_type);
+    }
+
+    /**
+     * Check if user is financial transactions (معاملات مالية)
+     * 
+     * @return bool
+     */
+    public function isFinancial()
+    {
+        if ($this->role === 'admin') {
+            return false;
+        }
+        
+        return is_array($this->user_type) && in_array('معاملات مالية', $this->user_type);
+    }
+
+    /**
+     * Check if user can access payments module
+     * 
+     * @return bool
+     */
+    public function canAccessPayments()
+    {
+        if ($this->role === 'admin') {
+            return true;
+        }
+        
+        // Financial users can ONLY access payments
+        if ($this->isFinancial()) {
+            return true;
+        }
+        
+        // Reviewers cannot access payments
+        if ($this->isReviewer()) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Check if user can access non-payments modules (claims, returns, etc.)
+     * 
+     * @return bool
+     */
+    public function canAccessNonPayments()
+    {
+        if ($this->role === 'admin') {
+            return true;
+        }
+        
+        // Reviewers can access everything except payments
+        if ($this->isReviewer()) {
+            return true;
+        }
+        
+        // Financial users cannot access non-payments
+        if ($this->isFinancial()) {
+            return false;
+        }
+        
+        return true;
     }
 }

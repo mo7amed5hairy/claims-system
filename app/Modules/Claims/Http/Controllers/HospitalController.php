@@ -15,6 +15,17 @@ use Illuminate\Support\Facades\DB;
 class HospitalController extends Controller
 {
     /**
+     * HospitalController constructor.
+     */
+    public function __construct()
+    {
+        // Check if user can access non-payments modules (reviewers or admins only)
+        if (!auth()->user()->canAccessNonPayments()) {
+            abort(403, 'Unauthorized access');
+        }
+    }
+
+    /**
      * Display list of hospitals with departments
      */
     public function index()

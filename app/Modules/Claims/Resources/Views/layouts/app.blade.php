@@ -157,21 +157,25 @@
                             @endif
                             <div class="dropdown-divider"></div>
 
-                            <a href="{{ route('hospitals.index') }}">
-                                <i class="fa-solid fa-hospital"></i> المستشفيات و الأقسام
-                            </a>
-                            <a href="{{ route('entities.index') }}">
-                                <i class="fa-solid fa-file-contract"></i> جهات التعاقد
-                            </a>
-                            <a href="{{ route('claims.index') }}">
-                                <i class="fa-solid fa-file-invoice-dollar"></i> المطالبات
-                            </a>
-                            <a href="{{ route('returns.index') }}">
-                                <i class="fa-solid fa-file-invoice"></i> الفواتير العائدة
-                            </a>
-                            <a href="{{ route('payments.index') }}">
-                                <i class="fa-solid fa-money-check-dollar"></i> أوامر الدفع
-                            </a>
+                            @if(Auth::user()->canAccessNonPayments())
+                                <a href="{{ route('hospitals.index') }}">
+                                    <i class="fa-solid fa-hospital"></i> المستشفيات و الأقسام
+                                </a>
+                                <a href="{{ route('entities.index') }}">
+                                    <i class="fa-solid fa-file-contract"></i> جهات التعاقد
+                                </a>
+                                <a href="{{ route('claims.index') }}">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i> المطالبات
+                                </a>
+                                <a href="{{ route('returns.index') }}">
+                                    <i class="fa-solid fa-file-invoice"></i> الفواتير العائدة
+                                </a>
+                            @endif
+                            @if(Auth::user()->canAccessPayments())
+                                <a href="{{ route('payments.index') }}">
+                                    <i class="fa-solid fa-money-check-dollar"></i> أوامر الدفع
+                                </a>
+                            @endif
                             <div class="dropdown-divider"></div>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf

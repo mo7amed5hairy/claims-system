@@ -23,6 +23,11 @@ class ClaimController extends Controller
     public function __construct(ClaimService $claimService)
     {
         $this->claimService = $claimService;
+        
+        // Check if user can access non-payments modules (reviewers or admins only)
+        if (!auth()->user()->canAccessNonPayments()) {
+            abort(403, 'Unauthorized access');
+        }
     }
 
     /**
@@ -42,35 +47,100 @@ class ClaimController extends Controller
     public function create()
     {
         $this->authorize('create', Claim::class);
+        
+        // Get all session data
         $hospitalId = session('flow_hospital_id');
         $deptId = session('flow_department_id');
-
+        $waitingListType = session('flow_waiting_list_type');
+        $flowOptions = session('flow_options', []);
+        $entityType = $flowOptions['entity_type'] ?? null;
+        
+        // DEBUG: Log all session data
+        \Log::info('=== CLAIM CREATE SESSION DATA ===');
+        \Log::info('flow_hospital_id: ' . ($hospitalId ?? 'NULL'));
+        \Log::info('flow_department_id: ' . ($deptId ?? 'NULL'));
+        \Log::info('flow_waiting_list_type: ' . ($waitingListType ?? 'NULL'));
+        \Log::info('flow_entity_type: ' . ($entityType ?? 'NULL'));
+        \Log::info('flow_options: ' . json_encode($flowOptions));
+        
+        // Initialize variables
+        $hospital = null;
+        $department = null;
+        $selectedEntityId = null;
+        $branch = null;
+        $location = null;
+        $law = null;
+        
+        // Handle Hospital & Department (common for all flows)
         if ($hospitalId) {
-            $hospital = Hospital::find($hospitalId);
-        } else {
-            $hospital = null;
+            if (is_numeric($hospitalId)) {
+                $hospital = Hospital::find($hospitalId);
+            } else {
+                // String value from waiting list
+                $hospital = (object)['id' => $hospitalId, 'name' => $this->getHospitalName($hospitalId)];
+            }
         }
-
+        
         if ($deptId) {
-            $department = Department::find($deptId);
-        } else {
-            $department = null;
+            if (is_numeric($deptId)) {
+                $department = Department::find($deptId);
+            } else {
+                // String value from waiting list
+                $department = (object)['id' => $deptId, 'name' => $deptId];
+            }
         }
-
-        $hospitals = Hospital::all();
-        // We might want to filter departments via AJAX based on hospital, but for now pass all or empty?
-        // User said "dropdown list of departments". Usually dependent.
-        // Let's pass all departments for now or handle in view.
-        // Actually, if hospital is selected, we might want its departments. 
-        // But if creating fresh, we need all hospitals.
-        // Let's pass all hospitals. For departments, maybe empty unless hospital selected?
-        // Create view is likely expecting $hospital object for display.
-        // User wants dropdowns. So we need to pass $hospitals.
-
+        
+        // Handle different flow types
+        if ($waitingListType) {
+            // Waiting Lists Flow (insurance or ministry)
+            if ($waitingListType === 'insurance') {
+                $selectedEntity = ClaimEntity::where('name', 'الهيئة العامة للتأمين الصحي')->first();
+                $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
+            } elseif ($waitingListType === 'ministry') {
+                $selectedEntity = ClaimEntity::where('name', 'وزارة الصحة والسكان')->first();
+                $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
+            }
+            $law = session('flow_law');
+            \Log::info('Waiting List Flow - Entity ID: ' . ($selectedEntityId ?? 'NULL') . ', Law: ' . ($law ?? 'NULL'));
+            
+        } elseif ($entityType) {
+            // Regular flows (contracts, insurance, ministry, comprehensive)
+            $selectedEntityId = $flowOptions['entity_id'] ?? null;
+            $branch = $flowOptions['branch'] ?? null;
+            $location = $flowOptions['location'] ?? null;
+            $law = $flowOptions['law'] ?? null;
+            \Log::info('Regular Flow - Entity ID: ' . ($selectedEntityId ?? 'NULL') . ', Branch: ' . ($branch ?? 'NULL') . ', Location: ' . ($location ?? 'NULL') . ', Law: ' . ($law ?? 'NULL'));
+        }
+        
+        // DEBUG: Log final values being passed to view
+        \Log::info('=== PASSING TO VIEW ===');
+        \Log::info('selectedEntityId: ' . ($selectedEntityId ?? 'NULL'));
+        \Log::info('branch: ' . ($branch ?? 'NULL'));
+        \Log::info('location: ' . ($location ?? 'NULL'));
+        \Log::info('law: ' . ($law ?? 'NULL'));
+        
         $allHospitals = Hospital::with('departments')->get();
+        $allDepartments = Department::all();
         $entities = ClaimEntity::all();
 
-        return view('claims::claims.create', compact('hospital', 'department', 'entities', 'allHospitals'));
+        return view('claims::claims.create', compact(
+            'hospital', 'department', 'entities', 'allHospitals', 'allDepartments', 
+            'selectedEntityId', 'law', 'branch', 'location', 'entityType'
+        ));
+    }
+
+    /**
+     * Helper method to get hospital name from key
+     */
+    private function getHospitalName($key)
+    {
+        $names = [
+            'children' => 'مستشفى الأطفال',
+            'women' => 'مستشفى النساء والتوليد',
+            'ain_shams' => 'مستشفى عين شمس الباطنة',
+            'others' => 'باقى المستشفيات',
+        ];
+        return $names[$key] ?? $key;
     }
 
     /**
