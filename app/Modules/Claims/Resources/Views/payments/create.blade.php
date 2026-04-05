@@ -208,6 +208,14 @@
             const hospitalSelect = $('#hospitalSelect');
             const departmentSelect = $('#departmentSelect');
             
+            // Waiting list hospitals departments mapping
+            const waitingListHospitalDepartments = {
+                'children': ['قسم الأطفال العام', 'قسم الأطفال حديثي الولادة', 'قسم الأطفال غير المستقر', 'قسم جراحة الأطفال'],
+                'women': ['قسم النساء العام', 'قسم النساء الحوامل', 'قسم النساء غير المستقر', 'قسم جراحة النساء'],
+                'ain_shams': ['قسم الباطنة', 'قسم الجراحة العامة', 'قسم النساء والتوليد', 'قسم الأطفال', 'قسم العظام', 'قسم المخ والأعصاب', 'قسم العيون', 'قسم الأنف والأذن والحنجرة', 'قسم السكتة الدماغية', 'قسم القلب', 'قسم الجهاز الهضمي', 'قسم الكلى', 'قسم الصدر'],
+                'other': []
+            };
+            
             // Initial Values (note input name payee_hospital_id)
             const initialHospitalId = "{{ old('payee_hospital_id', $hospital->id ?? '') }}";
             const initialDepartmentId = "{{ old('department_id', $department->id ?? '') }}";
@@ -216,26 +224,36 @@
             function populateDepartments(hospitalId, selectedDeptId = '') {
                 departmentSelect.empty().append('<option value="">اختر القسم</option>');
                 
-                // If it's a waiting list hospital (non-numeric), show ALL departments from DB
+                // If it's a waiting list hospital (non-numeric), show specific departments
                 if (hospitalId && !$.isNumeric(hospitalId)) {
-                    // First, if there's a selected department from waiting list (string), add it as selected
-                    if (selectedDeptId && !$.isNumeric(selectedDeptId)) {
-                        departmentSelect.append(`<option value="${selectedDeptId}" selected>${selectedDeptId}</option>`);
+                    const departments = waitingListHospitalDepartments[hospitalId] || [];
+                    
+                    if (departments.length > 0) {
+                        departments.forEach(deptName => {
+                            const isSelected = selectedDeptId === deptName ? 'selected' : '';
+                            departmentSelect.append(`<option value="${deptName}" ${isSelected}>${deptName}</option>`);
+                        });
+                    } else {
+                        // Fallback: show all DB departments
+                        allDepartmentsData.forEach(dept => {
+                            const isSelected = selectedDeptId == dept.id ? 'selected' : '';
+                            departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
+                        });
                     }
                     
-                    // Populate all departments from allDepartmentsData
-                    allDepartmentsData.forEach(dept => {
-                        // Skip if this is the already-added selected department
-                        if (selectedDeptId && dept.name === selectedDeptId) {
-                            return;
+                    // If there's a selected department that doesn't exist in the list, add it
+                    if (selectedDeptId && !$.isNumeric(selectedDeptId)) {
+                        const exists = departments.includes(selectedDeptId);
+                        if (!exists) {
+                            departmentSelect.append(`<option value="${selectedDeptId}" selected>${selectedDeptId}</option>`);
                         }
-                        const isSelected = selectedDeptId == dept.id ? 'selected' : '';
-                        departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
-                    });
+                    }
+                    
                     departmentSelect.trigger('change');
                     return;
                 }
                 
+                // Regular DB hospital
                 const hospital = hospitalsData.find(h => h.id == hospitalId);
                 if (hospital && hospital.departments) {
                     hospital.departments.forEach(dept => {
@@ -277,10 +295,12 @@
             const flowType = '{{ $entityType ?? '' }}';
             const preselectedBranch = '{{ $branch ?? '' }}';
             const preselectedLocation = '{{ $location ?? '' }}';
+            const preselectedLaw = '{{ $law ?? '' }}';
             
             console.log('Flow Type:', flowType);
             console.log('Preselected Branch:', preselectedBranch);
             console.log('Preselected Location:', preselectedLocation);
+            console.log('Preselected Law:', preselectedLaw);
 
                 subContainer.slideUp(300);
                 lawsContainer.slideUp(300);
@@ -390,7 +410,7 @@
             // Initialize entity on page load if pre-selected
             const initialEntity = '{{ old("payer_entity_id", $selectedEntityId ?? "") }}';
             console.log('Initial Entity from PHP:', initialEntity);
-            console.log('Preselected values:', { branch: preselectedBranch, location: preselectedLocation });
+            console.log('Preselected values:', { branch: preselectedBranch, location: preselectedLocation, law: preselectedLaw });
             
             if (initialEntity) {
                 entitySelect.val(initialEntity).trigger('change');
@@ -404,7 +424,7 @@
                 if (metadata) {
                     // Wait for the change event to populate the dropdowns
                     setTimeout(() => {
-                        // Case 1: Entity has branches (e.g., Ministry flow)
+                        // Case 1: Has branch (e.g., Ministry flow)
                         if (preselectedBranch && metadata.branches && metadata.branches.includes(preselectedBranch)) {
                             console.log('Setting branch to:', preselectedBranch);
                             branchSelect.val(preselectedBranch).trigger('change');
@@ -414,10 +434,24 @@
                                 handleLocation(metadata, preselectedLocation);
                             }, 300);
                         } 
-                        // Case 2: Entity has NO branches but has locations/governorates (e.g., Insurance, Comprehensive)
+                        // Case 2: Has NO branch but has location (e.g., Insurance, Comprehensive)
                         else if (preselectedLocation && !preselectedBranch) {
                             console.log('No branch, handling location directly');
                             handleLocation(metadata, preselectedLocation);
+                        }
+                        // Case 3: Waiting lists - has law but no branch/location
+                        else if (preselectedLaw && metadata.laws && metadata.laws.includes(preselectedLaw)) {
+                            console.log('Waiting list - showing laws directly');
+                            branchContainer.slideUp(300);
+                            subContainer.slideUp(300);
+                            
+                            // Populate laws dropdown directly
+                            lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                            metadata.laws.forEach(law => {
+                                const isSelected = (law === preselectedLaw) ? 'selected' : '';
+                                lawsSelect.append(`<option value="${law}" ${isSelected}>${law}</option>`);
+                            });
+                            lawsContainer.slideDown(300);
                         }
                     }, 300);
                 }

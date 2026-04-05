@@ -114,11 +114,31 @@
                         <td style="font-weight: 600;">{{ $order->gp_number }}</td>
                         <td>{{ $order->electronic_invoice_no ?? '-' }}</td>
                         <td>
+                            @php
+                                // Map waiting list hospital IDs to Arabic names
+                                $hospitalNames = [
+                                    'ain_shams' => 'مستشفى عين شمس',
+                                    'children' => 'مستشفى الأطفال',
+                                    'women' => 'مستشفى النساء',
+                                    'other' => 'أخرى'
+                                ];
+                                
+                                $hospitalName = $order->payeeHospital->name ?? null;
+                                if (!$hospitalName && $order->payee_hospital_id) {
+                                    $hospitalName = is_numeric($order->payee_hospital_id) 
+                                        ? '-' 
+                                        : ($hospitalNames[$order->payee_hospital_id] ?? $order->payee_hospital_id);
+                                }
+                                $deptName = $order->department->name ?? null;
+                                if (!$deptName && $order->department_id) {
+                                    $deptName = is_numeric($order->department_id) ? '-' : $order->department_id;
+                                }
+                            @endphp
                             <div style="font-weight: 600; color: #1e293b; font-size: 13px;">
-                                {{ $order->payeeHospital->name ?? '-' }}
+                                {{ $hospitalName ?? '-' }}
                             </div>
                             <div style="color: #64748b; font-size: 11px;"><i class="fa-solid fa-stethoscope"></i>
-                                {{ $order->department->name ?? '-' }}
+                                {{ $deptName ?? '-' }}
                             </div>
                         </td>
                         <td><span class="badge"

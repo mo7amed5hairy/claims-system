@@ -105,10 +105,28 @@
                             <div style="font-size: 10px; color: #94a3b8;">{{ $claim->created_at->format('Y-m-d H:i') }}</div>
                         </td>
                         <td>
-                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">{{ $claim->hospital->name ?? '-' }}
-                            </div>
-                            <div style="color: #64748b; font-size: 11px;"><i class="fa-solid fa-stethoscope"></i>
-                                {{ $claim->department->name ?? '-' }}</div>
+                            @php
+                                // Map waiting list hospital IDs to Arabic names
+                                $hospitalNames = [
+                                    'ain_shams' => 'مستشفى عين شمس',
+                                    'children' => 'مستشفى الأطفال',
+                                    'women' => 'مستشفى النساء',
+                                    'other' => 'أخرى'
+                                ];
+                                
+                                $hospitalName = $claim->hospital->name ?? null;
+                                if (!$hospitalName && $claim->hospital_id) {
+                                    $hospitalName = is_numeric($claim->hospital_id) 
+                                        ? '-' 
+                                        : ($hospitalNames[$claim->hospital_id] ?? $claim->hospital_id);
+                                }
+                                $deptName = $claim->department->name ?? null;
+                                if (!$deptName && $claim->department_id) {
+                                    $deptName = is_numeric($claim->department_id) ? '-' : $claim->department_id;
+                                }
+                            @endphp
+                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">{{ $hospitalName ?? '-' }}</div>
+                            <div style="color: #64748b; font-size: 11px;"><i class="fa-solid fa-stethoscope"></i> {{ $deptName ?? '-' }}</div>
                         </td>
                         <td>{{ $claim->month }}</td>
                         <td>{{ $claim->invoice_count }}</td>

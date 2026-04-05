@@ -35,6 +35,20 @@
                                     {{ $hosp->name }}
                                 </option>
                             @endforeach
+                            {{-- Add waiting list hospital if not in DB --}}
+                            @php
+                                $hospitalNames = [
+                                    'ain_shams' => 'مستشفى عين شمس',
+                                    'children' => 'مستشفى الأطفال',
+                                    'women' => 'مستشفى النساء',
+                                    'other' => 'أخرى'
+                                ];
+                            @endphp
+                            @if($payment->payee_hospital_id && !is_numeric($payment->payee_hospital_id))
+                                <option value="{{ $payment->payee_hospital_id }}" selected>
+                                    {{ $hospitalNames[$payment->payee_hospital_id] ?? $payment->payee_hospital_id }}
+                                </option>
+                            @endif
                         </select>
                         @error('payee_hospital_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
@@ -43,7 +57,12 @@
                         <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
                         <select name="department_id" id="departmentSelect" class="form-control select2" required>
                             <option value="">اختر القسم</option>
-                            <!-- Departments filled by JS -->
+                            {{-- Add waiting list department if not numeric --}}
+                            @if($payment->department_id && !is_numeric($payment->department_id))
+                                <option value="{{ $payment->department_id }}" selected>
+                                    {{ $payment->department_id }}
+                                </option>
+                            @endif
                         </select>
                         @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
@@ -175,24 +194,73 @@
 
             // Hospital & Department Logic
             const hospitalsData = @json($allHospitals);
+            const allDepartmentsData = @json($allDepartments ?? []);
             const hospitalSelect = $('#hospitalSelect');
             const departmentSelect = $('#departmentSelect');
+
+            // Hospital name mapping for waiting list hospitals
+            const hospitalNames = {
+                'ain_shams': 'مستشفى عين شمس',
+                'children': 'مستشفى الأطفال',
+                'women': 'مستشفى النساء',
+                'other': 'أخرى'
+            };
+            
+            // Waiting list hospitals departments mapping
+            const waitingListHospitalDepartments = {
+                'children': ['قسم الأطفال العام', 'قسم الأطفال حديثي الولادة', 'قسم الأطفال غير المستقر', 'قسم جراحة الأطفال'],
+                'women': ['قسم النساء العام', 'قسم النساء الحوامل', 'قسم النساء غير المستقر', 'قسم جراحة النساء'],
+                'ain_shams': ['قسم الباطنة', 'قسم الجراحة العامة', 'قسم النساء والتوليد', 'قسم الأطفال', 'قسم العظام', 'قسم المخ والأعصاب', 'قسم العيون', 'قسم الأنف والأذن والحنجرة', 'قسم السكتة الدماغية', 'قسم القلب', 'قسم الجهاز الهضمي', 'قسم الكلى', 'قسم الصدر'],
+                'other': []
+            };
 
             // Initial Values (note input name payee_hospital_id)
             const initialHospitalId = "{{ old('payee_hospital_id', $payment->payee_hospital_id) }}";
             const initialDepartmentId = "{{ old('department_id', $payment->department_id) }}";
+            const isWaitingListHospital = initialHospitalId && !$.isNumeric(initialHospitalId);
 
             function populateDepartments(hospitalId, selectedDeptId = '') {
                 departmentSelect.empty().append('<option value="">اختر القسم</option>');
+                
+                // If it's a waiting list hospital (non-numeric), show specific departments
+                if (hospitalId && !$.isNumeric(hospitalId)) {
+                    const departments = waitingListHospitalDepartments[hospitalId] || [];
+                    
+                    if (departments.length > 0) {
+                        departments.forEach(deptName => {
+                            const isSelected = selectedDeptId === deptName ? 'selected' : '';
+                            departmentSelect.append(`<option value="${deptName}" ${isSelected}>${deptName}</option>`);
+                        });
+                    } else {
+                        // Fallback: show all DB departments
+                        allDepartmentsData.forEach(dept => {
+                            const isSelected = selectedDeptId == dept.id ? 'selected' : '';
+                            departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
+                        });
+                    }
+                    
+                    // If there's a selected department that doesn't exist in the list, add it
+                    if (selectedDeptId && !$.isNumeric(selectedDeptId)) {
+                        const exists = departments.includes(selectedDeptId);
+                        if (!exists) {
+                            departmentSelect.append(`<option value="${selectedDeptId}" selected>${selectedDeptId}</option>`);
+                        }
+                    }
+                    
+                    departmentSelect.trigger('change');
+                    return;
+                }
 
+                // Regular DB hospital
                 const hospital = hospitalsData.find(h => h.id == hospitalId);
                 if (hospital && hospital.departments) {
                     hospital.departments.forEach(dept => {
-                        departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                        const isSelected = selectedDeptId == dept.id ? 'selected' : '';
+                        departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
                     });
                 }
 
-                if (selectedDeptId) {
+                if (selectedDeptId && $.isNumeric(selectedDeptId)) {
                     departmentSelect.val(selectedDeptId).trigger('change');
                 }
             }
@@ -313,23 +381,44 @@
             // Initialize with existing values
             const initialEntity = '{{ old("payer_entity_id", $payment->payer_entity_id) }}';
             const initialBranch = '{{ old("branch", $payment->branch) }}';
-            // sub/law handled by triggers if we set initialBranch correctly inside flow
-            // But we can call logic manually to be safe
+            const initialSub = '{{ old("location", $payment->location) }}';
+            const initialLaw = '{{ old("beneficiary", $payment->beneficiary) }}';
 
             if (initialEntity) {
+                entitySelect.val(initialEntity).trigger('change');
                 const selectedOption = entitySelect.find('option:selected');
+                
                 if (selectedOption.length) {
                     const metadata = selectedOption.data('metadata');
 
-                    if (initialBranch) {
+                    // Case 1: Has branch (Ministry flow)
+                    if (initialBranch && metadata && metadata.branches && metadata.branches.includes(initialBranch)) {
                         fillBranchOptions(metadata, initialBranch);
-                    } else if (metadata && metadata.laws) {
-                        // For UHI, skip branch and fill sub directly
-                        fillSubOptions(metadata, 'SKIP_BRANCH', '{{ old("location", $payment->location) }}');
+                        setTimeout(() => {
+                            fillSubOptions(metadata, initialBranch, initialSub);
+                        }, 100);
                     }
-
-                    if ('{{ old("location", $payment->location) }}' && (!metadata || !metadata.laws)) {
-                        fillSubOptions(metadata, initialBranch || 'NO_BRANCH', '{{ old("location", $payment->location) }}');
+                    // Case 2: No branch but has location (Insurance, Comprehensive)
+                    else if (initialSub && !initialBranch) {
+                        // Skip branch, go straight to location
+                        branchContainer.slideUp(300);
+                        fillSubOptions(metadata, 'SKIP_BRANCH', initialSub);
+                    }
+                    // Case 3: Has law but no location (Waiting lists)
+                    else if (initialLaw && metadata && metadata.laws && metadata.laws.includes(initialLaw)) {
+                        // For waiting lists, populate laws directly
+                        branchContainer.slideUp(300);
+                        subContainer.slideUp(300);
+                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                        metadata.laws.forEach(item => {
+                            const isSelected = (item === initialLaw) ? 'selected' : '';
+                            lawsSelect.append(`<option value="${item}" ${isSelected}>${item}</option>`);
+                        });
+                        lawsContainer.slideDown(300);
+                    }
+                    // Case 4: Just entity selected, no other fields
+                    else {
+                        fillBranchOptions(metadata, '');
                     }
                 }
             }

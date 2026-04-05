@@ -68,6 +68,7 @@ class PaymentOrderController extends Controller
         $selectedEntityId = null;
         $branch = null;
         $location = null;
+        $law = null; // For waiting lists
         
         // Handle Hospital & Department (common for all flows)
         if ($hospitalId) {
@@ -98,7 +99,9 @@ class PaymentOrderController extends Controller
                 $selectedEntity = ClaimEntity::where('name', 'وزارة الصحة والسكان')->first();
                 $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
             }
-            \Log::info('Waiting List Flow - Entity ID: ' . ($selectedEntityId ?? 'NULL'));
+            // For waiting lists, get law from session directly (flow_law)
+            $law = session('flow_law') ?? null;
+            \Log::info('Waiting List Flow - Entity ID: ' . ($selectedEntityId ?? 'NULL') . ', Law: ' . ($law ?? 'NULL'));
             
         } elseif ($entityType) {
             // Regular flows (contracts, insurance, ministry, comprehensive)
@@ -113,6 +116,7 @@ class PaymentOrderController extends Controller
         \Log::info('selectedEntityId: ' . ($selectedEntityId ?? 'NULL'));
         \Log::info('branch: ' . ($branch ?? 'NULL'));
         \Log::info('location: ' . ($location ?? 'NULL'));
+        \Log::info('law: ' . ($law ?? 'NULL'));
         
         $entities = ClaimEntity::all();
         $allHospitals = Hospital::with('departments')->get();
@@ -120,7 +124,7 @@ class PaymentOrderController extends Controller
 
         return view('claims::payments.create', compact(
             'hospital', 'department', 'entities', 'allHospitals', 'allDepartments', 
-            'selectedEntityId', 'branch', 'location', 'entityType'
+            'selectedEntityId', 'branch', 'location', 'law', 'entityType'
         ));
     }
 
@@ -144,14 +148,13 @@ class PaymentOrderController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', PaymentOrder::class);
-        $data = $request->validate([
+        
+        $rules = [
             'account_type' => 'required|in:بنكى,أمر دفع برقم مؤسسى,شيك نقدى',
             'gp_number' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
             'payer_entity_id' => 'required|exists:claim_entities,id',
-            'payee_hospital_id' => 'required|exists:hospitals,id',
-            'department_id' => 'required|exists:departments,id',
             'electronic_invoice_no' => [
                 'required',
                 'string',
@@ -164,7 +167,21 @@ class PaymentOrderController extends Controller
             'branch' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'beneficiary' => 'nullable|string|max:255',
-        ], [
+        ];
+        
+        // Check if hospital_id is numeric (DB hospital) or string (waiting list)
+        $hospitalId = $request->input('payee_hospital_id');
+        if ($hospitalId && !is_numeric($hospitalId)) {
+            // Waiting list hospital - accept string
+            $rules['payee_hospital_id'] = 'required|string|max:255';
+            $rules['department_id'] = 'required|string|max:255';
+        } else {
+            // Regular hospital - must exist in DB
+            $rules['payee_hospital_id'] = 'required|exists:hospitals,id';
+            $rules['department_id'] = 'required|exists:departments,id';
+        }
+        
+        $data = $request->validate($rules, [
             'electronic_invoice_no.exists' => 'رقم الفاتورة الإلكترونية غير موجود في نظام المطالبات للجهة المختارة.',
         ]);
 
@@ -200,9 +217,10 @@ class PaymentOrderController extends Controller
         $this->authorize('update', $payment);
         $entities = ClaimEntity::all();
         $allHospitals = Hospital::with('departments')->get();
+        $allDepartments = Department::all();
         // $departments = $payment->payeeHospital ? $payment->payeeHospital->departments : collect(); // loaded via JS data or simple check
 
-        return view('claims::payments.edit', compact('payment', 'entities', 'allHospitals'));
+        return view('claims::payments.edit', compact('payment', 'entities', 'allHospitals', 'allDepartments'));
     }
 
     /**
@@ -211,14 +229,13 @@ class PaymentOrderController extends Controller
     public function update(Request $request, PaymentOrder $payment)
     {
         $this->authorize('update', $payment);
-        $data = $request->validate([
+        
+        $rules = [
             'account_type' => 'required|in:بنكى,أمر دفع برقم مؤسسى,شيك نقدى',
             'gp_number' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
             'payer_entity_id' => 'required|exists:claim_entities,id',
-            'payee_hospital_id' => 'required|exists:hospitals,id',
-            'department_id' => 'required|exists:departments,id',
             'electronic_invoice_no' => [
                 'nullable',
                 'string',
@@ -231,7 +248,21 @@ class PaymentOrderController extends Controller
             'branch' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'beneficiary' => 'nullable|string|max:255',
-        ], [
+        ];
+        
+        // Check if hospital_id is numeric (DB hospital) or string (waiting list)
+        $hospitalId = $request->input('payee_hospital_id');
+        if ($hospitalId && !is_numeric($hospitalId)) {
+            // Waiting list hospital - accept string
+            $rules['payee_hospital_id'] = 'required|string|max:255';
+            $rules['department_id'] = 'required|string|max:255';
+        } else {
+            // Regular hospital - must exist in DB
+            $rules['payee_hospital_id'] = 'required|exists:hospitals,id';
+            $rules['department_id'] = 'required|exists:departments,id';
+        }
+        
+        $data = $request->validate($rules, [
             'electronic_invoice_no.exists' => 'رقم الفاتورة الإلكترونية غير موجود في نظام المطالبات للجهة المختارة.',
         ]);
 

@@ -32,7 +32,10 @@ class Claim extends Model
         'beneficiary',
         'user_id',
         'delivery_date',
-        'delivery_attachments'
+        'delivery_attachments',
+        // New fields for waiting lists insurance flow
+        'claim_description',
+        'electronic_invoice_date',
     ];
 
     protected $casts = [
@@ -43,6 +46,7 @@ class Claim extends Model
         'attachments' => 'array',
         'delivery_attachments' => 'array',
         'delivery_date' => 'date',
+        'electronic_invoice_date' => 'date',
     ];
 
     public function hospital(): BelongsTo

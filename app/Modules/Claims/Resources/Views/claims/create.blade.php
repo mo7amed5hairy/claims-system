@@ -39,13 +39,28 @@
                         <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
                         <select name="hospital_id" id="hospitalSelect" class="form-control select2" required>
                             <option value="">اختر المستشفى</option>
+                            @php
+                                // For waiting lists, use session value directly. For regular, use old() then session
+                                $isWaitingListHospital = isset($hospital) && !is_numeric($hospital->id ?? '');
+                                if ($isWaitingListHospital) {
+                                    $hospitalId = $hospital->id ?? '';
+                                } else {
+                                    $hospitalId = old('hospital_id', $hospital->id ?? '');
+                                }
+                                $hospitalName = $hospital->name ?? '';
+                                $hospitalFound = false;
+                            @endphp
                             @foreach($allHospitals as $hosp)
-                                <option value="{{ $hosp->id }}" {{ (old('hospital_id', $hospital->id ?? '') == $hosp->id) ? 'selected' : '' }}>
+                                @if($hospitalId == $hosp->id)
+                                    @php $hospitalFound = true; @endphp
+                                @endif
+                                <option value="{{ $hosp->id }}" {{ ($hospitalId == $hosp->id) ? 'selected' : '' }}>
                                     {{ $hosp->name }}
                                 </option>
                             @endforeach
-                            @if($hospital && !is_numeric($hospital->id))
-                                <option value="{{ $hospital->id }}" selected>{{ $hospital->name }}</option>
+                            {{-- If hospital is not in the list (waiting list), add it as an option --}}
+                            @if($hospitalId && !$hospitalFound)
+                                <option value="{{ $hospitalId }}" selected>{{ $hospitalName ?: $hospitalId }}</option>
                             @endif
                         </select>
                         @error('hospital_id') <span class="error-message">{{ $message }}</span> @enderror
@@ -55,14 +70,26 @@
                         <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
                         <select name="department_id" id="departmentSelect" class="form-control select2" required>
                             <option value="">اختر القسم</option>
+                            @php
+                                // For waiting lists, use session value directly. For regular, use old() then session
+                                $isWaitingListDept = isset($department) && !is_numeric($department->id ?? '');
+                                if ($isWaitingListDept) {
+                                    $deptId = $department->id ?? '';
+                                } else {
+                                    $deptId = old('department_id', $department->id ?? '');
+                                }
+                                $deptName = $department->name ?? '';
+                                $deptFound = false;
+                            @endphp
                             @foreach($allDepartments as $dept)
-                                @php
-                                    $isSelected = (old('department_id') == $dept->id) || (isset($department) && is_numeric($department->id) && $department->id == $dept->id) || (isset($department) && !is_numeric($department->id) && $department->id == $dept->name);
-                                @endphp
-                                <option value="{{ $dept->id }}" {{ $isSelected ? 'selected' : '' }}>{{ $dept->name }}</option>
+                                @if($deptId == $dept->id)
+                                    @php $deptFound = true; @endphp
+                                @endif
+                                <option value="{{ $dept->id }}" {{ ($deptId == $dept->id) ? 'selected' : '' }}>{{ $dept->name }}</option>
                             @endforeach
-                            @if(isset($department) && !is_numeric($department->id))
-                                <option value="{{ $department->id }}" selected>{{ $department->name }}</option>
+                            {{-- If department is not in the list (waiting list), add it as an option --}}
+                            @if($deptId && !$deptFound)
+                                <option value="{{ $deptId }}" selected>{{ $deptName ?: $deptId }}</option>
                             @endif
                         </select>
                         @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
@@ -240,6 +267,28 @@
                             placeholder="أضف أي ملاحظات تتعلق بالمطالبة...">{{ old('notes') }}</textarea>
                         @error('notes') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
+
+                    {{-- Waiting Lists Insurance Fields (Only for Reviewer users) --}}
+                    @if($showWaitingListFields)
+                        <div class="form-row" style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fa-solid fa-file-text"></i> وصف المطالبة <span class="text-muted" style="font-size: 11px;">(لقوائم الانتظار)</span>
+                                </label>
+                                <textarea name="claim_description" class="form-control" rows="3"
+                                    placeholder="وصف تفصيلي للمطالبة...">{{ old('claim_description') }}</textarea>
+                                @error('claim_description') <span class="error-message">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fa-solid fa-calendar-day"></i> تاريخ الفاتورة الإلكترونية <span class="text-muted" style="font-size: 11px;">(لقوائم الانتظار)</span>
+                                </label>
+                                <input type="date" name="electronic_invoice_date" class="form-control" value="{{ old('electronic_invoice_date') }}">
+                                @error('electronic_invoice_date') <span class="error-message">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Delivery Information Section -->
@@ -331,38 +380,71 @@
             // Initial Values - check if numeric (DB ID) or string (waiting list)
             const initialHospitalId = "{{ old('hospital_id', $hospital->id ?? '') }}";
             const initialDepartmentId = "{{ old('department_id', $department->id ?? '') }}";
+            const rawDepartmentId = "{{ $department->id ?? 'EMPTY' }}";
             const isWaitingListHospital = initialHospitalId && !$.isNumeric(initialHospitalId);
 
-            console.log('Initial Hospital ID:', initialHospitalId);
-            console.log('Initial Department ID:', initialDepartmentId);
+            console.log('=== INITIAL VALUES DEBUG ===');
+            console.log('Initial Hospital ID:', initialHospitalId, 'Type:', typeof initialHospitalId);
+            console.log('Initial Department ID:', initialDepartmentId, 'Type:', typeof initialDepartmentId);
+            console.log('Raw Department ID from PHP:', rawDepartmentId);
             console.log('Is Waiting List Hospital:', isWaitingListHospital);
+            console.log('Full $department object:', "{{ json_encode($department ?? null) }}");
+
+            // Waiting list hospitals departments mapping (from waiting-list-options.blade.php)
+            const waitingListHospitalDepartments = {
+                'children': ['قسم الأطفال العام', 'قسم الأطفال حديثي الولادة', 'قسم الأطفال غير المستقر', 'قسم جراحة الأطفال'],
+                'women': ['قسم النساء العام', 'قسم النساء الحوامل', 'قسم النساء غير المستقر', 'قسم جراحة النساء'],
+                'ain_shams': ['قسم الباطنة', 'قسم الجراحة العامة', 'قسم النساء والتوليد', 'قسم الأطفال', 'قسم العظام', 'قسم المخ والأعصاب', 'قسم العيون', 'قسم الأنف والأذن والحنجرة', 'قسم السكتة الدماغية', 'قسم القلب', 'قسم الجهاز الهضمي', 'قسم الكلى', 'قسم الصدر'],
+                'other': []
+            };
 
             function populateDepartments(hospitalId, selectedDeptId = '') {
-                console.log('Populating departments for hospital:', hospitalId, 'selectedDept:', selectedDeptId);
+                console.log('=== POPULATE DEPARTMENTS CALLED ===');
+                console.log('Hospital ID:', hospitalId, 'Selected Dept ID:', selectedDeptId);
                 departmentSelect.empty().append('<option value="">اختر القسم</option>');
 
-                // If it's a waiting list hospital (non-numeric), show ALL departments from DB
+                // If it's a waiting list hospital (non-numeric), show specific departments for that hospital
                 if (hospitalId && !$.isNumeric(hospitalId)) {
-                    console.log('Waiting list hospital - showing all departments');
+                    console.log('Waiting list hospital detected:', hospitalId);
                     
-                    // First, if there's a selected department from waiting list (string), add it as selected
-                    if (selectedDeptId && !$.isNumeric(selectedDeptId)) {
-                        console.log('Adding selected waiting list department:', selectedDeptId);
-                        departmentSelect.append(`<option value="${selectedDeptId}" selected>${selectedDeptId}</option>`);
+                    // Get departments for this waiting list hospital
+                    const departments = waitingListHospitalDepartments[hospitalId] || [];
+                    console.log('Departments for this hospital:', departments);
+                    
+                    if (departments.length > 0) {
+                        console.log('Adding departments from mapping...');
+                        // Add departments from the waiting list mapping
+                        departments.forEach(deptName => {
+                            const isSelected = selectedDeptId === deptName ? 'selected' : '';
+                            console.log(`  Adding: ${deptName}, selected: ${isSelected}`);
+                            departmentSelect.append(`<option value="${deptName}" ${isSelected}>${deptName}</option>`);
+                        });
+                    } else {
+                        console.log('No mapping found, falling back to DB departments');
+                        // Fallback: show all DB departments if no mapping found
+                        allDepartmentsData.forEach(dept => {
+                            const isSelected = selectedDeptId == dept.id ? 'selected' : '';
+                            departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
+                        });
                     }
                     
-                    // Populate all departments from allDepartmentsData
-                    allDepartmentsData.forEach(dept => {
-                        // Skip if this is the already-added selected department
-                        if (selectedDeptId && dept.name === selectedDeptId) {
-                            console.log('Skipping duplicate dept:', dept.name);
-                            return;
+                    // If there's a selected department that doesn't exist in the list, add it
+                    if (selectedDeptId && !$.isNumeric(selectedDeptId)) {
+                        const exists = departments.includes(selectedDeptId);
+                        console.log(`Selected dept "${selectedDeptId}" exists in list:`, exists);
+                        if (!exists) {
+                            console.log('Adding missing selected department');
+                            departmentSelect.append(`<option value="${selectedDeptId}" selected>${selectedDeptId}</option>`);
                         }
-                        const isSelected = selectedDeptId == dept.id ? 'selected' : '';
-                        console.log('Adding dept:', dept.name, 'selected:', isSelected);
-                        departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
-                    });
+                    }
+                    
+                    // Reinitialize Select2 to show the new options
+                    console.log('Reinitializing Select2...');
+                    departmentSelect.select2('destroy').select2({ dir: "rtl", width: '100%' });
+                    
+                    // Trigger change to update Select2
                     departmentSelect.trigger('change');
+                    console.log('=== POPULATE DEPARTMENTS DONE ===');
                     return;
                 }
 
@@ -375,29 +457,38 @@
                     });
                 }
 
+                // Reinitialize Select2 after populating
+                departmentSelect.select2('destroy').select2({ dir: "rtl", width: '100%' });
+                
                 if (selectedDeptId && $.isNumeric(selectedDeptId)) {
                     departmentSelect.val(selectedDeptId).trigger('change');
                 }
             }
 
+            // Store initial department for use in change event
+            let pendingDepartmentSelection = initialDepartmentId;
+
             hospitalSelect.on('change', function () {
                 const hospId = $(this).val();
                 console.log('Hospital changed to:', hospId);
-                populateDepartments(hospId);
+                console.log('Pending department selection:', pendingDepartmentSelection);
+                // Small delay to ensure Select2 is ready
+                setTimeout(() => {
+                    populateDepartments(hospId, pendingDepartmentSelection);
+                    // Clear pending selection after first use
+                    pendingDepartmentSelection = '';
+                }, 50);
             });
 
             // Set initial hospital and department
             if (initialHospitalId) {
+                console.log('=== SETTING INITIAL HOSPITAL ===');
                 console.log('Setting initial hospital:', initialHospitalId);
+                console.log('Pending dept will be used by change event:', pendingDepartmentSelection);
                 hospitalSelect.val(initialHospitalId).trigger('change');
-                // For waiting list hospitals, populate all departments
-                if (isWaitingListHospital) {
-                    console.log('Populating for waiting list hospital');
-                    populateDepartments(initialHospitalId, initialDepartmentId);
-                } else {
-                    // DB hospital - populate departments normally
-                    populateDepartments(initialHospitalId, initialDepartmentId);
-                }
+                // The change event will handle populating departments with pendingDepartmentSelection
+            } else {
+                console.log('No initial hospital ID found!');
             }
         });
     </script>

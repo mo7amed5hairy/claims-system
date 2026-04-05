@@ -39,6 +39,20 @@
                                     {{ $hosp->name }}
                                 </option>
                             @endforeach
+                            {{-- Add waiting list hospital if not in DB --}}
+                            @php
+                                $hospitalNames = [
+                                    'ain_shams' => 'مستشفى عين شمس',
+                                    'children' => 'مستشفى الأطفال',
+                                    'women' => 'مستشفى النساء',
+                                    'other' => 'أخرى'
+                                ];
+                            @endphp
+                            @if($claim->hospital_id && !is_numeric($claim->hospital_id))
+                                <option value="{{ $claim->hospital_id }}" selected>
+                                    {{ $hospitalNames[$claim->hospital_id] ?? $claim->hospital_id }}
+                                </option>
+                            @endif
                         </select>
                         @error('hospital_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
@@ -47,10 +61,12 @@
                         <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
                         <select name="department_id" id="departmentSelect" class="form-control select2" required>
                             <option value="">اختر القسم</option>
-                            <!-- Departments will be populated by JS, but if we have a selected hospital, we can preload them if we wanted. 
-                                 But since we are using JS source of truth for allHospitals, we'll let JS handle it on load. 
-                                 Or we can loop departments if we passed them.
-                            -->
+                            {{-- Add waiting list department if not numeric --}}
+                            @if($claim->department_id && !is_numeric($claim->department_id))
+                                <option value="{{ $claim->department_id }}" selected>
+                                    {{ $claim->department_id }}
+                                </option>
+                            @endif
                         </select>
                         @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
@@ -340,24 +356,74 @@
 
             // Hospital & Department Logic
             const hospitalsData = @json($allHospitals);
+            const allDepartmentsData = @json($allDepartments ?? []);
             const hospitalSelect = $('#hospitalSelect');
             const departmentSelect = $('#departmentSelect');
+            
+            // Hospital name mapping for waiting list hospitals
+            const hospitalNames = {
+                'ain_shams': 'مستشفى عين شمس',
+                'children': 'مستشفى الأطفال',
+                'women': 'مستشفى النساء',
+                'other': 'أخرى'
+            };
+            
+            // Waiting list hospitals departments mapping
+            const waitingListHospitalDepartments = {
+                'children': ['قسم الأطفال العام', 'قسم الأطفال حديثي الولادة', 'قسم الأطفال غير المستقر', 'قسم جراحة الأطفال'],
+                'women': ['قسم النساء العام', 'قسم النساء الحوامل', 'قسم النساء غير المستقر', 'قسم جراحة النساء'],
+                'ain_shams': ['قسم الباطنة', 'قسم الجراحة العامة', 'قسم النساء والتوليد', 'قسم الأطفال', 'قسم العظام', 'قسم المخ والأعصاب', 'قسم العيون', 'قسم الأنف والأذن والحنجرة', 'قسم السكتة الدماغية', 'قسم القلب', 'قسم الجهاز الهضمي', 'قسم الكلى', 'قسم الصدر'],
+                'other': []
+            };
             
             // Initial Values
             const initialHospitalId = "{{ old('hospital_id', $claim->hospital_id) }}";
             const initialDepartmentId = "{{ old('department_id', $claim->department_id) }}";
+            const isWaitingListHospital = initialHospitalId && !$.isNumeric(initialHospitalId);
 
             function populateDepartments(hospitalId, selectedDeptId = '') {
                 departmentSelect.empty().append('<option value="">اختر القسم</option>');
                 
+                // If it's a waiting list hospital (non-numeric), show specific departments
+                if (hospitalId && !$.isNumeric(hospitalId)) {
+                    const departments = waitingListHospitalDepartments[hospitalId] || [];
+                    
+                    if (departments.length > 0) {
+                        departments.forEach(deptName => {
+                            const isSelected = selectedDeptId === deptName ? 'selected' : '';
+                            departmentSelect.append(`<option value="${deptName}" ${isSelected}>${deptName}</option>`);
+                        });
+                    } else {
+                        // Fallback: show all DB departments
+                        allDepartmentsData.forEach(dept => {
+                            const isSelected = selectedDeptId == dept.id ? 'selected' : '';
+                            departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
+                        });
+                    }
+                    
+                    // If there's a selected department that doesn't exist in the list, add it
+                    if (selectedDeptId && !$.isNumeric(selectedDeptId)) {
+                        const exists = departments.includes(selectedDeptId);
+                        if (!exists) {
+                            departmentSelect.append(`<option value="${selectedDeptId}" selected>${selectedDeptId}</option>`);
+                        }
+                    }
+                    
+                    // Trigger change to update any dependent fields
+                    departmentSelect.trigger('change');
+                    return;
+                }
+                
+                // Regular DB hospital
                 const hospital = hospitalsData.find(h => h.id == hospitalId);
                 if (hospital && hospital.departments) {
                     hospital.departments.forEach(dept => {
-                        departmentSelect.append(`<option value="${dept.id}">${dept.name}</option>`);
+                        const isSelected = selectedDeptId == dept.id ? 'selected' : '';
+                        departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
                     });
                 }
                 
-                if (selectedDeptId) {
+                if (selectedDeptId && $.isNumeric(selectedDeptId)) {
                     departmentSelect.val(selectedDeptId).trigger('change');
                 }
             }
@@ -369,8 +435,6 @@
 
             // Set initial hospital and department
             if (initialHospitalId) {
-                // hospitalSelect value is already set by Blade 'selected' attribute
-                // We just need to populate departments
                 populateDepartments(initialHospitalId, initialDepartmentId);
             }
 
@@ -486,8 +550,14 @@
             const initialSub = '{{ old("location", $claim->location) }}';
             const initialLaw = '{{ old("beneficiary", $claim->beneficiary) }}';
 
+            console.log('=== EDIT FORM INITIALIZATION ===');
+            console.log('Entity:', initialEntity);
+            console.log('Branch:', initialBranch);
+            console.log('Sub:', initialSub);
+            console.log('Law:', initialLaw);
+
             if (initialEntity) {
-                entitySelect.val(initialEntity).trigger('change');
+                entitySelect.val(initialEntity);
                 const selectedOption = entitySelect.find('option:selected');
                 let metadata = selectedOption.data('metadata');
                 const entityName = selectedOption.text().trim();
@@ -496,12 +566,52 @@
                     metadata = fixMetadata(metadata, entityName);
                     selectedOption.data('metadata', metadata);
 
-                    fillBranchOptions(metadata, initialBranch);
-                    if (initialBranch || (!metadata || !metadata.branches || !metadata.branches.length)) {
-                        fillSubOptions(metadata, initialBranch || 'NO_BRANCH', initialSub);
+                    // Case 3: Has law but no location (Waiting lists) - CHECK FIRST
+                    if (initialLaw && metadata.laws && metadata.laws.includes(initialLaw) && !initialSub) {
+                        console.log('Case 3: Waiting list flow - showing laws directly');
+                        // For waiting lists, populate laws directly
+                        branchContainer.slideUp(300);
+                        subContainer.slideUp(300);
+                        
+                        // Show laws container and populate
+                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                        metadata.laws.forEach(item => {
+                            const isSelected = item === initialLaw ? 'selected' : '';
+                            lawsSelect.append(`<option value="${item}" ${isSelected}>${item}</option>`);
+                        });
+                        lawsContainer.slideDown(300);
+                        
+                        // Set the value explicitly
+                        lawsSelect.val(initialLaw);
                     }
-                    if (initialSub) {
-                        fillLawsOptions(metadata, initialSub, initialLaw);
+                    // Case 1: Has branch (Ministry flow)
+                    else if (initialBranch && metadata.branches && metadata.branches.includes(initialBranch)) {
+                        console.log('Case 1: Ministry flow with branch');
+                        fillBranchOptions(metadata, initialBranch);
+                        setTimeout(() => {
+                            fillSubOptions(metadata, initialBranch, initialSub);
+                            if (initialSub) {
+                                setTimeout(() => {
+                                    fillLawsOptions(metadata, initialSub, initialLaw);
+                                }, 100);
+                            }
+                        }, 100);
+                    }
+                    // Case 2: No branch but has location (Insurance, Comprehensive)
+                    else if (initialSub && !initialBranch) {
+                        console.log('Case 2: Insurance/Comprehensive flow');
+                        branchContainer.slideUp(300);
+                        fillSubOptions(metadata, 'NO_BRANCH', initialSub);
+                        if (initialLaw && metadata.laws) {
+                            setTimeout(() => {
+                                fillLawsOptions(metadata, initialSub, initialLaw);
+                            }, 100);
+                        }
+                    }
+                    // Case 4: Just entity selected, no other fields
+                    else {
+                        console.log('Case 4: Just entity');
+                        fillBranchOptions(metadata, '');
                     }
                 }
             }

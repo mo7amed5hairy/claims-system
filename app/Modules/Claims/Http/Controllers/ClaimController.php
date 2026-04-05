@@ -119,13 +119,21 @@ class ClaimController extends Controller
         \Log::info('location: ' . ($location ?? 'NULL'));
         \Log::info('law: ' . ($law ?? 'NULL'));
         
+        // Check if user is reviewer (for showing extra fields in waiting lists insurance flow)
+        $user = auth()->user();
+        $isReviewer = $user->isReviewer(); // User has 'مراجع' in user_type
+        $isFinancialOnly = $user->isFinancial() && !$user->isReviewer(); // Financial only
+        $showWaitingListFields = ($isReviewer && !$isFinancialOnly) && ($waitingListType === 'insurance');
+        \Log::info('User Type - isReviewer: ' . ($isReviewer ? 'YES' : 'NO') . ', isFinancialOnly: ' . ($isFinancialOnly ? 'YES' : 'NO'));
+        \Log::info('Show Waiting List Fields: ' . ($showWaitingListFields ? 'YES' : 'NO'));
+        
         $allHospitals = Hospital::with('departments')->get();
         $allDepartments = Department::all();
         $entities = ClaimEntity::all();
 
         return view('claims::claims.create', compact(
             'hospital', 'department', 'entities', 'allHospitals', 'allDepartments', 
-            'selectedEntityId', 'law', 'branch', 'location', 'entityType'
+            'selectedEntityId', 'law', 'branch', 'location', 'entityType', 'showWaitingListFields'
         ));
     }
 
@@ -149,21 +157,22 @@ class ClaimController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Claim::class);
-        // Validate inputs
-        $data = $request->validate([
+        
+        // Check if hospital_id is numeric (DB) or string (waiting list)
+        $hospitalId = $request->input('hospital_id');
+        $deptId = $request->input('department_id');
+        $isWaitingListHospital = $hospitalId && !is_numeric($hospitalId);
+        
+        // Validate inputs - for waiting lists, don't check exists rule
+        $rules = [
             'invoice_count' => 'required|numeric|min:1',
             'month' => 'required|string',
             'claim_date' => 'required|date',
             'claim_value' => 'required|numeric|min:0',
             'reviewer_name' => 'nullable|string|max:255',
             'reviewed_value' => 'nullable|numeric|min:0',
-
             'electronic_invoice_no' => 'nullable|string|max:255|unique:claims,electronic_invoice_no',
-
             'entity_id' => 'required|exists:claim_entities,id',
-            'hospital_id' => 'required|exists:hospitals,id',
-            'department_id' => 'required|exists:departments,id',
-
             'insurance_claim_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xls,xlsx|max:10240',
@@ -172,7 +181,21 @@ class ClaimController extends Controller
             'branch' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'beneficiary' => 'nullable|string|max:255',
-        ]);
+            // New fields for waiting lists insurance flow
+            'claim_description' => 'nullable|string',
+            'electronic_invoice_date' => 'nullable|date',
+        ];
+        
+        // For waiting lists, don't require exists in DB
+        if ($isWaitingListHospital) {
+            $rules['hospital_id'] = 'required|string';
+            $rules['department_id'] = 'required|string';
+        } else {
+            $rules['hospital_id'] = 'required|exists:hospitals,id';
+            $rules['department_id'] = 'required|exists:departments,id';
+        }
+        
+        $data = $request->validate($rules);
 
 
         // Data already validated and in $data
@@ -217,10 +240,11 @@ class ClaimController extends Controller
         $this->authorize('update', $claim);
         $entities = ClaimEntity::all();
         $allHospitals = Hospital::with('departments')->get();
+        $allDepartments = Department::all();
         // Maybe also departments for the selected hospital?
         $departments = $claim->hospital ? $claim->hospital->departments : collect();
 
-        return view('claims::claims.edit', compact('claim', 'entities', 'allHospitals', 'departments'));
+        return view('claims::claims.edit', compact('claim', 'entities', 'allHospitals', 'allDepartments', 'departments'));
     }
 
     /**
@@ -230,7 +254,8 @@ class ClaimController extends Controller
     public function update(Request $request, Claim $claim)
     {
         $this->authorize('update', $claim);
-        $data = $request->validate([
+        
+        $rules = [
             'invoice_count' => 'required|numeric|min:1',
             'month' => 'required|string',
             'claim_date' => 'required|date',
@@ -246,9 +271,7 @@ class ClaimController extends Controller
             ],
 
             'entity_id' => 'required|exists:claim_entities,id',
-            'hospital_id' => 'required|exists:hospitals,id',
-            'department_id' => 'required|exists:departments,id',
-
+            
             'insurance_claim_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xls,xlsx|max:10240',
@@ -257,7 +280,21 @@ class ClaimController extends Controller
             'branch' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'beneficiary' => 'nullable|string|max:255',
-        ]);
+        ];
+        
+        // Check if hospital_id is numeric (DB hospital) or string (waiting list)
+        $hospitalId = $request->input('hospital_id');
+        if ($hospitalId && !is_numeric($hospitalId)) {
+            // Waiting list hospital - accept string
+            $rules['hospital_id'] = 'required|string|max:255';
+            $rules['department_id'] = 'required|string|max:255';
+        } else {
+            // Regular hospital - must exist in DB
+            $rules['hospital_id'] = 'required|exists:hospitals,id';
+            $rules['department_id'] = 'required|exists:departments,id';
+        }
+        
+        $data = $request->validate($rules);
 
         // Handle file uploads/replacements
         if ($request->hasFile('attachments')) {
