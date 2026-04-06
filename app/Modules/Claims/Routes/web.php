@@ -7,7 +7,7 @@ use App\Modules\Claims\Http\Controllers\ClaimEntityController;
 use App\Modules\Claims\Http\Controllers\HospitalController;
 use App\Modules\Claims\Http\Controllers\ReturnedInvoiceController;
 use App\Modules\Claims\Http\Controllers\PaymentOrderController;
-use App\Modules\Claims\Http\Controllers\UserController;
+use App\Modules\Claims\Http\Controllers\DiscountedInvoiceController;
 
 /**
  * =====================================================
@@ -81,6 +81,8 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::get('/', [PaymentOrderController::class, 'index'])->name('index');
         Route::get('create', [PaymentOrderController::class, 'create'])->name('create');
         Route::post('/', [PaymentOrderController::class, 'store'])->name('store');
+        Route::get('search-claims', [PaymentOrderController::class, 'searchClaims'])->name('search-claims');
+        Route::get('search-by-electronic-invoice', [PaymentOrderController::class, 'searchByElectronicInvoice'])->name('search-by-electronic-invoice');
         Route::get('{payment}/edit', [PaymentOrderController::class, 'edit'])->name('edit');
         Route::put('{payment}', [PaymentOrderController::class, 'update'])->name('update');
         Route::delete('{payment}', [PaymentOrderController::class, 'destroy'])->name('destroy');
@@ -106,6 +108,11 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::post('/', [HospitalController::class, 'store'])->name('store');
         Route::post('{hospital}/departments', [HospitalController::class, 'storeDepartment'])->name('departments.store');
     });
+
+    // =====================================================
+    // Discounted Invoices Management (الفواتير المخصمة) - Read Only
+    // =====================================================
+    Route::get('discounted-invoices', [DiscountedInvoiceController::class, 'index'])->name('discounted-invoices.index');
 
     // =====================================================
     // User Management (Admin Only)

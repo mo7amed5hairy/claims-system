@@ -94,6 +94,7 @@
                     <th>المبلغ</th>
                     <th>تاريخ الاستحقاق</th>
                     <th>الجهة</th>
+                    <th>المرفقات</th>
                     <th style="text-align: center;">الإجراءات</th>
                 </tr>
             </thead>
@@ -147,6 +148,19 @@
                         <td style="color: #10b981; font-weight: 600;">{{ number_format($order->amount, 2) }} ج.م</td>
                         <td>{{ $order->due_date->format('Y-m-d') }}</td>
                         <td>{{ $order->payerEntity->name ?? '-' }}</td>
+                        <td style="text-align: center;">
+                            @if(!empty($order->attachments) && is_array($order->attachments) && count($order->attachments) > 0)
+                                <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;">
+                                    @foreach($order->attachments as $attachment)
+                                        <a href="{{ asset('storage/' . $attachment) }}" target="_blank" class="btn-action" style="background: #fef3c7; color: #d97706; padding: 3px 8px; font-size: 11px; text-decoration: none;" title="عرض الملف">
+                                            <i class="fa-solid fa-file"></i> {{ $loop->iteration }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span style="color: #94a3b8; font-size: 11px;">-</span>
+                            @endif
+                        </td>
                         <td style="text-align: center;">
                             <div style="display: flex; gap: 8px; justify-content: center;">
                                 @can('update', $order)

@@ -10,9 +10,12 @@ class PaymentOrder extends Model
     protected $table = 'payment_orders';
 
     protected $fillable = [
+        'claim_number',
         'account_type',
         'gp_number',
         'amount',
+        'invoice_count_after_review',
+        'amount_after_review',
         'due_date',
         'payer_entity_id',
         'payee_hospital_id',
@@ -20,6 +23,7 @@ class PaymentOrder extends Model
         'electronic_invoice_no',
         'invoice_no',
         'notes',
+        'attachments',
         'branch',
         'location',
         'beneficiary',
@@ -29,6 +33,8 @@ class PaymentOrder extends Model
     protected $casts = [
         'due_date' => 'date',
         'amount' => 'decimal:2',
+        'amount_after_review' => 'decimal:2',
+        'attachments' => 'array',
     ];
 
     public function payerEntity(): BelongsTo

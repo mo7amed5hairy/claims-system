@@ -175,6 +175,9 @@
                                 <a href="{{ route('payments.index') }}">
                                     <i class="fa-solid fa-money-check-dollar"></i> أوامر الدفع
                                 </a>
+                                <a href="{{ route('discounted-invoices.index') }}">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i> الفواتير المخصمة
+                                </a>
                             @endif
                             <div class="dropdown-divider"></div>
                             <form action="{{ route('logout') }}" method="POST">

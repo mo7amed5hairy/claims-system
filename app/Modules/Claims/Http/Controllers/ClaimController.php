@@ -165,12 +165,12 @@ class ClaimController extends Controller
         
         // Validate inputs - for waiting lists, don't check exists rule
         $rules = [
+            'claim_number' => 'required|string|max:255|unique:claims,claim_number',
             'invoice_count' => 'required|numeric|min:1',
             'month' => 'required|string',
             'claim_date' => 'required|date',
             'claim_value' => 'required|numeric|min:0',
             'reviewer_name' => 'nullable|string|max:255',
-            'reviewed_value' => 'nullable|numeric|min:0',
             'electronic_invoice_no' => 'nullable|string|max:255|unique:claims,electronic_invoice_no',
             'entity_id' => 'required|exists:claim_entities,id',
             'insurance_claim_number' => 'nullable|string|max:255',
@@ -181,7 +181,6 @@ class ClaimController extends Controller
             'branch' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'beneficiary' => 'nullable|string|max:255',
-            // New fields for waiting lists insurance flow
             'claim_description' => 'nullable|string',
             'electronic_invoice_date' => 'nullable|date',
         ];
@@ -256,22 +255,24 @@ class ClaimController extends Controller
         $this->authorize('update', $claim);
         
         $rules = [
+            'claim_number' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('claims', 'claim_number')->ignore($claim->id),
+            ],
             'invoice_count' => 'required|numeric|min:1',
             'month' => 'required|string',
             'claim_date' => 'required|date',
             'claim_value' => 'required|numeric|min:0',
             'reviewer_name' => 'nullable|string|max:255',
-            'reviewed_value' => 'nullable|numeric|min:0',
-
             'electronic_invoice_no' => [
                 'nullable',
                 'string',
                 'max:255',
                 Rule::unique('claims', 'electronic_invoice_no')->ignore($claim->id),
             ],
-
             'entity_id' => 'required|exists:claim_entities,id',
-            
             'insurance_claim_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xls,xlsx|max:10240',

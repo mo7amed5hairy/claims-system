@@ -2,6 +2,262 @@
 
 @section('title', 'إنشاء مطالبة جديدة')
 
+<style>
+    /* Remove side margins from form container */
+    .content-wrapper {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .form-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .form-card {
+        padding: 8px 10px !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    /* 9 columns per row for main fields */
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr) !important;
+        gap: 4px !important;
+        margin-bottom: 4px !important;
+    }
+    .form-row-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 4px !important;
+        margin-bottom: 4px !important;
+    }
+    .form-row-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4px !important;
+        margin-bottom: 4px !important;
+    }
+    .form-row-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 4px !important;
+        margin-bottom: 4px !important;
+    }
+    .form-group {
+        margin-bottom: 2px !important;
+    }
+    /* Uniform labels - final size increase */
+    .form-label {
+        font-size: 13px !important;
+        margin-bottom: 4px !important;
+        padding: 3px 6px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    /* Uniform inputs and selects - final increase */
+    .form-control {
+        height: 34px !important;
+        padding: 5px 10px !important;
+        font-size: 14px !important;
+        min-height: 34px !important;
+    }
+    /* Select2 - match new height */
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-container .select2-selection--single {
+        height: 34px !important;
+        min-height: 34px !important;
+        max-height: 34px !important;
+        padding: 0 10px !important;
+        font-size: 14px !important;
+        line-height: 32px !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 32px !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+        font-size: 14px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 32px !important;
+        width: 24px !important;
+        top: 0 !important;
+        right: 4px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-width: 5px !important;
+        margin-top: -2px !important;
+    }
+    .select2-dropdown {
+        font-size: 14px !important;
+        border-radius: 4px !important;
+    }
+    .select2-results__option {
+        padding: 6px 12px !important;
+        font-size: 14px !important;
+        min-height: 26px !important;
+        line-height: 22px !important;
+    }
+    /* Notes textarea - final size */
+    textarea.form-control {
+        min-height: 100px !important;
+        height: 100px !important;
+        font-size: 14px !important;
+    }
+    /* Error messages - final size */
+    .error-message {
+        font-size: 11px !important;
+    }
+    /* Small text - final size */
+    small.text-muted {
+        font-size: 10px !important;
+        display: block;
+        line-height: 1.2;
+    }
+    /* Page header - final size */
+    .page-header {
+        padding: 10px 15px !important;
+        margin-bottom: 6px !important;
+    }
+    .page-title {
+        font-size: 18px !important;
+    }
+    .page-subtitle {
+        font-size: 13px !important;
+    }
+    /* Breadcrumb - final size */
+    .breadcrumb-nav {
+        padding: 8px 15px !important;
+        margin-bottom: 6px !important;
+    }
+    /* Form sections compact */
+    .form-section {
+        padding: 10px !important;
+        margin-bottom: 8px !important;
+    }
+    .section-title {
+        font-size: 14px !important;
+        margin-bottom: 10px !important;
+    }
+    /* Form actions - buttons on right - AGGRESSIVE OVERRIDE */
+    .form-actions {
+        margin-top: 10px !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        flex-direction: row !important;
+    }
+    .form-actions .btn,
+    .form-actions button.btn,
+    .form-actions a.btn {
+        padding: 5px 14px !important;
+        font-size: 12px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+        line-height: 22px !important;
+        width: auto !important;
+        min-width: 100px !important;
+        max-width: 140px !important;
+        flex: 0 0 auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+    }
+    /* Drop zone compact */
+    .drop-zone {
+        padding: 20px !important;
+        margin-bottom: 10px !important;
+    }
+    .drop-zone-text {
+        font-size: 14px !important;
+    }
+    .drop-zone-hint {
+        font-size: 12px !important;
+    }
+    /* Responsive Design */
+    @media (max-width: 1400px) {
+        .form-row {
+            grid-template-columns: repeat(6, 1fr) !important;
+        }
+        .form-row-2 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .form-row-3 {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+        .form-row-4 {
+            grid-template-columns: repeat(4, 1fr) !important;
+        }
+    }
+    @media (max-width: 992px) {
+        .form-row {
+            grid-template-columns: repeat(4, 1fr) !important;
+        }
+        .form-row-2 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .form-row-3 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .form-row-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .form-label {
+            font-size: 11px !important;
+        }
+    }
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+        .form-row-2 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .form-row-3 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .form-row-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .page-title {
+            font-size: 16px !important;
+        }
+    }
+    @media (max-width: 576px) {
+        .form-row, .form-row-2, .form-row-3, .form-row-4 {
+            grid-template-columns: repeat(1, 1fr) !important;
+        }
+        .form-control, .select2-container .select2-selection--single {
+            height: 30px !important;
+            font-size: 13px !important;
+        }
+        .form-label {
+            font-size: 11px !important;
+        }
+        .form-actions {
+            flex-direction: column !important;
+            gap: 6px !important;
+        }
+        .form-actions .btn {
+            width: 100% !important;
+        }
+    }
+</style>
+
 @section('content')
     <!-- Breadcrumb Navigation -->
     <div class="breadcrumb-nav">
@@ -32,15 +288,19 @@
             <form action="{{ route('claims.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Hospital and Department Row -->
-                <div class="form-row-3 form-section">
+                <!-- Main Fields - Row 1 (9 columns) -->
+                <div class="form-row form-section" style="padding: 8px !important;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-hashtag"></i> رقم المطالبة <span class="text-danger">*</span></label>
+                        <input type="text" name="claim_number" class="form-control" value="{{ old('claim_number') }}" required placeholder="رقم المطالبة" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('claim_number') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
 
-                    <div class="form-group">
-                        <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
-                        <select name="hospital_id" id="hospitalSelect" class="form-control select2" required>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-hospital"></i> المستشفى</label>
+                        <select name="hospital_id" id="hospitalSelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر المستشفى</option>
                             @php
-                                // For waiting lists, use session value directly. For regular, use old() then session
                                 $isWaitingListHospital = isset($hospital) && !is_numeric($hospital->id ?? '');
                                 if ($isWaitingListHospital) {
                                     $hospitalId = $hospital->id ?? '';
@@ -54,11 +314,8 @@
                                 @if($hospitalId == $hosp->id)
                                     @php $hospitalFound = true; @endphp
                                 @endif
-                                <option value="{{ $hosp->id }}" {{ ($hospitalId == $hosp->id) ? 'selected' : '' }}>
-                                    {{ $hosp->name }}
-                                </option>
+                                <option value="{{ $hosp->id }}" {{ ($hospitalId == $hosp->id) ? 'selected' : '' }}>{{ $hosp->name }}</option>
                             @endforeach
-                            {{-- If hospital is not in the list (waiting list), add it as an option --}}
                             @if($hospitalId && !$hospitalFound)
                                 <option value="{{ $hospitalId }}" selected>{{ $hospitalName ?: $hospitalId }}</option>
                             @endif
@@ -66,12 +323,11 @@
                         @error('hospital_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
-                        <select name="department_id" id="departmentSelect" class="form-control select2" required>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-stethoscope"></i> القسم</label>
+                        <select name="department_id" id="departmentSelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر القسم</option>
                             @php
-                                // For waiting lists, use session value directly. For regular, use old() then session
                                 $isWaitingListDept = isset($department) && !is_numeric($department->id ?? '');
                                 if ($isWaitingListDept) {
                                     $deptId = $department->id ?? '';
@@ -87,7 +343,6 @@
                                 @endif
                                 <option value="{{ $dept->id }}" {{ ($deptId == $dept->id) ? 'selected' : '' }}>{{ $dept->name }}</option>
                             @endforeach
-                            {{-- If department is not in the list (waiting list), add it as an option --}}
                             @if($deptId && !$deptFound)
                                 <option value="{{ $deptId }}" selected>{{ $deptName ?: $deptId }}</option>
                             @endif
@@ -95,75 +350,16 @@
                         @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-
-                    <div class="form-group">
-                        <label class="form-label"><i class="fa-solid fa-building"></i> الجهة</label>
-                        <select name="entity_id" id="entitySelect" class="form-control select2" required>
-                            <option value="">اختر الجهة</option>
-                            @foreach($entities as $entity)
-                                @php
-                                    $isSelected = (old('entity_id') == $entity->id) || (isset($selectedEntityId) && $selectedEntityId == $entity->id);
-                                @endphp
-                                <option value="{{ $entity->id }}" {{ $isSelected ? 'selected' : '' }} data-metadata='@json($entity->metadata)' data-selected="{{ $isSelected ? 'true' : 'false' }}">
-                                    {{ $entity->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('entity_id') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-
-                </div>
-
-                <!-- Row 2: Branches, Governorates, Beneficiaries -->
-                <div class="form-row-3 form-section">
-
-                    <!-- قائمة الفروع -->
-                    <div class="form-group" id="branchContainer" style="display: none;">
-                        <label class="form-label"><i class="fa-solid fa-layer-group"></i> الفروع</label>
-                        <select name="branch" id="branchSelect" class="form-control select2">
-                            <option value="">اختر الفرع</option>
-                        </select>
-                    </div>
-
-                    <!-- قائمة المحافظة / المواقع -->
-                    <div class="form-group" id="subContainer" style="display: none;">
-                        <label class="form-label" id="subLabel"><i class="fa-solid fa-map-marker-alt"></i> المحافظة / الموقع</label>
-                        <select name="location" id="subSelect" class="form-control select2">
-                            <option value="">اختر المحافظة / الموقع</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" id="lawsContainer" style="{{ $law ? 'display: block;' : 'display: none;' }}">
-                        <label class="form-label"><i class="fa-solid fa-file-lines"></i> المستفيدين / المنتفعين</label>
-                        <select name="beneficiary" id="lawsSelect" class="form-control select2">
-                            <option value="">اختر المستفيد</option>
-                            @if($law)
-                                <option value="{{ $law }}" selected>{{ $law }}</option>
-                            @endif
-                        </select>
-                    </div>
-
-                </div>
-
-                <!-- Row 3: Invoice count, Month, Claim date -->
-                <div class="form-row-3 form-section">
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fa-solid fa-calculator"></i> عدد الفواتير
-                        </label>
-                        <input type="number" name="invoice_count" class="form-control" min="1"
-                            value="{{ old('invoice_count') }}" required>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calculator"></i> عدد الفواتير</label>
+                        <input type="number" name="invoice_count" class="form-control" min="1" value="{{ old('invoice_count') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('invoice_count') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fa-solid fa-calendar"></i> الشهر
-                        </label>
-                        <select name="month" class="form-control select2" required>
-                            <option value="">اختر الشهر</option>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar"></i> الشهر</label>
+                        <select name="month" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
+                            <option value="">اختر</option>
                             <option value="يناير" {{ old('month') == 'يناير' ? 'selected' : '' }}>يناير</option>
                             <option value="فبراير" {{ old('month') == 'فبراير' ? 'selected' : '' }}>فبراير</option>
                             <option value="مارس" {{ old('month') == 'مارس' ? 'selected' : '' }}>مارس</option>
@@ -180,153 +376,129 @@
                         @error('month') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fa-solid fa-calendar-days"></i> تاريخ المطالبة
-                        </label>
-                        <input type="date" name="claim_date" class="form-control" value="{{ old('claim_date') }}" required>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar-days"></i> تاريخ المطالبة</label>
+                        <input type="date" name="claim_date" class="form-control" value="{{ old('claim_date') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('claim_date') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-                </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-coins"></i> قيمة المطالبة</label>
+                        <input type="number" step="0.01" id="claimValue" name="claim_value" class="form-control" min="0" value="{{ old('claim_value') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('claim_value') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
 
-                <!-- Financial Section -->
-                <div class="form-section" style="padding: 20px;">
-                    <h3 class="section-title">
-                        <i class="fa-solid fa-money-bill"></i> البيانات المالية
-                    </h3>
-
-                    <div class="form-row-4">
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fa-solid fa-coins"></i> قيمة المطالبة (ج.م)
-                            </label>
-                            <input type="number" step="0.01" id="claimValue" name="claim_value" class="form-control" min="0"
-                                value="{{ old('claim_value') }}" required oninput="calculateDiff()">
-                            @error('claim_value') <span class="error-message">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fa-solid fa-check-circle"></i> المبلغ بعد المراجعة (ج.م)
-                            </label>
-                            <input type="number" step="0.01" id="reviewedValue" name="reviewed_value" class="form-control"
-                                min="0" value="{{ old('reviewed_value') }}" oninput="calculateDiff()">
-                            @error('reviewed_value') <span class="error-message">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fa-solid fa-equals"></i> الفرق (ج.م)
-                            </label>
-                            <input type="number" step="0.01" id="differenceValue" name="difference" class="form-control"
-                                readonly>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fa-solid fa-user-check"></i> اسم المراجع
-                            </label>
-                            <input type="text" name="reviewer_name" class="form-control" value="{{ old('reviewer_name') }}">
-                            @error('reviewer_name') <span class="error-message">{{ $message }}</span> @enderror
-                        </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-user-check"></i> اسم المراجع</label>
+                        <input type="text" name="reviewer_name" class="form-control" value="{{ old('reviewer_name') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('reviewer_name') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
-                <!-- Additional Information Section -->
-                <div class="form-section" style="padding: 20px;">
-                    <h3 class="section-title">
-                        <i class="fa-solid fa-file-lines"></i> معلومات إضافية
-                    </h3>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية
-                            </label>
-                            <input type="text" name="electronic_invoice_no" class="form-control"
-                                value="{{ old('electronic_invoice_no') }}">
-                            @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fa-solid fa-receipt"></i> رقم المطالبة التأمينية
-                            </label>
-                            <input type="text" name="insurance_claim_number" class="form-control"
-                                value="{{ old('insurance_claim_number') }}">
-                            @error('insurance_claim_number') <span class="error-message">{{ $message }}</span> @enderror
-                        </div>
+                <!-- Entity Fields Row - All together (9 columns) -->
+                <div class="form-row form-section" style="padding: 8px !important;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-building"></i> الجهة</label>
+                        <select name="entity_id" id="entitySelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
+                            <option value="">اختر الجهة</option>
+                            @foreach($entities as $entity)
+                                @php
+                                    $isSelected = (old('entity_id') == $entity->id) || (isset($selectedEntityId) && $selectedEntityId == $entity->id);
+                                @endphp
+                                <option value="{{ $entity->id }}" {{ $isSelected ? 'selected' : '' }} data-metadata='@json($entity->metadata)' data-selected="{{ $isSelected ? 'true' : 'false' }}">{{ $entity->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('entity_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">
+                    <div class="form-group" id="branchContainer" style="display: none; margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-layer-group"></i> الفروع</label>
+                        <select name="branch" id="branchSelect" class="form-control select2" style="height: 30px !important; font-size: 13px;">
+                            <option value="">اختر الفرع</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="subContainer" style="display: none; margin: 0;">
+                        <label class="form-label" id="subLabel" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-map-marker-alt"></i> المحافظة</label>
+                        <select name="location" id="subSelect" class="form-control select2" style="height: 30px !important; font-size: 13px;">
+                            <option value="">اختر</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="lawsContainer" style="{{ $law ? 'display: block;' : 'display: none;' }}; margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-file-lines"></i> المستفيدين</label>
+                        <select name="beneficiary" id="lawsSelect" class="form-control select2" style="height: 30px !important; font-size: 13px;">
+                            <option value="">اختر المستفيد</option>
+                            @if($law)
+                                <option value="{{ $law }}" selected>{{ $law }}</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
+                        <input type="text" name="electronic_invoice_no" class="form-control" value="{{ old('electronic_invoice_no') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar-check"></i> تاريخ التسليم</label>
+                        <input type="date" name="delivery_date" class="form-control" value="{{ old('delivery_date') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('delivery_date') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-upload"></i> مرفقات التسليم</label>
+                        <input type="file" name="delivery_attachments[]" class="form-control" multiple style="height: 30px !important; font-size: 12px; padding: 4px 8px;">
+                        <small class="text-muted" style="font-size: 9px;">ملفات متعددة</small>
+                    </div>
+                </div>
+
+                <!-- Notes Section (Full Width) -->
+                <div class="form-section" style="padding: 8px !important;">
+                    <div class="form-group" style="margin-bottom: 4px;">
+                        <label class="form-label" style="font-size: 13px; margin-bottom: 4px;">
                             <i class="fa-solid fa-note-sticky"></i> ملاحظات
                         </label>
-                        <textarea name="notes" class="form-control" rows="4"
+                        <textarea name="notes" class="form-control" rows="3" style="min-height: 80px; height: 80px; font-size: 14px; resize: vertical;"
                             placeholder="أضف أي ملاحظات تتعلق بالمطالبة...">{{ old('notes') }}</textarea>
                         @error('notes') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     {{-- Waiting Lists Insurance Fields (Only for Reviewer users) --}}
                     @if($showWaitingListFields)
-                        <div class="form-row" style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i class="fa-solid fa-file-text"></i> وصف المطالبة <span class="text-muted" style="font-size: 11px;">(لقوائم الانتظار)</span>
+                        <div class="form-row-2" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; gap: 8px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-size: 12px; margin-bottom: 2px;">
+                                    <i class="fa-solid fa-file-text"></i> وصف المطالبة <span class="text-muted" style="font-size: 10px;">(قوائم انتظار)</span>
                                 </label>
-                                <textarea name="claim_description" class="form-control" rows="3"
-                                    placeholder="وصف تفصيلي للمطالبة...">{{ old('claim_description') }}</textarea>
+                                <textarea name="claim_description" class="form-control" rows="2" style="min-height: 60px; height: 60px; font-size: 13px; resize: vertical;"
+                                    placeholder="وصف تفصيلي...">{{ old('claim_description') }}</textarea>
                                 @error('claim_description') <span class="error-message">{{ $message }}</span> @enderror
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i class="fa-solid fa-calendar-day"></i> تاريخ الفاتورة الإلكترونية <span class="text-muted" style="font-size: 11px;">(لقوائم الانتظار)</span>
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-size: 12px; margin-bottom: 2px;">
+                                    <i class="fa-solid fa-calendar-day"></i> تاريخ الفاتورة <span class="text-muted" style="font-size: 10px;">(انتظار)</span>
                                 </label>
-                                <input type="date" name="electronic_invoice_date" class="form-control" value="{{ old('electronic_invoice_date') }}">
+                                <input type="date" name="electronic_invoice_date" class="form-control" value="{{ old('electronic_invoice_date') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                                 @error('electronic_invoice_date') <span class="error-message">{{ $message }}</span> @enderror
                             </div>
                         </div>
                     @endif
                 </div>
 
-                <!-- Delivery Information Section -->
-                <div class="form-section"
-                    style="padding: 20px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; margin-bottom: 25px;">
-                    <h3 class="section-title" style="color: #334155;">
-                        <i class="fa-solid fa-truck-fast"></i> بيانات تسليم المطالبة
-                    </h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fa-solid fa-calendar-check"></i> تاريخ التسليم
-                            </label>
-                            <input type="date" name="delivery_date" class="form-control" value="{{ old('delivery_date') }}">
-                            @error('delivery_date') <span class="error-message">{{ $message }}</span> @enderror
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fa-solid fa-upload"></i> مرفقات التسليم
-                            </label>
-                            <input type="file" name="delivery_attachments[]" class="form-control" multiple>
-                            <small class="text-muted" style="font-size: 10px;">يمكنك اختيار ملفات متعددة (صور، PDF،
-                                إكسل)</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Attachments Section -->
-                <div class="form-section">
-                    <h3 class="section-title">
+                <!-- Attachments Section (Full Row) -->
+                <div class="form-section" style="padding: 10px !important;">
+                    <h3 class="section-title" style="font-size: 13px; margin-bottom: 8px;">
                         <i class="fa-solid fa-paperclip"></i> المرفقات (صور، PDF، Excel)
                     </h3>
 
-                    <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone" id="dropZone" style="padding: 15px !important; margin-bottom: 8px;">
                         <div class="drop-zone-content">
-                            <i class="fa-solid fa-cloud-arrow-up"></i>
-                            <p class="drop-zone-text">اسحب وأفلت الملفات هنا أو اضغط للاختيار</p>
-                            <p class="drop-zone-hint">يمكنك رفع ملفات متعددة (الحد الأقصى 10 ميجا لكل ملف)</p>
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px;"></i>
+                            <p class="drop-zone-text" style="font-size: 13px; margin: 5px 0;">اسحب وأفلت الملفات هنا أو اضغط للاختيار</p>
+                            <p class="drop-zone-hint" style="font-size: 11px; margin: 0;">يمكنك رفع ملفات متعددة (الحد الأقصى 10 ميجا لكل ملف)</p>
                         </div>
                         <input type="file" name="attachments[]" id="fileInput" multiple style="display: none;">
                     </div>
@@ -337,7 +509,7 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="form-actions" style="margin-top: 32px;">
+                <div class="form-actions" style="margin-top: 8px;">
                     <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="fa-solid fa-save"></i> حفظ المطالبة
                     </button>
@@ -881,29 +1053,25 @@
         }
 
         function createFileItem(file) {
-            const div = document.createElement('div');
-            div.className = 'file-item';
-            div.setAttribute('data-name', file.name);
 
-            const extension = file.name.split('.').pop().toLowerCase();
-            let icon = 'fa-file-lines';
-            let color = '#3b82f6'; // Default blue
+    function createFileItem(file) {
+        const div = document.createElement('div');
+        div.className = 'file-item';
+        div.setAttribute('data-name', file.name);
 
-            if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
-                icon = 'fa-file-image';
-                color = '#10b981'; // Green
-            } else if (extension === 'pdf') {
-                icon = 'fa-file-pdf';
-                color = '#ef4444'; // Red
-            } else if (['xls', 'xlsx', 'csv'].includes(extension)) {
-                icon = 'fa-file-excel';
-                color = '#059669'; // Dark Green
-            }
+        const extension = file.name.split('.').pop().toLowerCase();
+        let icon = 'fa-file-lines';
+        let color = '#3b82f6'; // Default blue
 
-            div.innerHTML = `
-                                                                                                                                                                                                                                                                                                                        <div class="file-icon" style="background: ${color}15; color: ${color};">
-                                                                                                                                                                                                                                                                                                                            <i class="fa-solid ${icon}"></i>
-                                                                                                                                                                                                                                                                                                                        </div>
+        if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+            icon = 'fa-file-image';
+            color = '#10b981'; // Green
+        } else if (extension === 'pdf') {
+            icon = 'fa-file-pdf';
+            color = '#ef4444'; // Red
+        } else if (['xls', 'xlsx', 'csv'].includes(extension)) {
+            icon = 'fa-file-excel';
+            color = '#059669'; // Dark Green
                                                                                                                                                                                                                                                                                                                         <div class="file-details">
                                                                                                                                                                                                                                                                                                                             <div class="file-name">${file.name}</div>
                                                                                                                                                                                                                                                                                                                             <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>

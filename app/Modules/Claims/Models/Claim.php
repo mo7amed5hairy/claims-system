@@ -12,6 +12,7 @@ class Claim extends Model
     protected $table = 'claims';
 
     protected $fillable = [
+        'claim_number', // New required field
         'invoice_count',
         'month',
         'hospital_id',
@@ -33,7 +34,6 @@ class Claim extends Model
         'user_id',
         'delivery_date',
         'delivery_attachments',
-        // New fields for waiting lists insurance flow
         'claim_description',
         'electronic_invoice_date',
     ];
@@ -71,17 +71,26 @@ class Claim extends Model
 
     public function payments()
     {
-        // Limiting to match electronic_invoice_no which is the common identifier
+        // For waiting lists, use claim_number; for regular flows, use electronic_invoice_no
+        return $this->hasMany(PaymentOrder::class, 'claim_number', 'claim_number');
+    }
+
+    public function paymentsByElectronicInvoice()
+    {
+        // Keep the old relationship for backward compatibility
         return $this->hasMany(PaymentOrder::class, 'electronic_invoice_no', 'electronic_invoice_no');
     }
 
     public function getPaymentStatusAttribute()
     {
-        if (empty($this->electronic_invoice_no)) {
+        // Use claim_number for waiting lists, electronic_invoice_no for regular flows
+        if (!empty($this->claim_number)) {
+            $paidAmount = $this->payments->sum('amount');
+        } elseif (!empty($this->electronic_invoice_no)) {
+            $paidAmount = $this->paymentsByElectronicInvoice->sum('amount');
+        } else {
             return 'unpaid';
         }
-
-        $paidAmount = $this->payments->sum('amount');
 
         if ($paidAmount >= $this->claim_value && $this->claim_value > 0) {
             return 'paid';
