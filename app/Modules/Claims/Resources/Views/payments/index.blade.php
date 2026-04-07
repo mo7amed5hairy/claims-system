@@ -54,6 +54,19 @@
                 },
                 "pageLength": 10,
                 "ordering": true,
+                "order": [[0, "desc"]],
+                "columnDefs": [
+                    {
+                        "targets": 0,
+                        "type": "num",
+                        "render": function(data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return parseInt(data.replace('#', '')) || 0;
+                            }
+                            return data;
+                        }
+                    }
+                ],
                 "info": true
             });
         });
@@ -113,7 +126,7 @@
                             <div style="font-size: 9px; color: #94a3b8;">{{ $order->created_at?->format('Y-m-d H:i') }}</div>
                         </td>
                         <td style="font-weight: 600;">{{ $order->gp_number }}</td>
-                        <td>{{ $order->electronic_invoice_no ?? '-' }}</td>
+                        <td>{{ $order->electronic_invoice_no ?? $order->claim_number ?? '-' }}</td>
                         <td>
                             @php
                                 // Map waiting list hospital IDs to Arabic names

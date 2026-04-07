@@ -55,17 +55,6 @@
                         <span class="operation-arrow"><i class="fa-solid fa-arrow-left"></i></span>
                     </a>
                 @endcan
-
-                @can('viewAny', App\Modules\Claims\Models\ReturnedInvoice::class)
-                    <a href="{{ route('returns.index') }}" class="operation-card">
-                        <div class="operation-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                            <i class="fa-solid fa-rotate-left"></i>
-                        </div>
-                        <h3 class="operation-title">فواتير عائدة</h3>
-                        <p class="operation-text">إدارة الفواتير المرجعة</p>
-                        <span class="operation-arrow"><i class="fa-solid fa-arrow-left"></i></span>
-                    </a>
-                @endcan
             @endif
 
             @if(auth()->user()->canAccessPayments())

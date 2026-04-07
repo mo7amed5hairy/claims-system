@@ -297,8 +297,9 @@
                                     {{ $entity->name }}
                                 </option>
                             @endforeach
+                    </select>
+                </div>
 
-                        {{-- Search Mode Variables --}}
                     @php
                         $searchMode = $searchMode ?? 'electronic';
                         $showClaimNumber = ($searchMode === 'claim' || $searchMode === 'both');
@@ -310,7 +311,7 @@
                     @if($showClaimNumber || $isDynamicMode)
                     <div class="form-group" id="claimNumberContainer">
                         <label class="form-label"><i class="fa-solid fa-hashtag"></i> رقم المطالبة</label>
-                        <input type="text" name="claim_number" id="claimNumberInput" class="form-control" value="{{ old('claim_number', $paymentOrder->claim_number) }}" placeholder="رقم المطالبة...">
+                        <input type="text" name="claim_number" id="claimNumberInput" class="form-control" value="{{ old('claim_number', $payment->claim_number) }}" placeholder="رقم المطالبة...">
                         <small class="text-muted"><i class="fa-solid fa-info-circle"></i> اكتب للبحث</small>
                         @error('claim_number') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
@@ -320,7 +321,7 @@
                     @if($showElectronicInvoice)
                     <div class="form-group" id="electronicInvoiceContainer">
                         <label class="form-label"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
-                        <input type="text" name="electronic_invoice_no" id="electronicInvoiceInput" class="form-control" value="{{ old('electronic_invoice_no', $payment->electronic_invoice_no) }}" placeholder="رقم الفاتورة الإلكترونية...">
+                        <input type="text" name="electronic_invoice_no" id="electronicInvoiceInput" class="form-control" value="{{ old('electronic_invoice_no', $payment->electronic_invoice_no ?? $payment->claim_number) }}" placeholder="رقم الفاتورة الإلكترونية...">
                         @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
                     @endif
@@ -330,6 +331,47 @@
                     <div class="form-group"></div>
                     @endif
                 </div>
+
+                {{-- Claim Details Section (shown when editing existing payment with claim) --}}
+                @if($claim)
+                <div id="claimDetailsSection" style="display: block; background: #fefce8; border: 1px dashed #f59e0b; border-radius: 6px; padding: 5px 8px; margin: 4px 0;">
+                    <h4 style="color: #d97706; margin-bottom: 4px; font-size: 10px;"><i class="fa-solid fa-clipboard-list"></i> بيانات المطالبة</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 8px;">رقم المطالبة</label>
+                            <input type="text" id="claimNumberDisplay" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->claim_number }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 8px;">عدد الفواتير</label>
+                            <input type="text" id="claimInvoiceCount" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->invoice_count }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 8px;">قيمة المطالبة</label>
+                            <input type="text" id="claimValue" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->claim_value }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 8px;">رقم الفاتورة</label>
+                            <input type="text" id="claimElectronicInvoice" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->electronic_invoice_no }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 8px;"><i class="fa-solid fa-calculator"></i> فواتير بعد المراجعة</label>
+                            <input type="number" name="invoice_count_after_review" id="invoiceCountAfterReview" class="form-control" value="{{ old('invoice_count_after_review', $payment->invoice_count_after_review) }}" min="0" style="font-size: 9px; padding: 2px 4px;">
+                            @error('invoice_count_after_review') <span class="error-message">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 8px;"><i class="fa-solid fa-coins"></i> المبلغ بعد المراجعة</label>
+                            <input type="number" step="0.01" name="amount_after_review" id="amountAfterReview" class="form-control" value="{{ old('amount_after_review', $payment->amount_after_review) }}" min="0" style="font-size: 9px; padding: 2px 4px;">
+                            @error('amount_after_review') <span class="error-message">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    
+                    {{-- Hidden fields to store claim data --}}
+                    <input type="hidden" name="electronic_invoice_no" id="electronicInvoiceNoField" value="{{ $claim->electronic_invoice_no }}">
+                    <input type="hidden" name="payee_hospital_id" id="hospitalIdField" value="{{ old('payee_hospital_id', $payment->payee_hospital_id ?? '') }}">
+                    <input type="hidden" name="department_id" id="departmentIdField" value="{{ old('department_id', $payment->department_id ?? '') }}">
+                    <input type="hidden" name="payer_entity_id" id="entityIdField" value="{{ old('payer_entity_id', $payment->payer_entity_id ?? '') }}">
+                </div>
+                @endif
 
                 <!-- Dynamic Fields for Entity (Branch, Location, Laws) -->
                 <div class="form-row" style="gap: 4px; margin: 0; margin-bottom: 4px;">

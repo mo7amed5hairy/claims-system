@@ -61,12 +61,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('returns.index') }}" class="{{ request()->routeIs('returns.*') ? 'active' : '' }}">
-                        <i class="fa-solid fa-rotate-left"></i>
-                        الفواتير العائدة
-                    </a>
-                </li>
-                <li>
                     <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-money-check-dollar"></i>
                         أوامر الدفع

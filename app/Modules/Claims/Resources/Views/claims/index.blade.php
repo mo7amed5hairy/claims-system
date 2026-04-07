@@ -52,6 +52,19 @@
                 },
                 "pageLength": 10,
                 "ordering": true,
+                "order": [[0, "desc"]],
+                "columnDefs": [
+                    {
+                        "targets": 0,
+                        "type": "num",
+                        "render": function(data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return parseInt(data.replace('#', '')) || 0;
+                            }
+                            return data;
+                        }
+                    }
+                ],
                 "info": true
             });
         });

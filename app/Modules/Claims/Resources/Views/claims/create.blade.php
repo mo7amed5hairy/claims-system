@@ -3,171 +3,173 @@
 @section('title', 'إنشاء مطالبة جديدة')
 
 <style>
-    /* Remove side margins from form container */
+    /* Make form fit in single screen without scroll */
     .content-wrapper {
         padding: 0 !important;
         margin: 0 !important;
+        overflow: hidden !important;
     }
     .form-container {
         max-width: 100% !important;
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
+        max-height: calc(100vh - 120px) !important;
+        overflow-y: auto !important;
     }
     .form-card {
-        padding: 8px 10px !important;
+        padding: 4px 8px !important;
         margin: 0 !important;
         border-radius: 0 !important;
     }
-    /* 9 columns per row for main fields */
+    /* Compact rows */
     .form-row {
         display: grid;
         grid-template-columns: repeat(9, 1fr) !important;
-        gap: 4px !important;
-        margin-bottom: 4px !important;
+        gap: 3px !important;
+        margin-bottom: 2px !important;
     }
     .form-row-3 {
         display: grid;
         grid-template-columns: repeat(3, 1fr) !important;
-        gap: 4px !important;
-        margin-bottom: 4px !important;
+        gap: 3px !important;
+        margin-bottom: 2px !important;
     }
     .form-row-4 {
         display: grid;
         grid-template-columns: repeat(4, 1fr) !important;
-        gap: 4px !important;
-        margin-bottom: 4px !important;
+        gap: 3px !important;
+        margin-bottom: 2px !important;
     }
     .form-row-2 {
         display: grid;
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 4px !important;
-        margin-bottom: 4px !important;
-    }
-    .form-group {
+        gap: 3px !important;
         margin-bottom: 2px !important;
     }
-    /* Uniform labels - final size increase */
+    .form-group {
+        margin-bottom: 1px !important;
+    }
+    /* Compact labels - slightly larger */
     .form-label {
-        font-size: 13px !important;
-        margin-bottom: 4px !important;
-        padding: 3px 6px !important;
+        font-size: 12px !important;
+        margin-bottom: 3px !important;
+        padding: 3px 4px !important;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    /* Uniform inputs and selects - final increase */
+    /* Compact inputs - slightly larger */
     .form-control {
-        height: 34px !important;
-        padding: 5px 10px !important;
-        font-size: 14px !important;
-        min-height: 34px !important;
+        height: 32px !important;
+        padding: 4px 8px !important;
     }
-    /* Select2 - match new height */
+    /* Select2 slightly larger */
     .select2-container {
         width: 100% !important;
     }
     .select2-container .select2-selection--single {
-        height: 34px !important;
-        min-height: 34px !important;
-        max-height: 34px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
         padding: 0 10px !important;
         font-size: 14px !important;
-        line-height: 32px !important;
+        line-height: 34px !important;
         border: 1px solid #ced4da !important;
         border-radius: 4px !important;
         display: flex !important;
         align-items: center !important;
     }
     .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 32px !important;
+        line-height: 34px !important;
         padding-left: 2px !important;
         padding-right: 2px !important;
         font-size: 14px !important;
-        height: 32px !important;
+        height: 34px !important;
         display: flex !important;
         align-items: center !important;
     }
     .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 32px !important;
+        height: 34px !important;
         width: 24px !important;
         top: 0 !important;
-        right: 4px !important;
+        right: 2px !important;
     }
     .select2-container--default .select2-selection--single .select2-selection__arrow b {
-        border-width: 5px !important;
+        border-width: 4px !important;
         margin-top: -2px !important;
     }
     .select2-dropdown {
-        font-size: 14px !important;
+        font-size: 12px !important;
         border-radius: 4px !important;
     }
     .select2-results__option {
-        padding: 6px 12px !important;
-        font-size: 14px !important;
-        min-height: 26px !important;
-        line-height: 22px !important;
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+        min-height: 22px !important;
+        line-height: 18px !important;
     }
-    /* Notes textarea - final size */
+    /* Compact textarea */
     textarea.form-control {
-        min-height: 100px !important;
-        height: 100px !important;
-        font-size: 14px !important;
+        min-height: 45px !important;
+        height: 45px !important;
+        font-size: 12px !important;
     }
-    /* Error messages - final size */
+    /* Error messages */
     .error-message {
-        font-size: 11px !important;
+        font-size: 9px !important;
     }
-    /* Small text - final size */
+    /* Small text */
     small.text-muted {
-        font-size: 10px !important;
+        font-size: 8px !important;
         display: block;
-        line-height: 1.2;
+        line-height: 1.1;
     }
-    /* Page header - final size */
+    /* Page header compact */
     .page-header {
-        padding: 10px 15px !important;
-        margin-bottom: 6px !important;
+        padding: 6px 10px !important;
+        margin-bottom: 4px !important;
     }
     .page-title {
-        font-size: 18px !important;
+        font-size: 16px !important;
     }
     .page-subtitle {
-        font-size: 13px !important;
+        font-size: 11px !important;
     }
-    /* Breadcrumb - final size */
+    /* Breadcrumb compact */
     .breadcrumb-nav {
-        padding: 8px 15px !important;
-        margin-bottom: 6px !important;
+        padding: 4px 10px !important;
+        margin-bottom: 4px !important;
     }
-    /* Form sections compact */
+    /* Form sections very compact */
     .form-section {
-        padding: 10px !important;
-        margin-bottom: 8px !important;
+        padding: 4px !important;
+        margin-bottom: 2px !important;
     }
     .section-title {
-        font-size: 14px !important;
-        margin-bottom: 10px !important;
+        font-size: 12px !important;
+        margin-bottom: 4px !important;
     }
-    /* Form actions - buttons on right - AGGRESSIVE OVERRIDE */
+    /* Buttons compact */
     .form-actions {
-        margin-top: 10px !important;
+        margin-top: 4px !important;
         display: flex !important;
         justify-content: flex-end !important;
         align-items: center !important;
-        gap: 8px !important;
+        gap: 6px !important;
         width: 100% !important;
         flex-direction: row !important;
     }
+    /* Buttons slightly larger */
     .form-actions .btn,
     .form-actions button.btn,
     .form-actions a.btn {
-        padding: 5px 14px !important;
-        font-size: 12px !important;
+        padding: 6px 16px !important;
+        font-size: 13px !important;
         height: 32px !important;
         min-height: 32px !important;
         max-height: 32px !important;
-        line-height: 22px !important;
+        line-height: 20px !important;
         width: auto !important;
         min-width: 100px !important;
         max-width: 140px !important;
@@ -179,81 +181,88 @@
     }
     /* Drop zone compact */
     .drop-zone {
-        padding: 20px !important;
-        margin-bottom: 10px !important;
+        padding: 8px !important;
+        margin-bottom: 4px !important;
     }
     .drop-zone-text {
-        font-size: 14px !important;
+        font-size: 11px !important;
     }
     .drop-zone-hint {
+        font-size: 9px !important;
+    }
+    /* File list styling - show full items */
+    .file-list {
+        max-height: 120px !important;
+        overflow-y: auto !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    .file-list::-webkit-scrollbar {
+        display: none !important; /* Chrome, Safari, Opera */
+    }
+    .file-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        padding: 6px 8px !important;
+        background: #f8fafc !important;
+        border-radius: 4px !important;
+        margin-bottom: 4px !important;
+        width: 100% !important;
+    }
+    .file-icon {
+        font-size: 16px !important;
+        flex-shrink: 0 !important;
+    }
+    .file-details {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    .file-name {
+        font-size: 11px !important;
+        font-weight: 500 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .file-size {
+        font-size: 9px !important;
+        color: #64748b !important;
+    }
+    .file-actions {
+        flex-shrink: 0 !important;
+    }
+    .btn-remove {
+        background: none !important;
+        border: none !important;
+        color: #ef4444 !important;
+        cursor: pointer !important;
         font-size: 12px !important;
+        padding: 4px !important;
+    }
+    /* Hide any arrows/buttons in file list */
+    .file-list .file-item > *:not(.file-icon):not(.file-details):not(.file-actions) {
+        display: none !important;
     }
     /* Responsive Design */
     @media (max-width: 1400px) {
         .form-row {
             grid-template-columns: repeat(6, 1fr) !important;
         }
-        .form-row-2 {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        .form-row-3 {
-            grid-template-columns: repeat(3, 1fr) !important;
-        }
-        .form-row-4 {
-            grid-template-columns: repeat(4, 1fr) !important;
-        }
     }
     @media (max-width: 992px) {
         .form-row {
             grid-template-columns: repeat(4, 1fr) !important;
-        }
-        .form-row-2 {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        .form-row-3 {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        .form-row-4 {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        .form-label {
-            font-size: 11px !important;
         }
     }
     @media (max-width: 768px) {
         .form-row {
             grid-template-columns: repeat(3, 1fr) !important;
         }
-        .form-row-2 {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        .form-row-3 {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        .form-row-4 {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        .page-title {
-            font-size: 16px !important;
-        }
     }
     @media (max-width: 576px) {
         .form-row, .form-row-2, .form-row-3, .form-row-4 {
             grid-template-columns: repeat(1, 1fr) !important;
-        }
-        .form-control, .select2-container .select2-selection--single {
-            height: 30px !important;
-            font-size: 13px !important;
-        }
-        .form-label {
-            font-size: 11px !important;
-        }
-        .form-actions {
-            flex-direction: column !important;
-            gap: 6px !important;
-        }
-        .form-actions .btn {
-            width: 100% !important;
         }
     }
 </style>
@@ -288,12 +297,56 @@
             <form action="{{ route('claims.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Main Fields - Row 1 (9 columns) -->
-                <div class="form-row form-section" style="padding: 8px !important;">
+                <!-- Row 1: All Basic Fields (8 fields) -->
+                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 0.9fr 0.6fr 0.7fr 0.9fr 0.9fr 0.9fr 1.2fr 1.2fr !important; gap: 8px !important;">
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-hashtag"></i> رقم المطالبة <span class="text-danger">*</span></label>
                         <input type="text" name="claim_number" class="form-control" value="{{ old('claim_number') }}" required placeholder="رقم المطالبة" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('claim_number') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calculator"></i> عدد الفواتير</label>
+                        <input type="number" name="invoice_count" class="form-control" min="1" value="{{ old('invoice_count') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('invoice_count') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar"></i> الشهر</label>
+                        <select name="month" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
+                            <option value="">اختر</option>
+                            <option value="يناير" {{ old('month') == 'يناير' ? 'selected' : '' }}>يناير</option>
+                            <option value="فبراير" {{ old('month') == 'فبراير' ? 'selected' : '' }}>فبراير</option>
+                            <option value="مارس" {{ old('month') == 'مارس' ? 'selected' : '' }}>مارس</option>
+                            <option value="أبريل" {{ old('month') == 'أبريل' ? 'selected' : '' }}>أبريل</option>
+                            <option value="مايو" {{ old('month') == 'مايو' ? 'selected' : '' }}>مايو</option>
+                            <option value="يونيو" {{ old('month') == 'يونيو' ? 'selected' : '' }}>يونيو</option>
+                            <option value="يوليو" {{ old('month') == 'يوليو' ? 'selected' : '' }}>يوليو</option>
+                            <option value="أغسطس" {{ old('month') == 'أغسطس' ? 'selected' : '' }}>أغسطس</option>
+                            <option value="سبتمبر" {{ old('month') == 'سبتمبر' ? 'selected' : '' }}>سبتمبر</option>
+                            <option value="أكتوبر" {{ old('month') == 'أكتوبر' ? 'selected' : '' }}>أكتوبر</option>
+                            <option value="نوفمبر" {{ old('month') == 'نوفمبر' ? 'selected' : '' }}>نوفمبر</option>
+                            <option value="ديسمبر" {{ old('month') == 'ديسمبر' ? 'selected' : '' }}>ديسمبر</option>
+                        </select>
+                        @error('month') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar-days"></i> تاريخ المطالبة</label>
+                        <input type="date" name="claim_date" class="form-control" value="{{ old('claim_date') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('claim_date') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-coins"></i> قيمة المطالبة</label>
+                        <input type="number" step="0.01" id="claimValue" name="claim_value" class="form-control" min="0" value="{{ old('claim_value') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('claim_value') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-user-check"></i> اسم المراجع</label>
+                        <input type="text" name="reviewer_name" class="form-control" value="{{ old('reviewer_name') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        @error('reviewer_name') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
@@ -349,54 +402,10 @@
                         </select>
                         @error('department_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calculator"></i> عدد الفواتير</label>
-                        <input type="number" name="invoice_count" class="form-control" min="1" value="{{ old('invoice_count') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                        @error('invoice_count') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar"></i> الشهر</label>
-                        <select name="month" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
-                            <option value="">اختر</option>
-                            <option value="يناير" {{ old('month') == 'يناير' ? 'selected' : '' }}>يناير</option>
-                            <option value="فبراير" {{ old('month') == 'فبراير' ? 'selected' : '' }}>فبراير</option>
-                            <option value="مارس" {{ old('month') == 'مارس' ? 'selected' : '' }}>مارس</option>
-                            <option value="أبريل" {{ old('month') == 'أبريل' ? 'selected' : '' }}>أبريل</option>
-                            <option value="مايو" {{ old('month') == 'مايو' ? 'selected' : '' }}>مايو</option>
-                            <option value="يونيو" {{ old('month') == 'يونيو' ? 'selected' : '' }}>يونيو</option>
-                            <option value="يوليو" {{ old('month') == 'يوليو' ? 'selected' : '' }}>يوليو</option>
-                            <option value="أغسطس" {{ old('month') == 'أغسطس' ? 'selected' : '' }}>أغسطس</option>
-                            <option value="سبتمبر" {{ old('month') == 'سبتمبر' ? 'selected' : '' }}>سبتمبر</option>
-                            <option value="أكتوبر" {{ old('month') == 'أكتوبر' ? 'selected' : '' }}>أكتوبر</option>
-                            <option value="نوفمبر" {{ old('month') == 'نوفمبر' ? 'selected' : '' }}>نوفمبر</option>
-                            <option value="ديسمبر" {{ old('month') == 'ديسمبر' ? 'selected' : '' }}>ديسمبر</option>
-                        </select>
-                        @error('month') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar-days"></i> تاريخ المطالبة</label>
-                        <input type="date" name="claim_date" class="form-control" value="{{ old('claim_date') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                        @error('claim_date') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-coins"></i> قيمة المطالبة</label>
-                        <input type="number" step="0.01" id="claimValue" name="claim_value" class="form-control" min="0" value="{{ old('claim_value') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                        @error('claim_value') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-user-check"></i> اسم المراجع</label>
-                        <input type="text" name="reviewer_name" class="form-control" value="{{ old('reviewer_name') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                        @error('reviewer_name') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
                 </div>
 
-                <!-- Entity Fields Row - All together (9 columns) -->
-                <div class="form-row form-section" style="padding: 8px !important;">
+                <!-- Row 2: Entity & Related Fields -->
+                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr 0.9fr 0.9fr !important; gap: 8px !important;">
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-building"></i> الجهة</label>
                         <select name="entity_id" id="entitySelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
@@ -454,67 +463,59 @@
                     </div>
                 </div>
 
-                <!-- Notes Section (Full Width) -->
-                <div class="form-section" style="padding: 8px !important;">
-                    <div class="form-group" style="margin-bottom: 4px;">
-                        <label class="form-label" style="font-size: 13px; margin-bottom: 4px;">
+                <!-- Row 3: Notes & Attachments (Side by Side) -->
+                <div class="form-row-2 form-section" style="padding: 6px !important; gap: 10px !important; margin-bottom: 4px !important;">
+                    <!-- Notes -->
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 3px; padding: 2px 4px;">
                             <i class="fa-solid fa-note-sticky"></i> ملاحظات
                         </label>
-                        <textarea name="notes" class="form-control" rows="3" style="min-height: 80px; height: 80px; font-size: 14px; resize: vertical;"
-                            placeholder="أضف أي ملاحظات تتعلق بالمطالبة...">{{ old('notes') }}</textarea>
+                        <textarea name="notes" class="form-control" rows="2" style="min-height: 140px !important; height: 140px !important; font-size: 13px; padding: 6px 8px; resize: none;"
+                            placeholder="ملاحظات..."></textarea>
                         @error('notes') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-                    {{-- Waiting Lists Insurance Fields (Only for Reviewer users) --}}
-                    @if($showWaitingListFields)
-                        <div class="form-row-2" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; gap: 8px;">
-                            <div class="form-group" style="margin: 0;">
-                                <label class="form-label" style="font-size: 12px; margin-bottom: 2px;">
-                                    <i class="fa-solid fa-file-text"></i> وصف المطالبة <span class="text-muted" style="font-size: 10px;">(قوائم انتظار)</span>
-                                </label>
-                                <textarea name="claim_description" class="form-control" rows="2" style="min-height: 60px; height: 60px; font-size: 13px; resize: vertical;"
-                                    placeholder="وصف تفصيلي...">{{ old('claim_description') }}</textarea>
-                                @error('claim_description') <span class="error-message">{{ $message }}</span> @enderror
+                    <!-- Attachments -->
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 3px; padding: 2px 4px;">
+                            <i class="fa-solid fa-paperclip"></i> المرفقات
+                        </label>
+                        <div class="drop-zone" id="dropZone" style="padding: 10px !important; margin-bottom: 0 !important; min-height: 140px !important; height: 140px !important; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                            <div class="drop-zone-content" style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 20px;"></i>
+                                <p class="drop-zone-text" style="font-size: 13px; margin: 0;">اسحب الملفات هنا أو اضغط للاختيار</p>
                             </div>
-
-                            <div class="form-group" style="margin: 0;">
-                                <label class="form-label" style="font-size: 12px; margin-bottom: 2px;">
-                                    <i class="fa-solid fa-calendar-day"></i> تاريخ الفاتورة <span class="text-muted" style="font-size: 10px;">(انتظار)</span>
-                                </label>
-                                <input type="date" name="electronic_invoice_date" class="form-control" value="{{ old('electronic_invoice_date') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                                @error('electronic_invoice_date') <span class="error-message">{{ $message }}</span> @enderror
-                            </div>
+                            <input type="file" name="attachments[]" id="fileInput" multiple style="display: none;">
                         </div>
-                    @endif
-                </div>
-
-                <!-- Attachments Section (Full Row) -->
-                <div class="form-section" style="padding: 10px !important;">
-                    <h3 class="section-title" style="font-size: 13px; margin-bottom: 8px;">
-                        <i class="fa-solid fa-paperclip"></i> المرفقات (صور، PDF، Excel)
-                    </h3>
-
-                    <div class="drop-zone" id="dropZone" style="padding: 15px !important; margin-bottom: 8px;">
-                        <div class="drop-zone-content">
-                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px;"></i>
-                            <p class="drop-zone-text" style="font-size: 13px; margin: 5px 0;">اسحب وأفلت الملفات هنا أو اضغط للاختيار</p>
-                            <p class="drop-zone-hint" style="font-size: 11px; margin: 0;">يمكنك رفع ملفات متعددة (الحد الأقصى 10 ميجا لكل ملف)</p>
-                        </div>
-                        <input type="file" name="attachments[]" id="fileInput" multiple style="display: none;">
-                    </div>
-
-                    <div class="file-list" id="fileList">
-                        <!-- Files will appear here dynamically -->
+                        <div class="file-list" id="fileList" style="max-height: 40px; overflow-y: auto;"></div>
                     </div>
                 </div>
+
+                {{-- Waiting Lists Fields (Inline) --}}
+                @if($showWaitingListFields)
+                <div class="form-row-2 form-section" style="padding: 4px 6px !important; gap: 8px !important; margin-bottom: 4px !important; border-top: 1px dashed #cbd5e1;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 11px; margin-bottom: 2px;">
+                            <i class="fa-solid fa-file-text"></i> وصف المطالبة
+                        </label>
+                        <textarea name="claim_description" rows="1" style="min-height: 30px !important; height: 30px !important; font-size: 12px; padding: 4px 6px; resize: none;" placeholder="وصف..."></textarea>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" style="font-size: 11px; margin-bottom: 2px;">
+                            <i class="fa-solid fa-calendar-day"></i> تاريخ الفاتورة
+                        </label>
+                        <input type="date" name="electronic_invoice_date" style="height: 30px !important; font-size: 12px; padding: 4px 6px;">
+                    </div>
+                </div>
+                @endif
 
                 <!-- Action Buttons -->
-                <div class="form-actions" style="margin-top: 8px;">
-                    <button type="submit" class="btn btn-primary" id="saveBtn">
-                        <i class="fa-solid fa-save"></i> حفظ المطالبة
+                <div class="form-actions" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e2e8f0;">
+                    <button type="submit" class="btn btn-primary" id="saveBtn" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
+                        <i class="fa-solid fa-save"></i> حفظ
                     </button>
-                    <a href="{{ route('flow.operations') }}" class="btn btn-secondary">
-                        <i class="fa-solid fa-arrow-right"></i> العودة
+                    <a href="{{ route('flow.operations') }}" class="btn btn-secondary" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
+                        <i class="fa-solid fa-arrow-right"></i> عودة
                     </a>
                 </div>
             </form>
@@ -1053,38 +1054,42 @@
         }
 
         function createFileItem(file) {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.setAttribute('data-name', file.name);
 
-    function createFileItem(file) {
-        const div = document.createElement('div');
-        div.className = 'file-item';
-        div.setAttribute('data-name', file.name);
+            const extension = file.name.split('.').pop().toLowerCase();
+            let icon = 'fa-file-lines';
+            let color = '#3b82f6'; // Default blue
 
-        const extension = file.name.split('.').pop().toLowerCase();
-        let icon = 'fa-file-lines';
-        let color = '#3b82f6'; // Default blue
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+                icon = 'fa-file-image';
+                color = '#10b981'; // Green
+            } else if (extension === 'pdf') {
+                icon = 'fa-file-pdf';
+                color = '#ef4444'; // Red
+            } else if (['xls', 'xlsx', 'csv'].includes(extension)) {
+                icon = 'fa-file-excel';
+                color = '#059669'; // Dark Green
+            }
 
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
-            icon = 'fa-file-image';
-            color = '#10b981'; // Green
-        } else if (extension === 'pdf') {
-            icon = 'fa-file-pdf';
-            color = '#ef4444'; // Red
-        } else if (['xls', 'xlsx', 'csv'].includes(extension)) {
-            icon = 'fa-file-excel';
-            color = '#059669'; // Dark Green
-                                                                                                                                                                                                                                                                                                                        <div class="file-details">
-                                                                                                                                                                                                                                                                                                                            <div class="file-name">${file.name}</div>
-                                                                                                                                                                                                                                                                                                                            <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                                                                                                                                                                                                                                                                                                                            <div class="progress-container" style="display: block;">
-                                                                                                                                                                                                                                                                                                                                <div class="progress-bar"></div>
-                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                        <div class="file-actions">
-                                                                                                                                                                                                                                                                                                                            <button type="button" class="btn-remove" title="حذف وإلغاء">
-                                                                                                                                                                                                                                                                                                                                <i class="fa-solid fa-trash-can"></i>
-                                                                                                                                                                                                                                                                                                                            </button>
-                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                    `;
+            div.innerHTML = `
+                <div class="file-icon" style="color: ${color};">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div class="file-details">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                    <div class="progress-container" style="display: block;">
+                        <div class="progress-bar"></div>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button type="button" class="btn-remove" title="حذف وإلغاء">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `;
 
             div.querySelector('.btn-remove').onclick = () => {
                 if (div.uploadInterval) clearInterval(div.uploadInterval);

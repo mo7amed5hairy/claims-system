@@ -5,7 +5,6 @@ use App\Modules\Claims\Http\Controllers\FlowController;
 use App\Modules\Claims\Http\Controllers\ClaimController;
 use App\Modules\Claims\Http\Controllers\ClaimEntityController;
 use App\Modules\Claims\Http\Controllers\HospitalController;
-use App\Modules\Claims\Http\Controllers\ReturnedInvoiceController;
 use App\Modules\Claims\Http\Controllers\PaymentOrderController;
 use App\Modules\Claims\Http\Controllers\DiscountedInvoiceController;
 
@@ -60,18 +59,6 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::get('{claim}/edit', [ClaimController::class, 'edit'])->name('edit');
         Route::put('{claim}', [ClaimController::class, 'update'])->name('update');
         Route::delete('{claim}', [ClaimController::class, 'destroy'])->name('destroy');
-    });
-
-    // =====================================================
-    // Returned Invoices Management
-    // =====================================================
-    Route::prefix('returns')->name('returns.')->group(function () {
-        Route::get('/', [ReturnedInvoiceController::class, 'index'])->name('index');
-        Route::get('create', [ReturnedInvoiceController::class, 'create'])->name('create');
-        Route::post('/', [ReturnedInvoiceController::class, 'store'])->name('store');
-        Route::get('{return}/edit', [ReturnedInvoiceController::class, 'edit'])->name('edit');
-        Route::put('{return}', [ReturnedInvoiceController::class, 'update'])->name('update');
-        Route::delete('{return}', [ReturnedInvoiceController::class, 'destroy'])->name('destroy');
     });
 
     // =====================================================

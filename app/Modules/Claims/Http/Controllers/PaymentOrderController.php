@@ -367,7 +367,14 @@ class PaymentOrderController extends Controller
             'claim_number.exists' => 'رقم المطالبة غير موجود في النظام.',
         ]);
 
-        $data['invoice_no'] = $data['electronic_invoice_no'] ?? null;
+        // Set invoice_no based on electronic_invoice_no or claim_number
+        if (!empty($data['electronic_invoice_no'])) {
+            $data['invoice_no'] = $data['electronic_invoice_no'];
+        } elseif (!empty($data['claim_number'])) {
+            $data['invoice_no'] = $data['claim_number'];
+        } else {
+            $data['invoice_no'] = null;
+        }
 
         // Business Logic Validation: Amount vs Claim Value (for regular flows)
         if (!empty($request->electronic_invoice_no)) {
@@ -434,6 +441,14 @@ class PaymentOrderController extends Controller
         $allHospitals = Hospital::with('departments')->get();
         $allDepartments = Department::all();
         
+        // Load the associated claim data if exists
+        $claim = null;
+        if ($payment->claim_number) {
+            $claim = \App\Modules\Claims\Models\Claim::where('claim_number', $payment->claim_number)->first();
+        } elseif ($payment->electronic_invoice_no) {
+            $claim = \App\Modules\Claims\Models\Claim::where('electronic_invoice_no', $payment->electronic_invoice_no)->first();
+        }
+        
         // Determine search mode for edit (similar to create)
         $waitingListType = session('flow_waiting_list_type');
         $flowOptions = session('flow_options', []);
@@ -453,7 +468,7 @@ class PaymentOrderController extends Controller
             $searchMode = 'dynamic';
         }
 
-        return view('claims::payments.edit', compact('payment', 'entities', 'allHospitals', 'allDepartments', 'searchMode'));
+        return view('claims::payments.edit', compact('payment', 'claim', 'entities', 'allHospitals', 'allDepartments', 'searchMode'));
     }
 
     /**

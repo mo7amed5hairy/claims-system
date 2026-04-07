@@ -167,9 +167,6 @@
                                 <a href="{{ route('claims.index') }}">
                                     <i class="fa-solid fa-file-invoice-dollar"></i> المطالبات
                                 </a>
-                                <a href="{{ route('returns.index') }}">
-                                    <i class="fa-solid fa-file-invoice"></i> الفواتير العائدة
-                                </a>
                             @endif
                             @if(Auth::user()->canAccessPayments())
                                 <a href="{{ route('payments.index') }}">
