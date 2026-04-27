@@ -29,11 +29,47 @@
                             style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
                         },
                         exportOptions: {
-                            columns: ':visible'
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                            format: {
+                                body: function(data, row, column, node) {
+                                    var text = data;
+                                    if (typeof text === 'string') {
+                                        if (column === 6) {
+                                            text = text.replace(' ج.م', '');
+                                        }
+                                        var temp = document.createElement('div');
+                                        temp.innerHTML = text;
+                                        text = temp.textContent || temp.innerText || '';
+                                        return text.trim();
+                                    }
+                                    return data;
+                                }
+                            }
                         },
                         customize: function (xlsx) {
                             var sheet = xlsx.xl.worksheets['sheet1.xml'];
                             $('sheetViews sheetView', sheet).attr('rightToLeft', '1');
+
+                            var total = 0;
+                            $('row c[r^="G"]', sheet).each(function() {
+                                var val = $(this).text();
+                                if (val && !isNaN(parseFloat(val.replace(/,/g, '')))) {
+                                    total += parseFloat(val.replace(/,/g, ''));
+                                }
+                            });
+
+                            var rowCount = $('row', sheet).length;
+
+                            var emptyRow = '<row r="' + (rowCount + 1) + '"></row>';
+                            $('sheetData', sheet).append(emptyRow);
+
+                            var totalRowNum = rowCount + 2;
+                            var totalRow = '<row r="' + totalRowNum + '">';
+                            totalRow += '<c r="F' + totalRowNum + '" t="inlineStr"><is><t>الإجمالي</t></is></c>';
+                            totalRow += '<c r="G' + totalRowNum + '" t="n"><v>' + total.toFixed(2) + '</v></c>';
+                            totalRow += '</row>';
+
+                            $('sheetData', sheet).append(totalRow);
                         }
                     }
                 ],
@@ -65,7 +101,7 @@
                             }
                             return data;
                         }
-                    }
+                    },
                 ],
                 "info": true
             });

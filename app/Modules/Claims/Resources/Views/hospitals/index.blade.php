@@ -155,7 +155,7 @@
 
         function addDept(id, name) {
             $('#hospName').text(name);
-            $('#deptForm').attr('action', `/hospitals/${id}/departments`);
+            $('#deptForm').attr('action', '{{ route("hospitals.departments.store", ":id") }}'.replace(':id', id));
             // Reset modal rows to one
             $('#addDeptModal .dept-rows').html(`
                                     <div class="dept-input-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
