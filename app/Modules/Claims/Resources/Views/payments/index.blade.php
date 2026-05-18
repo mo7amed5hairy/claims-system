@@ -29,12 +29,12 @@
                             style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
                         },
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                             format: {
                                 body: function(data, row, column, node) {
                                     var text = data;
                                     if (typeof text === 'string') {
-                                        if (column === 6) {
+                                        if (column === 6 || column === 7 || column === 8) {
                                             text = text.replace(' ج.م', '');
                                         }
                                         var temp = document.createElement('div');
@@ -141,6 +141,8 @@
                     <th>المستشفى / القسم</th>
                     <th>نوع الحساب</th>
                     <th>المبلغ</th>
+                    <th>خصم / اشعار دائن</th>
+                    <th>ضرائب</th>
                     <th>تاريخ الاستحقاق</th>
                     <th>الجهة</th>
                     <th>المرفقات</th>
@@ -195,6 +197,8 @@
                                 style="background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-size: 12px;">{{ $order->account_type }}</span>
                         </td>
                         <td style="color: #10b981; font-weight: 600;">{{ number_format($order->amount, 2) }} ج.م</td>
+                        <td style="color: #f59e0b; font-weight: 600;">{{ $order->deduction ? number_format($order->deduction, 2) . ' ج.م' : '-' }}</td>
+                        <td style="color: #ef4444; font-weight: 600;">{{ $order->taxes ? number_format($order->taxes, 2) . ' ج.م' : '-' }}</td>
                         <td>{{ $order->due_date->format('Y-m-d') }}</td>
                         <td>{{ $order->payerEntity->name ?? '-' }}</td>
                         <td style="text-align: center;">

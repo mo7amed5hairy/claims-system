@@ -18,7 +18,7 @@ class DiscountedInvoiceController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $discountedInvoices = DiscountedInvoice::with(['claim', 'user'])
+        $discountedInvoices = DiscountedInvoice::with(['claim', 'user', 'paymentOrder'])
             ->orderBy('id', 'desc')
             ->get();
 

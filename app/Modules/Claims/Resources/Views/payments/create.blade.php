@@ -313,6 +313,18 @@
                     </div>
 
                     <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-minus-circle"></i> خصم / اشعار دائن</label>
+                        <input type="number" step="0.01" name="deduction" class="form-control" value="{{ old('deduction') }}" min="0">
+                        @error('deduction') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-percent"></i> ضرائب</label>
+                        <input type="number" step="0.01" name="taxes" class="form-control" value="{{ old('taxes') }}" min="0">
+                        @error('taxes') <span class="error-message">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-calendar-check"></i> تاريخ الاستحقاق</label>
                         <input type="date" name="due_date" class="form-control" value="{{ old('due_date') }}" required>
                         @error('due_date') <span class="error-message">{{ $message }}</span> @enderror

@@ -36,6 +36,8 @@
                     <th>عدد الفواتير المخصمة</th>
                     <th>المبلغ الأصلي</th>
                     <th>المبلغ بعد الخصم</th>
+                    <th>خصم / اشعار دائن</th>
+                    <th>ضرائب</th>
                     <th>المبلغ الغير مسدد</th>
                     <th>تاريخ الإنشاء</th>
                 </tr>
@@ -49,12 +51,14 @@
                         <td style="color: #dc2626;">{{ $invoice->discounted_invoice_count }}</td>
                         <td>{{ number_format($invoice->original_amount, 2) }} ج.م</td>
                         <td>{{ number_format($invoice->discounted_amount, 2) }} ج.م</td>
+                        <td style="color: #f59e0b; font-weight: 600;">{{ $invoice->paymentOrder?->deduction ? number_format($invoice->paymentOrder->deduction, 2) . ' ج.م' : '-' }}</td>
+                        <td style="color: #ef4444; font-weight: 600;">{{ $invoice->paymentOrder?->taxes ? number_format($invoice->paymentOrder->taxes, 2) . ' ج.م' : '-' }}</td>
                         <td style="color: #dc2626; font-weight: bold;">{{ number_format($invoice->unpaid_amount, 2) }} ج.م</td>
                         <td>{{ $invoice->created_at->format('Y-m-d') }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" style="text-align: center; color: #64748b; padding: 20px;">
+                        <td colspan="10" style="text-align: center; color: #64748b; padding: 20px;">
                             <i class="fa-solid fa-inbox" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
                             لا توجد فواتير مخصمة
                         </td>
@@ -88,7 +92,22 @@
                     style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
                 },
                 exportOptions: {
-                    columns: ':visible'
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    format: {
+                        body: function(data, row, column, node) {
+                            var text = data;
+                            if (typeof text === 'string') {
+                                if (column === 4 || column === 5 || column === 6 || column === 7 || column === 8) {
+                                    text = text.replace(' ج.م', '');
+                                }
+                                var temp = document.createElement('div');
+                                temp.innerHTML = text;
+                                text = temp.textContent || temp.innerText || '';
+                                return text.trim();
+                            }
+                            return data;
+                        }
+                    }
                 },
                 customize: function (xlsx) {
                     var sheet = xlsx.xl.worksheets['sheet1.xml'];

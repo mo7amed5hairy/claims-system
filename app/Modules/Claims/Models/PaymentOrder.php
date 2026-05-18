@@ -14,6 +14,8 @@ class PaymentOrder extends Model
         'account_type',
         'gp_number',
         'amount',
+        'deduction',
+        'taxes',
         'invoice_count_after_review',
         'amount_after_review',
         'due_date',
@@ -33,6 +35,8 @@ class PaymentOrder extends Model
     protected $casts = [
         'due_date' => 'date',
         'amount' => 'decimal:2',
+        'deduction' => 'decimal:2',
+        'taxes' => 'decimal:2',
         'amount_after_review' => 'decimal:2',
         'attachments' => 'array',
     ];

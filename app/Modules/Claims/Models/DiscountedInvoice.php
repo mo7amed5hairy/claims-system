@@ -39,4 +39,16 @@ class DiscountedInvoice extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function paymentOrder()
+    {
+        return $this->hasOneThrough(
+            PaymentOrder::class,
+            Claim::class,
+            'id',
+            'claim_number',
+            'claim_id',
+            'claim_number'
+        );
+    }
 }
