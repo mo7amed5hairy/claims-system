@@ -5,7 +5,7 @@ return [
     'login' => 'تسجيل الدخول',
     'register' => 'التسجيل',
     'logout' => 'تسجيل الخروج',
-    'dashboard' => 'لوحة التحكم',
+    'dashboard' => 'الصفحة الرئيسية',
     'username' => 'اسم المستخدم',
     'password' => 'كلمة المرور',
     'email' => 'البريد الإلكتروني',
@@ -16,7 +16,7 @@ return [
     'role' => 'الدور',
     'admin' => 'مسؤول',
     'user' => 'مستخدم',
-    
+
     // Success Messages
     'claim_created_successfully' => 'تم إنشاء المطالبة بنجاح',
     'claim_updated_successfully' => 'تم تحديث المطالبة بنجاح',
@@ -32,7 +32,7 @@ return [
     'entity_deleted_successfully' => 'تم حذف الجهة بنجاح',
     'hospital_created_successfully' => 'تم إنشاء المستشفى بنجاح',
     'department_created_successfully' => 'تم إنشاء القسم بنجاح',
-    
+
     // Error Messages
     'select_hospital_first' => 'الرجاء اختيار المستشفى والقسم أولاً',
 ];

@@ -12,6 +12,19 @@ class DiscountedInvoice extends Model
 
     protected $table = 'discounted_invoices';
 
+    protected static function booted()
+    {
+        static::addGlobalScope('regular', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            $builder->where('discounted_invoices.is_prepaid', 0);
+        });
+
+        static::creating(function ($model) {
+            if ($model->is_prepaid === null) {
+                $model->is_prepaid = 0;
+            }
+        });
+    }
+
     protected $fillable = [
         'claim_id',
         'claim_number',
@@ -22,6 +35,7 @@ class DiscountedInvoice extends Model
         'unpaid_amount',
         'notes',
         'user_id',
+        'is_prepaid',
     ];
 
     protected $casts = [

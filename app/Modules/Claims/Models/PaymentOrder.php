@@ -9,6 +9,19 @@ class PaymentOrder extends Model
 {
     protected $table = 'payment_orders';
 
+    protected static function booted()
+    {
+        static::addGlobalScope('regular', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            $builder->where('payment_orders.is_prepaid', 0);
+        });
+
+        static::creating(function ($model) {
+            if ($model->is_prepaid === null) {
+                $model->is_prepaid = 0;
+            }
+        });
+    }
+
     protected $fillable = [
         'claim_number',
         'account_type',
@@ -29,7 +42,8 @@ class PaymentOrder extends Model
         'branch',
         'location',
         'beneficiary',
-        'user_id'
+        'user_id',
+        'is_prepaid'
     ];
 
     protected $casts = [
@@ -59,5 +73,12 @@ class PaymentOrder extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
+
+    public function claim(): BelongsTo
+    {
+        // Many payment orders link to the claim via claim_number
+        // (Note: some old flows might use electronic_invoice_no instead, but claim_number is standard)
+        return $this->belongsTo(Claim::class, 'claim_number', 'claim_number');
     }
 }

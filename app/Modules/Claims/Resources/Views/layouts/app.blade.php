@@ -81,6 +81,10 @@
             margin-top: 1px;
         }
 
+        .content-wrapper {
+            padding: 0 !important;
+        }
+
         .dropdown-content a,
         .dropdown-content button.dropdown-item {
             color: black;
@@ -114,22 +118,199 @@
         .navbar-user-dropdown:hover .dropdown-content {
             display: block;
         }
+
+        /* Navbar Header Links Styles */
+        .nav-item-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .nav-item-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-item-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-item-dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Mobile Responsive Navbar styles */
+        .navbar-toggler {
+            display: none;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            font-size: 18px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 15px;
+            /* Spacer from brand */
+        }
+
+        .navbar-toggler:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 1024px) {
+            .navbar {
+                flex-wrap: wrap;
+                position: relative;
+            }
+
+            .navbar-toggler {
+                display: block;
+                /* Show burger icon */
+            }
+
+            .nav-links-container {
+                display: none !important;
+                flex-direction: column;
+                align-items: flex-start !important;
+                width: 100%;
+                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+                position: absolute;
+                top: 100%;
+                right: 0;
+                padding: 10px 0;
+                z-index: 1000;
+                gap: 5px !important;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links-container.show-mobile {
+                display: flex !important;
+            }
+
+            .nav-item-dropdown {
+                width: 100%;
+            }
+
+            .nav-item-btn {
+                width: 100%;
+                justify-content: flex-start;
+                padding: 12px 20px;
+                border-radius: 0;
+            }
+
+            .dropdown-content {
+                position: static;
+                box-shadow: none;
+                background-color: rgba(0, 0, 0, 0.2);
+                border-radius: 0;
+            }
+
+            .dropdown-content a {
+                color: #fff;
+                padding-right: 40px;
+            }
+
+            .dropdown-content a:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: #fff;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="app-container">
         @if (auth()->check())
-            <nav class="navbar">
-                <a href="{{ route('dashboard') }}" style="color: #fff !important;" class="navbar-brand">
-                    {{-- <i class="fa-solid fa-chart-line"></i> --}}
-                    <i class="fa-solid fa-file-circle-check"></i>
-                    <span>
-                        نظام إدارة المطالبات المالية
-                        <br>
-                        Claims Management System
-                    </span>
-                </a>
+            <nav class="navbar" style="position: relative;">
+                <div style="display: flex; align-items: center;">
+                    <a href="{{ route('dashboard') }}" style="color: #fff !important;" class="navbar-brand">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                        <span>
+                            نظام إدارة المطالبات المالية
+                            <br>
+                            Claims Management System
+                        </span>
+                    </a>
+                    <button class="navbar-toggler" id="mobileNavToggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+
+                <div class="nav-links-container"
+                    style="flex-grow: 1; display: flex; justify-content: center; gap: 15px; margin-right: 30px; align-items: center; flex-wrap: wrap;">
+                    @if(Auth::user()->canAccessNonPayments())
+                        <a href="{{ route('hospitals.index') }}" class="nav-item-btn" style="text-decoration: none;">
+                            <i class="fa-solid fa-hospital"></i> المستشفيات والأقسام
+                        </a>
+                        <a href="{{ route('entities.index') }}" class="nav-item-btn" style="text-decoration: none;">
+                            <i class="fa-solid fa-file-contract"></i> جهات التعاقد
+                        </a>
+                        <div class="nav-item-dropdown">
+                            <button class="nav-item-btn">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> المطالبات <i class="fa-solid fa-chevron-down"
+                                    style="font-size: 10px; margin-right: 4px;"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="{{ route('claims.index') }}"><i class="fa-solid fa-file-invoice-dollar"></i> المطالبات
+                                    العادية</a>
+                                <a href="{{ route('prepaid-claims.index') }}"><i class="fa-solid fa-file-invoice-dollar"></i>
+                                    مطالبات مسبقة الدفع</a>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if(Auth::user()->canAccessPayments())
+                        <div class="nav-item-dropdown">
+                            <button class="nav-item-btn">
+                                <i class="fa-solid fa-money-check-dollar"></i> أوامر الدفع <i class="fa-solid fa-chevron-down"
+                                    style="font-size: 10px; margin-right: 4px;"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="{{ route('payments.index') }}"><i class="fa-solid fa-money-check-dollar"></i> أوامر
+                                    الدفع العادية</a>
+                                <a href="{{ route('prepaid-payments.index') }}"><i class="fa-solid fa-money-check-dollar"></i>
+                                    أوامر دفع مسبقة الدفع</a>
+                            </div>
+                        </div>
+
+                        <div class="nav-item-dropdown">
+                            <button class="nav-item-btn">
+                                <i class="fa-solid fa-receipt"></i> الفواتير المخصمة <i class="fa-solid fa-chevron-down"
+                                    style="font-size: 10px; margin-right: 4px;"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="{{ route('discounted-invoices.index') }}"><i class="fa-solid fa-receipt"></i> الفواتير
+                                    المخصمة العادية</a>
+                                <a href="{{ route('prepaid-discounted-invoices.index') }}"><i class="fa-solid fa-receipt"></i>
+                                    الفواتير المخصمة مسبقاً</a>
+                            </div>
+                        </div>
+
+                        <div class="nav-item-dropdown">
+                            <button class="nav-item-btn">
+                                <i class="fa-solid fa-chart-pie"></i> التقارير <i class="fa-solid fa-chevron-down"
+                                    style="font-size: 10px; margin-right: 4px;"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="{{ route('reports.index') }}"><i class="fa-solid fa-chart-pie"></i> التقارير
+                                    العادية</a>
+                                <a href="{{ route('prepaid-reports.index') }}"><i class="fa-solid fa-chart-pie"></i> تقارير
+                                    مسبقة الدفع</a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
                 <div class="navbar-menu">
                     <div class="navbar-user-dropdown">
                         <button class="navbar-user-btn">
@@ -153,27 +334,6 @@
                             @if(Auth::user()->role === 'admin')
                                 <a href="{{ route('users.index') }}">
                                     <i class="fa-solid fa-users-cog"></i> إدارة المستخدمين
-                                </a>
-                            @endif
-                            <div class="dropdown-divider"></div>
-
-                            @if(Auth::user()->canAccessNonPayments())
-                                <a href="{{ route('hospitals.index') }}">
-                                    <i class="fa-solid fa-hospital"></i> المستشفيات و الأقسام
-                                </a>
-                                <a href="{{ route('entities.index') }}">
-                                    <i class="fa-solid fa-file-contract"></i> جهات التعاقد
-                                </a>
-                                <a href="{{ route('claims.index') }}">
-                                    <i class="fa-solid fa-file-invoice-dollar"></i> المطالبات
-                                </a>
-                            @endif
-                            @if(Auth::user()->canAccessPayments())
-                                <a href="{{ route('payments.index') }}">
-                                    <i class="fa-solid fa-money-check-dollar"></i> أوامر الدفع
-                                </a>
-                                <a href="{{ route('discounted-invoices.index') }}">
-                                    <i class="fa-solid fa-file-invoice-dollar"></i> الفواتير المخصمة
                                 </a>
                             @endif
                             <div class="dropdown-divider"></div>
@@ -224,6 +384,21 @@
             // Global Select2 Fix: Auto-close on selection
             $(document).on('select2:select', '.select2', function (e) {
                 $(this).select2('close');
+            });
+
+            // Mobile Navbar Toggle Script
+            $('#mobileNavToggle').on('click', function (e) {
+                e.preventDefault();
+                $('.nav-links-container').toggleClass('show-mobile');
+            });
+
+            // Toggle dropdowns on click in mobile view
+            $('.nav-item-btn').on('click', function (e) {
+                if ($(window).width() <= 1024 && $(this).parent().hasClass('nav-item-dropdown')) {
+                    var $content = $(this).siblings('.dropdown-content');
+                    $('.dropdown-content').not($content).slideUp(200); // close others
+                    $content.slideToggle(200);
+                }
             });
         });
     </script>

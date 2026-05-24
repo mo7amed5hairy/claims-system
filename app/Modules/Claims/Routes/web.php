@@ -7,6 +7,11 @@ use App\Modules\Claims\Http\Controllers\ClaimEntityController;
 use App\Modules\Claims\Http\Controllers\HospitalController;
 use App\Modules\Claims\Http\Controllers\PaymentOrderController;
 use App\Modules\Claims\Http\Controllers\DiscountedInvoiceController;
+use App\Modules\Claims\Http\Controllers\PrepaidClaimController;
+use App\Modules\Claims\Http\Controllers\PrepaidPaymentOrderController;
+use App\Modules\Claims\Http\Controllers\PrepaidDiscountedInvoiceController;
+use App\Modules\Claims\Http\Controllers\ReportController;
+use App\Modules\Claims\Http\Controllers\PrepaidReportController;
 
 /**
  * =====================================================
@@ -38,8 +43,9 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     // =====================================================
     // Step 4: Operations Panel (Claims, Returns, Payments)
     // =====================================================
+    Route::get('flow/payment-type', [FlowController::class, 'showPaymentType'])->name('flow.payment-type');
     Route::get('flow/operations', [FlowController::class, 'showOperations'])->name('flow.operations');
-
+    Route::get('flow/prepaid_operations', [FlowController::class, 'showPrepaidOperations'])->name('flow.prepaid_operations');
     // =====================================================
     // Waiting Lists Flow Routes
     // =====================================================
@@ -76,6 +82,37 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     });
 
     // =====================================================
+    // Prepaid Claims Management
+    // =====================================================
+    Route::prefix('prepaid-claims')->name('prepaid-claims.')->group(function () {
+        Route::get('/', [PrepaidClaimController::class, 'index'])->name('index');
+        Route::get('create', [PrepaidClaimController::class, 'create'])->name('create');
+        Route::post('/', [PrepaidClaimController::class, 'store'])->name('store');
+        Route::get('{claim}/edit', [PrepaidClaimController::class, 'edit'])->name('edit');
+        Route::put('{claim}', [PrepaidClaimController::class, 'update'])->name('update');
+        Route::delete('{claim}', [PrepaidClaimController::class, 'destroy'])->name('destroy');
+    });
+
+    // =====================================================
+    // Prepaid Payment Orders Management
+    // =====================================================
+    Route::prefix('prepaid-payments')->name('prepaid-payments.')->group(function () {
+        Route::get('/', [PrepaidPaymentOrderController::class, 'index'])->name('index');
+        Route::get('create', [PrepaidPaymentOrderController::class, 'create'])->name('create');
+        Route::post('/', [PrepaidPaymentOrderController::class, 'store'])->name('store');
+        Route::get('search-claims', [PrepaidPaymentOrderController::class, 'searchClaims'])->name('search-claims');
+        Route::get('search-by-electronic-invoice', [PrepaidPaymentOrderController::class, 'searchByElectronicInvoice'])->name('search-by-electronic-invoice');
+        Route::get('{payment}/edit', [PrepaidPaymentOrderController::class, 'edit'])->name('edit');
+        Route::put('{payment}', [PrepaidPaymentOrderController::class, 'update'])->name('update');
+        Route::delete('{payment}', [PrepaidPaymentOrderController::class, 'destroy'])->name('destroy');
+    });
+
+    // =====================================================
+    // Prepaid Discounted Invoices Management
+    // =====================================================
+    Route::get('prepaid-discounted-invoices', [PrepaidDiscountedInvoiceController::class, 'index'])->name('prepaid-discounted-invoices.index');
+
+    // =====================================================
     // Entities Management (Insurance/Ministries/etc)
     // =====================================================
     Route::prefix('entities')->name('entities.')->group(function () {
@@ -100,6 +137,12 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     // Discounted Invoices Management (الفواتير المخصمة) - Read Only
     // =====================================================
     Route::get('discounted-invoices', [DiscountedInvoiceController::class, 'index'])->name('discounted-invoices.index');
+
+    // =====================================================
+    // Reports Management
+    // =====================================================
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('prepaid-reports', [PrepaidReportController::class, 'index'])->name('prepaid-reports.index');
 
     // =====================================================
     // User Management (Admin Only)

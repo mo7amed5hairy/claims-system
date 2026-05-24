@@ -25,7 +25,7 @@ class FlowController extends Controller
             Log::info('Current user: ' . Auth::user()->username);
         }
         Log::info('Session ID: ' . session()->getId());
-        
+
         return view('claims::flow.select-type');
     }
 
@@ -75,7 +75,7 @@ class FlowController extends Controller
         }
 
         return view('claims::flow.select-options', [
-            'type' => $type, 
+            'type' => $type,
             'entities' => $entities,
             'selectedEntityId' => $selectedEntityId
         ]);
@@ -84,10 +84,10 @@ class FlowController extends Controller
     public function storeOptions(Request $request)
     {
         $data = $request->except(['_token']);
-        
+
         // Also store the entity type for reference in create forms
         $data['entity_type'] = session('flow_entity_type');
-        
+
         session(['flow_options' => $data]);
 
         return redirect()->route('flow.hospital');
@@ -111,7 +111,7 @@ class FlowController extends Controller
             'flow_department_id' => $request->department_id
         ]);
 
-        return redirect()->route('flow.operations');
+        return redirect()->route('flow.payment-type');
     }
 
     public function showOperations()
@@ -125,6 +125,29 @@ class FlowController extends Controller
         $department = Department::find(session('flow_department_id'));
 
         return view('claims::flow.operations', compact('hospital', 'department'));
+    }
+
+    public function showPaymentType()
+    {
+        // Ensure flow is complete
+        if (!session('flow_hospital_id') || !session('flow_department_id')) {
+            return redirect()->route('dashboard');
+        }
+
+        return view('claims::flow.payment-type');
+    }
+
+    public function showPrepaidOperations()
+    {
+        // Ensure flow is complete
+        if (!session('flow_hospital_id') || !session('flow_department_id')) {
+            return redirect()->route('dashboard');
+        }
+
+        $hospital = Hospital::find(session('flow_hospital_id'));
+        $department = Department::find(session('flow_department_id'));
+
+        return view('claims::flow.prepaid_operations', compact('hospital', 'department'));
     }
 
     /**
@@ -165,7 +188,7 @@ class FlowController extends Controller
             'flow_law' => $request->law,
         ]);
 
-        return redirect()->route('flow.operations');
+        return redirect()->route('flow.payment-type');
     }
 
     /**
@@ -192,6 +215,6 @@ class FlowController extends Controller
             'flow_department_id' => $request->department,
         ]);
 
-        return redirect()->route('flow.operations');
+        return redirect()->route('flow.payment-type');
     }
 }

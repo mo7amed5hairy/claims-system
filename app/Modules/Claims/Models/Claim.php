@@ -11,6 +11,19 @@ class Claim extends Model
     use HasMediaUpload;
     protected $table = 'claims';
 
+    protected static function booted()
+    {
+        static::addGlobalScope('regular', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            $builder->where('claims.is_prepaid', 0);
+        });
+
+        static::creating(function ($model) {
+            if ($model->is_prepaid === null) {
+                $model->is_prepaid = 0;
+            }
+        });
+    }
+
     protected $fillable = [
         'claim_number', // New required field
         'invoice_count',
@@ -36,6 +49,7 @@ class Claim extends Model
         'delivery_attachments',
         'claim_description',
         'electronic_invoice_date',
+        'is_prepaid',
     ];
 
     protected $casts = [

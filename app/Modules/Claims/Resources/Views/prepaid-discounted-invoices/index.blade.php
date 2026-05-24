@@ -15,7 +15,7 @@
             <i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary-color);"></i> الفواتير المخصمة
         </h1>
         <span style="font-size: 12px; color: #64748b;">
-            <i class="fa-solid fa-info-circle"></i> يتم إنشاؤها تلقائياً عند إضافة أوامر الدفع
+            <i class="fa-solid fa-info-circle"></i> يتم إنشاؤها تلقائياً عند إضافة أوامر الدفع المسبق
         </span>
     </div>
 
