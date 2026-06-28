@@ -130,7 +130,7 @@
             border: none;
             color: #fff;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             padding: 8px 12px;
@@ -247,7 +247,7 @@
                 </div>
 
                 <div class="nav-links-container"
-                    style="flex-grow: 1; display: flex; justify-content: center; gap: 15px; margin-right: 30px; align-items: center; flex-wrap: wrap;">
+                    style="flex-grow: 1; display: flex; justify-content: center; gap: 1px; margin-right: 20px; align-items: center; flex-wrap: wrap;">
                     @if(Auth::user()->canAccessNonPayments())
                         <a href="{{ route('hospitals.index') }}" class="nav-item-btn" style="text-decoration: none;">
                             <i class="fa-solid fa-hospital"></i> المستشفيات والأقسام
@@ -280,6 +280,18 @@
                                     الدفع العادية</a>
                                 <a href="{{ route('prepaid-payments.index') }}"><i class="fa-solid fa-money-check-dollar"></i>
                                     أوامر دفع مسبقة الدفع</a>
+                            </div>
+                        </div>
+
+                        <div class="nav-item-dropdown">
+                            <button class="nav-item-btn">
+                                <i class="fa-solid fa-hand-holding-dollar"></i> الاستلامات المالية <i
+                                    class="fa-solid fa-chevron-down" style="font-size: 10px; margin-right: 4px;"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="{{ route('financial-receipts.index') }}"><i
+                                        class="fa-solid fa-hand-holding-dollar"></i>
+                                    سجل الاستلامات المالية</a>
                             </div>
                         </div>
 
