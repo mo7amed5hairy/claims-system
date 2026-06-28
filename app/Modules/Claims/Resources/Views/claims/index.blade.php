@@ -17,8 +17,16 @@
     </style>
 
     <script>
+        function normalizeArabic(text) {
+            if (typeof text !== 'string') return text;
+            return text
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ى/g, 'ي')
+                .replace(/ة/g, 'ه');
+        }
+
         $(document).ready(function () {
-            $('#claimsTable').DataTable({
+            var dt = $('#claimsTable').DataTable({
                 dom: 'Bfrtip',
                 buttons: [{
                     extend: 'excelHtml5',
@@ -28,7 +36,21 @@
                         style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
                     },
                     exportOptions: {
-                        columns: ':visible'
+                        columns: ':visible',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (typeof data === 'string') {
+                                    return data.replace(/\s*ج\.م\s*/g, '').trim();
+                                }
+                                return data;
+                            },
+                            footer: function (data, column, node) {
+                                if (typeof data === 'string') {
+                                    return data.replace(/\s*ج\.م\s*/g, '').trim();
+                                }
+                                return data;
+                            }
+                        }
                     },
                     customize: function (xlsx) {
                         var sheet = xlsx.xl.worksheets['sheet1.xml'];
@@ -65,10 +87,53 @@
                         }
                     }
                 ],
-                "info": true
+                "info": true,
+                drawCallback: function () {
+                    var api = this.api();
+                    var totVal = 0, totRev = 0, totDiff = 0;
+                    api.rows({ search: 'applied' }).every(function () {
+                        var $r = $(this.node());
+                        totVal += parseFloat($r.find('.claim-val-cell').data('val')) || 0;
+                        totRev += parseFloat($r.find('.claim-rev-cell').data('val')) || 0;
+                        totDiff += parseFloat($r.find('.claim-diff-cell').data('val')) || 0;
+                    });
+                    var fmt = function (v) { return v.toLocaleString('en-US', { minimumFractionDigits: 2 }); };
+                    $('#claims_foot_val').text(fmt(totVal) + ' ج.م');
+                    $('#claims_foot_rev_val').text(fmt(totRev) + ' ج.م');
+                    $('#claims_foot_diff').text(fmt(totDiff) + ' ج.م');
+                }
+            });
+
+            // Arabic normalization global search integration
+            var globalSearchQuery = '';
+            $('.dataTables_filter input').off().on('input keyup', function () {
+                globalSearchQuery = $(this).val();
+                dt.draw();
+            });
+
+            $.fn.dataTable.ext.search.push(function (settings, searchData, index, rowData, counter) {
+                // If it is the claims Table page
+                if (settings.sTableId !== 'claimsTable') return true;
+
+                if (globalSearchQuery) {
+                    var terms = normalizeArabic(globalSearchQuery).toLowerCase().split(/\s+/);
+                    terms = $.grep(terms, function(t) { return t.trim() !== ''; });
+                    
+                    var rowText = searchData.map(function(val) {
+                        return normalizeArabic(val.replace(/<[^>]*>/g, '')).toLowerCase();
+                    }).join(' ');
+
+                    for (var i = 0; i < terms.length; i++) {
+                        if (rowText.indexOf(terms[i]) === -1) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
             });
         });
     </script>
+
 @endsection
 
 @section('content')
@@ -100,6 +165,7 @@
                     <th>المراجع</th>
                     <th>الفرق</th>
                     <th>المرفقات</th>
+                    <th>تغيير النوع</th>
                     <th style="text-align: center;">الإجراءات</th>
                 </tr>
             </thead>
@@ -194,12 +260,12 @@
                                 </div>
                             @endif
                         </td>
-                        <td style="color: #0f172a; font-weight: 600;">{{ number_format($claim->claim_value, 2) }} ج.م</td>
-                        <td style="color: #10b981;">
+                        <td style="color: #0f172a; font-weight: 600;" class="claim-val-cell" data-val="{{ $claim->claim_value }}" data-search="{{ (int)$claim->claim_value }} {{ number_format($claim->claim_value, 2) }}">{{ number_format($claim->claim_value, 2) }} ج.م</td>
+                        <td style="color: #10b981;" class="claim-rev-cell" data-val="{{ $claim->reviewed_value ?? 0 }}" data-search="{{ $claim->reviewed_value ? (int)$claim->reviewed_value . ' ' . number_format($claim->reviewed_value, 2) : '' }}">
                             {{ $claim->reviewed_value ? number_format($claim->reviewed_value, 2) . ' ج.م' : '-' }}
                         </td>
                         <td>{{ $claim->reviewer_name ?? '-' }}</td>
-                        <td class="{{ ($claim->difference < 0) ? 'text-danger' : 'text-success' }}" style="font-weight: 600;">
+                        <td class="{{ ($claim->difference < 0) ? 'text-danger' : 'text-success' }} claim-diff-cell" data-val="{{ $claim->difference ?? 0 }}" data-search="{{ $claim->difference ? (int)$claim->difference . ' ' . number_format($claim->difference, 2) : '' }}" style="font-weight: 600;">
                             {{ $claim->difference ? number_format($claim->difference, 2) . ' ج.م' : '-' }}
                         </td>
                         <td>
@@ -231,6 +297,17 @@
                                 @endif
                             </div>
                         </td>
+                        <td>
+                            @can('update', $claim)
+                            <form action="{{ route('claims.toggle-type', $claim->id) }}" method="POST" style="display: inline;"
+                                onsubmit="return confirm('هل أنت متأكد من تحويل هذه المطالبة إلى مطالبة مسبقة الدفع؟');">
+                                @csrf
+                                <button type="submit" class="btn-action" style="background: #ecfeff; color: #0891b2; cursor: pointer; border: none; padding: 4px 8px; border-radius: 4px; font-family: Cairo; font-size: 11px;" title="تحويل لمسبقة الدفع">
+                                    <i class="fa-solid fa-exchange-alt"></i> تحويل لمسبقة الدفع
+                                </button>
+                            </form>
+                            @endcan
+                        </td>
                         <td style="text-align: center;">
                             <div style="display: flex; gap: 8px; justify-content: center;">
                                 @can('update', $claim)
@@ -254,6 +331,16 @@
                     </tr>
                 @endforeach
             </tbody>
+            <tfoot>
+                <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #cbd5e1;">
+                    <th colspan="10" style="text-align: right; font-weight: 800; font-size: 13px; color: #1e293b;">الإجمالي</th>
+                    <th id="claims_foot_val" style="font-weight: 900; font-size: 13px; color: #0f172a; text-align: left;">0.00 ج.م</th>
+                    <th id="claims_foot_rev_val" style="font-weight: 900; font-size: 13px; color: #10b981; text-align: left;">0.00 ج.م</th>
+                    <th></th>
+                    <th id="claims_foot_diff" style="font-weight: 900; font-size: 13px; color: #1e293b; text-align: left;">0.00 ج.م</th>
+                    <th colspan="3"></th>
+                </tr>
+            </tfoot>
         </table>
     </div>
 @endsection

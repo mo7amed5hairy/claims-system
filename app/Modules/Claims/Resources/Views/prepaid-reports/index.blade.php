@@ -1,6 +1,9 @@
 @extends('claims::layouts.app')
 
-@section('title', 'تقارير المطالبات مسبقة الدفع')@section('content')<style>
+@section('title', 'تقارير المطالبات مسبقة الدفع')
+
+@section('content')
+    <style>
         * {
             box-sizing: border-box;
         }
@@ -602,51 +605,54 @@
                                     data-col="0"></i></div>
                         </th>
                         <th>
-                            <div class="th-inner">بيان <i class="fa-solid fa-filter th-filter-icon" data-col="1"></i></div>
+                            <div class="th-inner">جهة التعاقد <i class="fa-solid fa-filter th-filter-icon" data-col="1"></i>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-inner">بيان <i class="fa-solid fa-filter th-filter-icon" data-col="2"></i></div>
                         </th>
                         <th>
                             <div class="th-inner">رقم المطالبة <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="2"></i></div>
+                                    data-col="3"></i></div>
                         </th>
                         <th>
-                            <div class="th-inner">الشهر <i class="fa-solid fa-filter th-filter-icon" data-col="3"></i></div>
+                            <div class="th-inner">الشهر <i class="fa-solid fa-filter th-filter-icon" data-col="4"></i></div>
                         </th>
                         <th style="background:#dbeafe;">
-                            <div class="th-inner">عدد الحالات <i class="fa-solid fa-filter th-filter-icon" data-col="4"></i>
+                            <div class="th-inner">عدد الحالات <i class="fa-solid fa-filter th-filter-icon" data-col="5"></i>
                             </div>
                         </th>
                         <th style="background:#dbeafe;">
                             <div class="th-inner">مبلغ العملية <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="5"></i></div>
-                        </th>
-                        <th style="background:#fef08a;color:#713f12;">
-                            <div class="th-inner">عدد الحالات بعد المراجعة <i class="fa-solid fa-filter th-filter-icon"
                                     data-col="6"></i></div>
                         </th>
                         <th style="background:#fef08a;color:#713f12;">
-                            <div class="th-inner">المبلغ بعد المراجعة <i class="fa-solid fa-filter th-filter-icon"
+                            <div class="th-inner">عدد الحالات بعد المراجعة <i class="fa-solid fa-filter th-filter-icon"
                                     data-col="7"></i></div>
+                        </th>
+                        <th style="background:#fef08a;color:#713f12;">
+                            <div class="th-inner">المبلغ بعد المراجعة <i class="fa-solid fa-filter th-filter-icon"
+                                    data-col="8"></i></div>
                         </th>
                         <th style="background:#bfdbfe;">
                             <div class="th-inner">عدد الحالات المحصلة <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="8"></i>
-                            </div>
+                                    data-col="9"></i></div>
                         </th>
                         <th style="background:#bfdbfe;">
                             <div class="th-inner">ماتم تحصيله فى امر الدفع <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="9"></i></div>
+                                    data-col="10"></i></div>
                         </th>
                         <th style="background:#fed7aa;color:#7c2d12;">
-                            <div class="th-inner">الفرق <i class="fa-solid fa-filter th-filter-icon" data-col="10"></i>
+                            <div class="th-inner">الفرق <i class="fa-solid fa-filter th-filter-icon" data-col="11"></i>
                             </div>
                         </th>
                         <th style="background:#f1f5f9;">
                             <div class="th-inner">رقم امر الدفع <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="11"></i></div>
+                                    data-col="12"></i></div>
                         </th>
                         <th style="background:#f1f5f9;">
                             <div class="th-inner">تاريخ الاستحقاق <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="12"></i></div>
+                                    data-col="13"></i></div>
                         </th>
                     </tr>
                 </thead>
@@ -657,51 +663,65 @@
                             $rawRevAmt = $order->amount_after_review ?? 0;
                             $rawPayAmt = $order->amount ?? 0;
                             $rawDiff = $rawRevAmt - $rawPayAmt;
-
-                            $year = $order->due_date?->year ?? $order->created_at?->year ?? date('Y');
-                            $monthNum = $order->due_date?->month ?? $order->created_at?->month ?? 0;
-
-                            $monthsAr = [
-                                '',
-                                'يناير',
-                                'فبراير',
-                                'مارس',
-                                'أبريل',
-                                'مايو',
-                                'يونيو',
-                                'يوليو',
-                                'أغسطس',
-                                'سبتمبر',
-                                'أكتوبر',
-                                'نوفمبر',
-                                'ديسمبر'
-                            ];
-                            $mText = $monthsAr[$monthNum] ?? '-';
-                            $fullMonth = $mText . ' ' . $year;
+                            $year = $order->rendered_year;
+                            $fullMonth = $order->rendered_month;
+                            $hospName = $order->payeeHospital->name ?? '-';
+                            $deptName = $order->department->name ?? '-';
                         @endphp
-                        <tr data-year="{{ $year }}" data-month="{{ $fullMonth }}"
-                            data-hosp="{{ $order->payeeHospital->name ?? '-' }}">
-                            <td><span class="badge-hosp">{{ $order->payeeHospital->name ?? '-' }}</span></td>
-                            <td>{{ $order->department->name ?? '-' }}</td>
+                        <tr data-year="{{ $year }}" data-month="{{ $fullMonth }}" data-hosp="{{ $hospName }}"
+                            data-entity="{{ $order->entity->name ?? '-' }}" data-dept="{{ $deptName }}">
+                            <td><span class="badge-hosp">{{ $hospName }}</span></td>
+                            <td><span class="badge-entity"
+                                    style="background:#ecfeff; color:#0891b2; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:700;">{{ $order->entity->name ?? '-' }}</span>
+                            </td>
+                            <td>{{ $deptName }}</td>
                             <td style="font-family:monospace">{{ $order->claim_number ?? '-' }}</td>
                             <td>{{ $fullMonth }}</td>
                             <td class="val-cases">{{ $order->claim->invoice_count ?? 0 }}</td>
-                            <td class="td-money val-amt" data-val="{{ $rawAmt }}">{{ number_format($rawAmt, 2) }}</td>
-                            <td class="val-rev-cases">{{ $order->invoice_count_after_review ?? 0 }}</td>
-                            <td class="td-money val-rev-amt" data-val="{{ $rawRevAmt }}">{{ number_format($rawRevAmt, 2) }}</td>
-                            <td class="val-coll-cases">{{ $order->invoice_count_after_review ?? 0 }}</td>
-                            <td class="td-money val-pay-amt money-green" data-val="{{ $rawPayAmt }}">
+                            <td class="td-money val-amt" data-val="{{ $rawAmt }}"
+                                data-search="{{ (int) $rawAmt }} {{ number_format($rawAmt, 2) }}">
+                                {{ number_format($rawAmt, 2) }}
+                            </td>
+                            <td class="val-rev-cases">{{ $order->invoice_count_after_review }}</td>
+                            <td class="td-money val-rev-amt" data-val="{{ $rawRevAmt }}"
+                                data-search="{{ (int) $rawRevAmt }} {{ number_format($rawRevAmt, 2) }}">
+                                {{ number_format($rawRevAmt, 2) }}
+                            </td>
+                            <td class="val-coll-cases">{{ $order->is_payment ? $order->invoice_count_after_review : 0 }}</td>
+                            <td class="td-money val-pay-amt money-green" data-val="{{ $rawPayAmt }}"
+                                data-search="{{ (int) $rawPayAmt }} {{ number_format($rawPayAmt, 2) }}">
                                 {{ number_format($rawPayAmt, 2) }}
                             </td>
                             <td class="td-money val-diff {{ $rawDiff > 0 ? 'text-negative' : ($rawDiff < 0 ? 'text-positive' : '') }}"
-                                data-val="{{ $rawDiff }}">{{ number_format($rawDiff, 2) }}</td>
-                            <td style="font-family:monospace">
-                                {{ $order->electronic_invoice_no ?? $order->gp_number ?? $order->invoice_no ?? '-' }}
+                                data-val="{{ $rawDiff }}" data-search="{{ (int) $rawDiff }} {{ number_format($rawDiff, 2) }}">
+                                {{ number_format($rawDiff, 2) }}
                             </td>
-                            <td>{{ $order->due_date?->format('Y-m-d') ?? '-' }}</td>
+                            <td style="font-family:monospace">{{ $order->electronic_invoice_no ?? '-' }}</td>
+                            <td>{{ $order->due_date ? (\Carbon\Carbon::parse($order->due_date)->format('Y-m-d')) : '-' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
+                <tfoot>
+                    <tr style="background:#f8fafc; font-weight:bold; border-top:2px solid #cbd5e1;">
+                        <th colspan="5" style="text-align: right; font-weight: 800; font-size: 13px; color: #1e293b;">
+                            الإجمالي</th>
+                        <th id="foot_cases" style="font-weight: 900; font-size: 13px; text-align: center; color: #0f172a;">0
+                        </th>
+                        <th id="foot_amt" style="font-weight: 900; font-size: 13px; text-align: left; color: #0f172a;">0.00
+                        </th>
+                        <th id="foot_rev_cases"
+                            style="font-weight: 900; font-size: 13px; text-align: center; color: #713f12;">0</th>
+                        <th id="foot_rev_amt" style="font-weight: 900; font-size: 13px; text-align: left; color: #713f12;">
+                            0.00</th>
+                        <th id="foot_coll_cases"
+                            style="font-weight: 900; font-size: 13px; text-align: center; color: #1e40af;">0</th>
+                        <th id="foot_pay_amt" style="font-weight: 900; font-size: 13px; text-align: left; color: #166534;">
+                            0.00</th>
+                        <th id="foot_diff" style="font-weight: 900; font-size: 13px; text-align: left; color: #9a3412;">0.00
+                        </th>
+                        <th colspan="2"></th>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 
@@ -710,37 +730,82 @@
 
 @section('scripts')
     <script>
+        function normalizeArabic(text) {
+            if (typeof text !== 'string') return text;
+            return text
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ى/g, 'ي')
+                .replace(/ة/g, 'ه');
+        }
+
         $(function () {
 
-            /* ══ Raw data من PHP ══ */
             var allRows = [
                 @foreach($paymentOrders as $order)
-                    @php
-                        $y = $order->due_date?->year ?? $order->created_at?->year ?? date('Y');
-                        $mn = $order->due_date?->month ?? $order->created_at?->month ?? 0;
-                        $ar = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-                        $fm = ($ar[$mn] ?? '-') . ' ' . $y;
-                    @endphp
-                    { year: "{{ $y }}", month: "{{ $fm }}", hosp: "{{ addslashes($order->payeeHospital->name ?? '-') }}" },
+                    { year: "{{ $order->rendered_year }}", month: "{{ $order->rendered_month }}", hosp: "{{ addslashes($order->payeeHospital->name ?? '-') }}", entity: "{{ addslashes($order->entity->name ?? '-') }}" },
                 @endforeach
-                                        ];
+                        ];
 
             var allHospitals = @json($allHospitals);
             var monthNames = @json($allMonths);
+            var othersDepartments = @json($othersDepartments);
+            var dbEntities = @json($allEntities);
 
             var allYears = [];
             $.each(allRows, function (_, r) { if (allYears.indexOf(r.year) === -1) allYears.push(r.year); });
             allYears.sort();
 
-            /* ══ DataTable ══ */
             var dt = $('#reportsTable').DataTable({
                 dom: 'Blfrtip',
                 buttons: [{
                     extend: 'excelHtml5',
                     title: 'تقرير المطالبات مسبقة الدفع - ' + new Date().toLocaleDateString('ar-EG'),
+                    exportOptions: {
+                        columns: ':visible',
+                        format: {
+                            body: function (data) { if (typeof data === 'string') return data.replace(/<[^>]*>/g, '').replace(/\s*ج\.م\s*/g, '').trim(); return data; }
+                        }
+                    },
                     customize: function (xlsx) {
                         var sheet = xlsx.xl.worksheets['sheet1.xml'];
                         $(sheet).find('sheetViews sheetView').attr('rightToLeft', '1');
+
+                        var sheetData = sheet.getElementsByTagName('sheetData')[0];
+                        if (!sheetData) return;
+                        var rows = sheet.getElementsByTagName('row');
+                        var rNum = rows.length + 1;
+
+                        function addCell(row, ref, val) {
+                            var cell = sheet.createElement('c');
+                            cell.setAttribute('r', ref);
+                            if (val !== undefined) {
+                                cell.setAttribute('t', 'inlineStr');
+                                var is = sheet.createElement('is');
+                                var t = sheet.createElement('t');
+                                t.appendChild(sheet.createTextNode(String(val)));
+                                is.appendChild(t);
+                                cell.appendChild(is);
+                            }
+                            row.appendChild(cell);
+                        }
+
+                        var newRow = sheet.createElement('row');
+                        newRow.setAttribute('r', rNum);
+                        addCell(newRow, 'A' + rNum);
+                        addCell(newRow, 'B' + rNum);
+                        addCell(newRow, 'C' + rNum);
+                        addCell(newRow, 'D' + rNum);
+                        addCell(newRow, 'E' + rNum, 'الإجمالي');
+
+                        var footIds = ['foot_cases','foot_amt','foot_rev_cases','foot_rev_amt','foot_coll_cases','foot_pay_amt','foot_diff'];
+                        var colRefs = ['F','G','H','I','J','K','L'];
+                        for (var i = 0; i < footIds.length; i++) {
+                            var el = document.getElementById(footIds[i]);
+                            addCell(newRow, colRefs[i] + rNum, el ? el.textContent : '0');
+                        }
+                        addCell(newRow, 'M' + rNum);
+                        addCell(newRow, 'N' + rNum);
+                        sheetData.appendChild(newRow);
                     }
                 }],
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/ar.json' },
@@ -750,114 +815,69 @@
             });
             $('.dt-buttons').hide();
 
-            /* ══════════════════════════════════════════
-               فلاتر رؤوس الجدول (Column Filters)
-            ══════════════════════════════════════════ */
+            /* Column Filters */
             var colFilterState = {};
             var activeColIdx = null;
 
-            // panel واحد مشترك لكل الـ columns
             var $colPanel = $(
                 '<div class="col-filter-panel" id="colFilterPanel">' +
-                '<div class="rp-dd-search">' +
-                '<input type="text" id="colFilterSearch" placeholder="بحث...">' +
-                '</div>' +
+                '<div class="rp-dd-search"><input type="text" id="colFilterSearch" placeholder="بحث..."></div>' +
                 '<div class="rp-dd-list">' +
-                '<div class="rp-dd-item">' +
-                '<input type="checkbox" id="col-all" checked>' +
-                '<label for="col-all">الكل</label>' +
-                '</div>' +
+                '<div class="rp-dd-item"><input type="checkbox" id="col-all" checked><label for="col-all">الكل</label></div>' +
                 '<div class="rp-dd-sep"></div>' +
                 '<div id="colFilterOpts"></div>' +
-                '</div>' +
-                '</div>'
+                '</div></div>'
             ).appendTo('body');
 
-            // فتح الـ panel عند الضغط على أيقونة الفلتر
             $(document).on('click', '.th-filter-icon', function (e) {
                 e.stopPropagation();
                 var colIdx = parseInt($(this).data('col'));
-
-                // نفس الـ column مرة تانية = إغلاق
-                if (activeColIdx === colIdx && $colPanel.hasClass('open')) {
-                    closeColPanel(); return;
-                }
-
+                if (activeColIdx === colIdx && $colPanel.hasClass('open')) { closeColPanel(); return; }
                 activeColIdx = colIdx;
-
-                // جمع كل القيم الفريدة من الـ column من كل الـ rows
                 var vals = [];
-                dt.column(colIdx).data().each(function (d) {
-                    var clean = $('<div>').html(d).text().trim();
-                    if (clean && vals.indexOf(clean) === -1) vals.push(clean);
-                });
+                if (colIdx === 1) {
+                    vals = dbEntities.slice();
+                    dt.column(colIdx).data().each(function (d) {
+                        var clean = $('<div>').html(d).text().trim();
+                        if (clean && vals.indexOf(clean) === -1) vals.push(clean);
+                    });
+                } else {
+                    dt.column(colIdx).data().each(function (d) {
+                        var clean = $('<div>').html(d).text().trim();
+                        if (clean && vals.indexOf(clean) === -1) vals.push(clean);
+                    });
+                }
                 vals.sort();
-
-                // بناء الـ checkboxes
                 var currentFilter = colFilterState[colIdx] || null;
                 var $opts = $('#colFilterOpts').empty();
                 $.each(vals, function (_, v) {
                     var chk = !currentFilter || currentFilter.indexOf(v) > -1 ? 'checked' : '';
-                    $opts.append(
-                        '<div class="rp-dd-item">' +
-                        '<input type="checkbox" class="col-cb" value="' + v + '" ' + chk + '>' +
-                        '<label>' + v + '</label>' +
-                        '</div>'
-                    );
+                    $opts.append('<div class="rp-dd-item"><input type="checkbox" class="col-cb" value="' + v + '" ' + chk + '><label>' + v + '</label></div>');
                 });
-
                 syncColAll();
-
-                // تلوين الأيقونة النشطة
                 $('.th-filter-icon').removeClass('active');
                 $(this).addClass('active');
-
-                // تحديد موضع الـ panel
                 var rect = this.getBoundingClientRect();
-                var panelWidth = 230;
                 var rightSpace = window.innerWidth - rect.right;
-
-                // لو المسافة ناحية الشمال مش كافية (في الـ RTL الصفحة بتبدأ من اليمين)
-                // rect.right هي المسافة من يسار الشاشة لحد يمين العنصر
-                // لو rect.right أقل من عرض الـ panel يبقى هيخبط في طرف الشاشة الشمال
-                if (rect.right < panelWidth) {
-                    $colPanel.css({
-                        top: rect.bottom + window.scrollY + 4,
-                        left: 10,
-                        right: 'auto'
-                    });
+                if (rect.right < 230) {
+                    $colPanel.css({ top: rect.bottom + window.scrollY + 4, left: 10, right: 'auto' });
                 } else {
-                    $colPanel.css({
-                        top: rect.bottom + window.scrollY + 4,
-                        right: Math.max(4, rightSpace),
-                        left: 'auto'
-                    });
+                    $colPanel.css({ top: rect.bottom + window.scrollY + 4, right: Math.max(4, rightSpace), left: 'auto' });
                 }
                 $colPanel.addClass('open');
-
                 $('#colFilterSearch').val('');
                 $('#colFilterOpts .rp-dd-item').show();
             });
 
-            // بحث داخل الـ panel
             $('#colFilterSearch').on('keyup', function () {
-                var v = $(this).val().toLowerCase();
+                var v = normalizeArabic($(this).val().toLowerCase());
                 $('#colFilterOpts .rp-dd-item').each(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(v) > -1);
+                    $(this).toggle(normalizeArabic($(this).text().toLowerCase()).indexOf(v) > -1);
                 });
             });
 
-            // checkbox "الكل" للـ column
-            $('#col-all').on('change', function () {
-                $('.col-cb').prop('checked', this.checked);
-                applyColFilter();
-            });
-
-            // أي checkbox في الـ panel
-            $(document).on('change', '.col-cb', function () {
-                syncColAll();
-                applyColFilter();
-            });
+            $('#col-all').on('change', function () { $('.col-cb').prop('checked', this.checked); applyColFilter(); });
+            $(document).on('change', '.col-cb', function () { syncColAll(); applyColFilter(); });
 
             function syncColAll() {
                 var t = $('.col-cb').length, c = $('.col-cb:checked').length;
@@ -867,8 +887,7 @@
             function applyColFilter() {
                 if (activeColIdx === null) return;
                 var checked = $('.col-cb:checked').map(function () { return $(this).val(); }).get();
-                var total = $('.col-cb').length;
-                if (checked.length === total) {
+                if (checked.length === $('.col-cb').length) {
                     colFilterState[activeColIdx] = null;
                     $('.th-filter-icon[data-col="' + activeColIdx + '"]').removeClass('active');
                 } else {
@@ -878,22 +897,13 @@
                 dt.draw();
             }
 
-            function closeColPanel() {
-                $colPanel.removeClass('open');
-                activeColIdx = null;
-            }
+            function closeColPanel() { $colPanel.removeClass('open'); activeColIdx = null; }
 
-            // إغلاق لما تضغط برا الـ panel
             $(document).on('click', function (e) {
-                if (!$(e.target).closest('#colFilterPanel').length &&
-                    !$(e.target).hasClass('th-filter-icon')) {
-                    closeColPanel();
-                }
+                if (!$(e.target).closest('#colFilterPanel').length && !$(e.target).hasClass('th-filter-icon')) closeColPanel();
             });
 
-            /* ══════════════════════════════════════════
-               فلاتر الـ Toolbar (Year / Month / Hosp)
-            ══════════════════════════════════════════ */
+            /* Toolbar Filters */
             var openDD = null;
             function openPanel(n) { if (openDD && openDD !== n) closePanel(openDD); $('#btn-' + n).addClass('open'); $('#panel-' + n).addClass('open'); openDD = n; }
             function closePanel(n) { $('#btn-' + n).removeClass('open'); $('#panel-' + n).removeClass('open'); if (openDD === n) openDD = null; }
@@ -907,8 +917,10 @@
             });
 
             $(document).on('keyup', '[data-filter]', function () {
-                var n = $(this).data('filter'), v = $(this).val().toLowerCase();
-                $('#' + n + '-opts .rp-dd-item').each(function () { $(this).toggle($(this).text().toLowerCase().indexOf(v) > -1); });
+                var n = $(this).data('filter'), v = normalizeArabic($(this).val().toLowerCase());
+                $('#' + n + '-opts .rp-dd-item').each(function () {
+                    $(this).toggle(normalizeArabic($(this).text().toLowerCase()).indexOf(v) > -1);
+                });
             });
 
             function syncAll(n) { var t = $('.cb-' + n).length, c = $('.cb-' + n + ':checked').length; $('#' + n + '-all').prop('checked', t === c); updateLabel(n); }
@@ -916,11 +928,19 @@
 
             $('#year-all').on('change', function () { $('.cb-year').prop('checked', this.checked); rebuildMonths(); applyFilters(); });
             $('#month-all').on('change', function () { $('.cb-month').prop('checked', this.checked); applyFilters(); });
-            $('#hosp-all').on('change', function () { $('.cb-hosp').prop('checked', this.checked); applyFilters(); });
+            $('#hosp-all').on('change', function () { $('.cb-hosp, .cb-dept').prop('checked', this.checked); syncAll('hosp'); applyFilters(); });
 
             $(document).on('change', '.cb-year', function () { syncAll('year'); rebuildMonths(); applyFilters(); });
             $(document).on('change', '.cb-month', function () { syncAll('month'); applyFilters(); });
-            $(document).on('change', '.cb-hosp', function () { syncAll('hosp'); applyFilters(); });
+            $(document).on('change', '.cb-hosp', function () {
+                if ($(this).val().indexOf('باق') > -1) $('.cb-dept').prop('checked', this.checked);
+                syncAll('hosp'); applyFilters();
+            });
+            $(document).on('change', '.cb-dept', function () {
+                var total = $('.cb-dept').length, checked = $('.cb-dept:checked').length;
+                $('.cb-hosp').each(function () { if ($(this).val().indexOf('باق') > -1) $(this).prop('checked', total === checked); });
+                syncAll('hosp'); applyFilters();
+            });
 
             function buildYears() {
                 var $c = $('#year-opts').empty();
@@ -934,6 +954,16 @@
                 var $c = $('#hosp-opts').empty();
                 $.each(allHospitals, function (_, h) {
                     $c.append('<div class="rp-dd-item"><input type="checkbox" class="cb-hosp" value="' + h + '" checked><label>' + h + '</label></div>');
+                    if (h.indexOf('باق') > -1) {
+                        $.each(othersDepartments, function (_, dept) {
+                            $c.append(
+                                '<div class="rp-dd-item" style="margin-right: 20px; border-right: 2px solid #cbd5e1; padding-right: 8px;">' +
+                                '<input type="checkbox" class="cb-dept" value="' + dept + '" checked>' +
+                                '<label style="font-size: 11px; color:#475569">' + dept + '</label>' +
+                                '</div>'
+                            );
+                        });
+                    }
                 });
                 syncAll('hosp');
             }
@@ -951,29 +981,57 @@
                 syncAll('month');
             }
 
-            /* ══════════════════════════════════════════
-               DataTables Filter — الكل في function واحدة
-            ══════════════════════════════════════════ */
-            $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-                var row = $(dt.row(dataIndex).node());
+            /* DataTables Filter */
+            var globalSearchQuery = '';
+            $('.dataTables_filter input').off().on('input keyup', function () { globalSearchQuery = $(this).val(); dt.draw(); });
 
-                // فلتر السنة
+            $.fn.dataTable.ext.search.push(function (settings, searchData, index) {
+                if (settings.sTableId !== 'reportsTable') return true;
+
+                var rowNode = settings.aoData[index] ? settings.aoData[index].nTr : null;
+                var rowYear = rowNode ? rowNode.getAttribute('data-year') : '';
+                var rowMonth = rowNode ? rowNode.getAttribute('data-month') : '';
+                var rowHosp = rowNode ? rowNode.getAttribute('data-hosp') : '';
+                var rowDept = rowNode ? rowNode.getAttribute('data-dept') : '';
+
                 var selY = $('.cb-year:checked').map(function () { return $(this).val(); }).get();
-                if (selY.length && selY.indexOf(String(row.data('year'))) === -1) return false;
+                if (selY.length && selY.indexOf(String(rowYear)) === -1) return false;
 
-                // فلتر الشهر
                 var selM = $('.cb-month:checked').map(function () { return $(this).val(); }).get();
-                if (selM.length && selM.indexOf(row.data('month')) === -1) return false;
+                if (selM.length && selM.indexOf(String(rowMonth)) === -1) return false;
 
-                // فلتر المستشفى
+                var hospRow = String(rowHosp);
+                var deptRow = String(rowDept);
                 var selH = $('.cb-hosp:checked').map(function () { return $(this).val(); }).get();
-                if (selH.length && selH.indexOf(row.data('hosp')) === -1) return false;
 
-                // فلاتر رؤوس الجدول
+                if (selH.length) {
+                    if (hospRow.indexOf('باق') > -1) {
+                        var selDept = $('.cb-dept:checked').map(function () { return $(this).val(); }).get();
+                        if (selDept.length && selDept.indexOf(deptRow) === -1) return false;
+                    } else {
+                        if (selH.indexOf(hospRow) === -1) return false;
+                    }
+                }
+
                 for (var ci in colFilterState) {
                     if (colFilterState[ci]) {
-                        var cellText = $('<div>').html(data[parseInt(ci)]).text().trim();
-                        if (colFilterState[ci].indexOf(cellText) === -1) return false;
+                        var cellText = normalizeArabic($('<div>').html(searchData[parseInt(ci)]).text().trim()).toLowerCase();
+                        var matched = false;
+                        for (var k = 0; k < colFilterState[ci].length; k++) {
+                            if (cellText === normalizeArabic(colFilterState[ci][k]).toLowerCase()) { matched = true; break; }
+                        }
+                        if (!matched) return false;
+                    }
+                }
+
+                if (globalSearchQuery) {
+                    var terms = normalizeArabic(globalSearchQuery).toLowerCase().split(/\s+/);
+                    terms = $.grep(terms, function (t) { return t.trim() !== ''; });
+                    var rowText = searchData.map(function (val) {
+                        return normalizeArabic(val.replace(/<[^>]*>/g, '')).toLowerCase();
+                    }).join(' ');
+                    for (var i = 0; i < terms.length; i++) {
+                        if (rowText.indexOf(terms[i]) === -1) return false;
                     }
                 }
 
@@ -982,7 +1040,6 @@
 
             function applyFilters() { updateLabel('year'); updateLabel('month'); updateLabel('hosp'); dt.draw(); }
 
-            /* ══ Summary ══ */
             function updateSummary() {
                 var c = 0, a = 0, rc = 0, ra = 0, cc = 0, pa = 0, d = 0;
                 dt.rows({ search: 'applied' }).every(function () {
@@ -1000,17 +1057,19 @@
                 $('#tot_rev_cases').text(rc); $('#tot_rev_amt').text(fmt(ra));
                 $('#tot_coll_cases').text(cc); $('#tot_pay_amt').text(fmt(pa));
                 $('#tot_diff').text(fmt(d)).removeClass('is-neg is-pos').addClass(d > 0 ? 'is-neg' : (d < 0 ? 'is-pos' : ''));
+
+                $('#foot_cases').text(c); $('#foot_amt').text(fmt(a));
+                $('#foot_rev_cases').text(rc); $('#foot_rev_amt').text(fmt(ra));
+                $('#foot_coll_cases').text(cc); $('#foot_pay_amt').text(fmt(pa));
+                $('#foot_diff').text(fmt(d));
             }
 
-            /* ══ Buttons ══ */
             $('#btnReset').on('click', function () {
-                colFilterState = {};
-                $('.th-filter-icon').removeClass('active');
+                colFilterState = {}; $('.th-filter-icon').removeClass('active');
                 buildYears(); buildHospitals(); rebuildMonths(); applyFilters();
             });
             $('#btnExcel').on('click', function () { dt.button(0).trigger(); });
 
-            /* ══ Init ══ */
             buildYears();
             buildHospitals();
             rebuildMonths();

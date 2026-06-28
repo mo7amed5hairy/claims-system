@@ -65,6 +65,8 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::get('{claim}/edit', [ClaimController::class, 'edit'])->name('edit');
         Route::put('{claim}', [ClaimController::class, 'update'])->name('update');
         Route::delete('{claim}', [ClaimController::class, 'destroy'])->name('destroy');
+        Route::post('{claim}/toggle-type', [ClaimController::class, 'toggleType'])->name('toggle-type');
+
     });
 
     // =====================================================
