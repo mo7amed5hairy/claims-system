@@ -14,6 +14,10 @@
         .dt-buttons {
             margin-bottom: 15px;
         }
+        .dt-buttons .btn-excel {
+            background: #198754 !important;
+            background-image: none !important;
+        }
     </style>
 
     <script>
@@ -33,7 +37,7 @@
                     text: '<i class="fa-solid fa-file-excel"></i> تصدير إكسل',
                     className: 'btn-excel',
                     attr: {
-                        style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
+                        style: 'background: #198754 !important; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
                     },
                     exportOptions: {
                         columns: ':visible',
@@ -165,7 +169,7 @@
                     <th>المراجع</th>
                     <th>الفرق</th>
                     <th>المرفقات</th>
-                    <th>تغيير النوع</th>
+                    <th>تغيير نوع المطالبة</th>
                     <th style="text-align: center;">الإجراءات</th>
                 </tr>
             </thead>
@@ -302,7 +306,7 @@
                             <form action="{{ route('claims.toggle-type', $claim->id) }}" method="POST" style="display: inline;"
                                 onsubmit="return confirm('هل أنت متأكد من تحويل هذه المطالبة إلى مطالبة مسبقة الدفع؟');">
                                 @csrf
-                                <button type="submit" class="btn-action" style="background: #ecfeff; color: #0891b2; cursor: pointer; border: none; padding: 4px 8px; border-radius: 4px; font-family: Cairo; font-size: 11px;" title="تحويل لمسبقة الدفع">
+                                <button type="submit" class="btn btn-primary" style="background: #4e918d; color: #dde5e7; cursor: pointer; border: none; padding: 6px 12px; border-radius: 4px; font-family: Cairo; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;" title="تحويل لمسبقة الدفع">
                                     <i class="fa-solid fa-exchange-alt"></i> تحويل لمسبقة الدفع
                                 </button>
                             </form>

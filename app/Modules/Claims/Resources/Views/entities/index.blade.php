@@ -58,7 +58,7 @@
                     text: '<i class="fa-solid fa-file-excel"></i> تصدير إكسل',
                     className: 'btn-excel',
                     attr: {
-                        style: 'background-color: #198754; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
+                        style: 'background: #198754 !important; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
                     },
                     exportOptions: {
                         columns: ':visible'

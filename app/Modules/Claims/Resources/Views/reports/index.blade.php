@@ -880,15 +880,46 @@
                 // بناء الـ checkboxes
                 var currentFilter = colFilterState[colIdx] || null;
                 var $opts = $('#colFilterOpts').empty();
-                $.each(vals, function (_, v) {
-                    var chk = !currentFilter || currentFilter.indexOf(v) > -1 ? 'checked' : '';
-                    $opts.append(
-                        '<div class="rp-dd-item">' +
-                        '<input type="checkbox" class="col-cb" value="' + v + '" ' + chk + '>' +
-                        '<label>' + v + '</label>' +
-                        '</div>'
-                    );
-                });
+                if (colIdx === 0 && othersDepartments.length) {
+                    $.each(vals, function (_, v) {
+                        var chk = !currentFilter || currentFilter.indexOf(v) > -1 ? 'checked' : '';
+                        if (v.indexOf('باق') > -1) {
+                            $opts.append(
+                                '<div class="rp-dd-item">' +
+                                '<span class="col-dept-toggle" style="cursor:pointer;font-size:10px;margin-left:5px;user-select:none;">&#9654;</span>' +
+                                '<input type="checkbox" class="col-cb" value="' + v + '" ' + chk + '><label>' + v + '</label></div>'
+                            );
+                            var $dc = $('<div class="col-dept-container" style="display:none;"></div>');
+                            $.each(othersDepartments, function (_, dept) {
+                                var dchk = !currentFilter || currentFilter.indexOf(dept) > -1 ? 'checked' : '';
+                                $dc.append(
+                                    '<div class="rp-dd-item" style="margin-right:20px;border-right:2px solid #cbd5e1;padding-right:8px;">' +
+                                    '<input type="checkbox" class="col-cb" value="' + dept + '" ' + dchk + '>' +
+                                    '<label style="font-size:11px;color:#475569">' + dept + '</label></div>'
+                                );
+                            });
+                            $opts.append($dc);
+                        } else {
+                            $opts.append('<div class="rp-dd-item"><input type="checkbox" class="col-cb" value="' + v + '" ' + chk + '><label>' + v + '</label></div>');
+                        }
+                    });
+                    $opts.find('.col-dept-toggle').on('click', function (e) {
+                        e.stopPropagation();
+                        var $dc = $(this).closest('.rp-dd-item').next('.col-dept-container');
+                        $dc.slideToggle(200);
+                        $(this).html($dc.is(':visible') ? '&#9660;' : '&#9654;');
+                    });
+                } else {
+                    $.each(vals, function (_, v) {
+                        var chk = !currentFilter || currentFilter.indexOf(v) > -1 ? 'checked' : '';
+                        $opts.append(
+                            '<div class="rp-dd-item">' +
+                            '<input type="checkbox" class="col-cb" value="' + v + '" ' + chk + '>' +
+                            '<label>' + v + '</label>' +
+                            '</div>'
+                        );
+                    });
+                }
 
                 syncColAll();
 
@@ -923,9 +954,21 @@
             // بحث داخل الـ panel
             $('#colFilterSearch').on('keyup', function () {
                 var v = normalizeArabic($(this).val().toLowerCase());
-                $('#colFilterOpts .rp-dd-item').each(function () {
-                    var text = normalizeArabic($(this).text().toLowerCase());
-                    $(this).toggle(text.indexOf(v) > -1);
+                $('#colFilterOpts').children('.rp-dd-item, .col-dept-container').each(function () {
+                    if ($(this).hasClass('col-dept-container')) {
+                        var hasMatch = false;
+                        $(this).find('.rp-dd-item').each(function () {
+                            var t = normalizeArabic($(this).text().toLowerCase());
+                            var m = t.indexOf(v) > -1;
+                            $(this).toggle(m);
+                            if (m) hasMatch = true;
+                        });
+                        if (v && hasMatch) { $(this).show(); $(this).prev('.rp-dd-item').find('.col-dept-toggle').html('&#9660;'); }
+                        else if (!v) { $(this).hide(); $(this).prev('.rp-dd-item').find('.col-dept-toggle').html('&#9654;'); }
+                    } else {
+                        var text = normalizeArabic($(this).text().toLowerCase());
+                        $(this).toggle(text.indexOf(v) > -1);
+                    }
                 });
             });
 
@@ -990,9 +1033,21 @@
 
             $(document).on('keyup', '[data-filter]', function () {
                 var n = $(this).data('filter'), v = normalizeArabic($(this).val().toLowerCase());
-                $('#' + n + '-opts .rp-dd-item').each(function () {
-                    var t = normalizeArabic($(this).text().toLowerCase());
-                    $(this).toggle(t.indexOf(v) > -1);
+                $('#' + n + '-opts').children('.rp-dd-item, .dept-container').each(function () {
+                    if ($(this).hasClass('dept-container')) {
+                        var hasMatch = false;
+                        $(this).find('.rp-dd-item').each(function () {
+                            var t = normalizeArabic($(this).text().toLowerCase());
+                            var match = t.indexOf(v) > -1;
+                            $(this).toggle(match);
+                            if (match) hasMatch = true;
+                        });
+                        if (v && hasMatch) { $(this).show(); $(this).prev('.rp-dd-item').find('.dept-toggle').html('&#9660;'); }
+                        else if (!v) { $(this).hide(); $(this).prev('.rp-dd-item').find('.dept-toggle').html('&#9654;'); }
+                    } else {
+                        var t = normalizeArabic($(this).text().toLowerCase());
+                        $(this).toggle(t.indexOf(v) > -1);
+                    }
                 });
             });
 
@@ -1043,20 +1098,36 @@
             function buildHospitals() {
                 var $c = $('#hosp-opts').empty();
                 $.each(allHospitals, function (_, h) {
-                    $c.append('<div class="rp-dd-item"><input type="checkbox" class="cb-hosp" value="' + h + '" checked><label>' + h + '</label></div>');
-                    if (h.indexOf('باق') > -1) {
+                    if (h.indexOf('باق') > -1 && othersDepartments.length) {
+                        $c.append(
+                            '<div class="rp-dd-item">' +
+                            '<span class="dept-toggle" style="cursor:pointer;font-size:10px;margin-left:5px;user-select:none;">&#9654;</span>' +
+                            '<input type="checkbox" class="cb-hosp" value="' + h + '" checked><label>' + h + '</label>' +
+                            '</div>'
+                        );
+                        var $dc = $('<div class="dept-container" style="display:none;"></div>');
                         $.each(othersDepartments, function (_, dept) {
-                            $c.append(
+                            $dc.append(
                                 '<div class="rp-dd-item" style="margin-right: 20px; border-right: 2px solid #cbd5e1; padding-right: 8px;">' +
                                 '<input type="checkbox" class="cb-dept" value="' + dept + '" checked>' +
                                 '<label style="font-size: 11px; color:#475569">' + dept + '</label>' +
                                 '</div>'
                             );
                         });
+                        $c.append($dc);
+                    } else {
+                        $c.append('<div class="rp-dd-item"><input type="checkbox" class="cb-hosp" value="' + h + '" checked><label>' + h + '</label></div>');
                     }
                 });
                 syncAll('hosp');
             }
+
+            $(document).on('click', '.dept-toggle', function (e) {
+                e.stopPropagation();
+                var $dc = $(this).closest('.rp-dd-item').next('.dept-container');
+                $dc.slideToggle(200);
+                $(this).html($dc.is(':visible') ? '&#9660;' : '&#9654;');
+            });
 
             function rebuildMonths() {
                 var selY = $('.cb-year:checked').map(function () { return $(this).val(); }).get();
@@ -1114,7 +1185,8 @@
                 // 4. فلاتر رؤوس الجدول
                 for (var ci in colFilterState) {
                     if (colFilterState[ci]) {
-                        var cellText = $('<div>').html(searchData[parseInt(ci)]).text().trim();
+                        var ciNum = parseInt(ci);
+                        var cellText = $('<div>').html(searchData[ciNum]).text().trim();
                         var normalizedCell = normalizeArabic(cellText).toLowerCase();
                         var matched = false;
                         for (var k = 0; k < colFilterState[ci].length; k++) {
@@ -1122,6 +1194,16 @@
                             if (normalizedCell === filterVal) {
                                 matched = true;
                                 break;
+                            }
+                        }
+                        // For hospital column, also match by data-dept for "باقي" rows
+                        if (!matched && ciNum === 0 && normalizedCell.indexOf('باق') > -1) {
+                            for (var k = 0; k < colFilterState[ci].length; k++) {
+                                var filterVal = normalizeArabic(colFilterState[ci][k]).toLowerCase();
+                                if (rowDept && normalizeArabic(rowDept).toLowerCase() === filterVal) {
+                                    matched = true;
+                                    break;
+                                }
                             }
                         }
                         if (!matched) return false;
