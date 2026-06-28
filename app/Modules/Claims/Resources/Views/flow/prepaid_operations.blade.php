@@ -62,6 +62,16 @@
                         <p class="operation-text">عرض الفواتير المخصمة للمطالبات المسبقة</p>
                         <span class="operation-arrow"><i class="fa-solid fa-arrow-left"></i></span>
                     </a>
+
+                    <a href="{{ route('financial-receipts.index') }}" class="operation-card"
+                        style="width: 350px; max-width: 100%; margin: 0;">
+                        <div class="operation-icon" style="background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <h3 class="operation-title">استلام دفعة مالية</h3>
+                        <p class="operation-text">تسجيل وإدارة الدفعات المالية المستلمة</p>
+                        <span class="operation-arrow"><i class="fa-solid fa-arrow-left"></i></span>
+                    </a>
                 @endcan
             @endif
         </div>

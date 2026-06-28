@@ -457,7 +457,7 @@
                                     بعد المراجعة</label>
                                 <input type="number" name="invoice_count_after_review" id="invoiceCountAfterReview"
                                     class="form-control" value="{{ old('invoice_count_after_review') }}" min="0"
-                                    style="font-size: 9px; padding: 2px 4px;" required>
+                                    style="font-size: 9px; padding: 2px 4px;">
                                 @error('invoice_count_after_review') <span class="error-message">{{ $message }}</span> @enderror
                             </div>
                             <div class="form-group">
@@ -465,7 +465,7 @@
                                     المراجعة</label>
                                 <input type="number" step="0.01" name="amount_after_review" id="amountAfterReview"
                                     class="form-control" value="{{ old('amount_after_review') }}" min="0"
-                                    style="font-size: 9px; padding: 2px 4px;" required>
+                                    style="font-size: 9px; padding: 2px 4px;">
                                 @error('amount_after_review') <span class="error-message">{{ $message }}</span> @enderror
                             </div>
                         </div>
@@ -1078,6 +1078,8 @@
                             $('#claimDetailsSection').slideDown(300);
                             // Show review fields
                             $('#reviewFieldsRow').slideDown(300);
+                            // Auto-calculate amount_after_review
+                            autoCalcAmountAfterReview();
                         } else {
                             // Claim not found - hide sections but don't alert
                             $('#claimDetailsSection').hide();
@@ -1091,6 +1093,24 @@
                     }
                 });
             }
+
+            // Auto-calculate amount_after_review = amount - (amount * deduction%) - (amount * taxes%)
+            function autoCalcAmountAfterReview() {
+                const amount = parseFloat($('input[name="amount"]').val()) || 0;
+                const deduction = parseFloat($('input[name="deduction"]').val()) || 0;
+                const taxes = parseFloat($('input[name="taxes"]').val()) || 0;
+                if (amount > 0) {
+                    const net = amount - (amount * deduction / 100) - (amount * taxes / 100);
+                    $('#amountAfterReview').val(Math.max(0, net.toFixed(2)));
+                }
+            }
+
+            // Recalculate when amount, deduction, or taxes change
+            $('input[name="amount"], input[name="deduction"], input[name="taxes"]').on('input', function () {
+                if ($('#claimDetailsSection').is(':visible')) {
+                    autoCalcAmountAfterReview();
+                }
+            });
 
             // Electronic Invoice Search Functionality - Auto search on input
             const electronicInvoiceInput = $('#electronicInvoiceInput');
@@ -1170,6 +1190,8 @@
                             $('#claimDetailsSection').slideDown(300);
                             // Show review fields
                             $('#reviewFieldsRow').slideDown(300);
+                            // Auto-calculate amount_after_review
+                            autoCalcAmountAfterReview();
                         } else {
                             // Claim not found - hide sections but don't alert
                             $('#claimDetailsSection').hide();

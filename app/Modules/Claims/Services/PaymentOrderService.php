@@ -36,15 +36,23 @@ class PaymentOrderService
     /**
      * Update a payment order
      */
-    public function updatePaymentOrder($orderId, array $data)
+    public function updatePaymentOrder($orderId, array $data, $model = null)
     {
-        $oldOrder = $this->paymentOrderRepository->find($orderId);
-        $paymentOrder = $this->paymentOrderRepository->update($orderId, $data);
+        if ($model) {
+            $oldOrder = $model;
+            $model->update($data);
+            $paymentOrder = $model->fresh();
+        } else {
+            $oldOrder = $this->paymentOrderRepository->find($orderId);
+            $paymentOrder = $this->paymentOrderRepository->update($orderId, $data);
+        }
 
-        // If invoice number changed, revert old claim status and update new one
-        if ($oldOrder->electronic_invoice_no !== $data['electronic_invoice_no']) {
-            if (!empty($oldOrder->electronic_invoice_no)) {
-                $this->updateClaimStatus($oldOrder->electronic_invoice_no, 'unpaid');
+        if ($oldOrder) {
+            // If invoice number changed, revert old claim status and update new one
+            if ($oldOrder->electronic_invoice_no !== $data['electronic_invoice_no']) {
+                if (!empty($oldOrder->electronic_invoice_no)) {
+                    $this->updateClaimStatus($oldOrder->electronic_invoice_no, 'unpaid');
+                }
             }
         }
 
@@ -58,10 +66,16 @@ class PaymentOrderService
     /**
      * Delete a payment order
      */
-    public function deletePaymentOrder($orderId)
+    public function deletePaymentOrder($orderId, $model = null)
     {
-        $order = $this->paymentOrderRepository->find($orderId);
-        $result = $this->paymentOrderRepository->delete($orderId);
+        if ($model) {
+            $order = $model;
+            $model->delete();
+            $result = true;
+        } else {
+            $order = $this->paymentOrderRepository->find($orderId);
+            $result = $this->paymentOrderRepository->delete($orderId);
+        }
 
         // Revert claim status to unpaid
         if ($order && !empty($order->electronic_invoice_no)) {

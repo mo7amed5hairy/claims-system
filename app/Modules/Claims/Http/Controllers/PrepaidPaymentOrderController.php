@@ -8,6 +8,7 @@ use App\Modules\Claims\Models\PrepaidClaim as Claim;
 use App\Modules\Claims\Models\ClaimEntity;
 use App\Modules\Claims\Models\Hospital;
 use App\Modules\Claims\Models\Department;
+use App\Modules\Claims\Models\FinancialReceipt;
 use App\Modules\Claims\Services\PaymentOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -451,6 +452,9 @@ class PrepaidPaymentOrderController extends Controller
         $data['is_prepaid'] = 1;
         $paymentOrder = $this->paymentOrderService->createPaymentOrder($data);
 
+        // Deduct from matching financial receipt
+        $this->applyReceiptDeduction($data);
+
         // Auto-create discounted invoice if review values are provided
         $this->handleDiscountedInvoice($paymentOrder, $request);
 
@@ -639,7 +643,17 @@ class PrepaidPaymentOrderController extends Controller
         $data['attachments'] = $existingAttachments;
 
         $data['is_prepaid'] = 1;
-        $this->paymentOrderService->updatePaymentOrder($payment->id, $data);
+
+        // Capture old net amount BEFORE updating (for receipt deduction reversal)
+        $oldPaymentAmount = $this->getEffectiveDeductAmount(
+            $payment->amount_after_review, $payment->amount, $payment->deduction, $payment->taxes
+        );
+
+        $this->paymentOrderService->updatePaymentOrder($payment->id, $data, $payment);
+
+        // Revert old deduction using old amount, then apply new
+        $this->reverseReceiptDeduction($payment, $oldPaymentAmount);
+        $this->applyReceiptDeduction($data);
 
         // Auto-create or update discounted invoice if review values are provided
         $this->handleDiscountedInvoice($payment, $request, true);
@@ -654,30 +668,126 @@ class PrepaidPaymentOrderController extends Controller
     public function destroy(PaymentOrder $payment)
     {
         $this->authorize('delete', $payment);
-        $this->paymentOrderService->deletePaymentOrder($payment->id);
+
+        // Reverse deduction from financial receipt before deleting
+        $this->reverseReceiptDeduction($payment);
+
+        $this->paymentOrderService->deletePaymentOrder($payment->id, $payment);
 
         return redirect()->route('prepaid-payments.index')
             ->with('success', trans('messages.payment_order_deleted_successfully'));
     }
 
     /**
+     * Deduct payment amount from matching financial receipt by hospital/department ID
+     */
+    private function applyReceiptDeduction(array $data)
+    {
+        $hospitalId = $data['payee_hospital_id'] ?? null;
+        $departmentId = $data['department_id'] ?? null;
+
+        if (!$hospitalId) {
+            return;
+        }
+
+        $receipt = FinancialReceipt::where('payee_hospital_id', $hospitalId)
+            ->where('payee_department_id', $departmentId)
+            ->where('remaining_amount', '>', 0)
+            ->orderBy('receipt_date', 'asc')
+            ->first();
+
+        if (!$receipt) {
+            return;
+        }
+
+        $deductAmount = $this->getEffectiveDeductAmount(
+            $data['amount_after_review'] ?? null,
+            $data['amount'] ?? null,
+            $data['deduction'] ?? null,
+            $data['taxes'] ?? null
+        );
+        if ($deductAmount <= 0) {
+            return;
+        }
+
+        $newRemaining = max(0, (float) $receipt->remaining_amount - $deductAmount);
+        $receipt->update(['remaining_amount' => $newRemaining]);
+    }
+
+    /**
+     * Reverse receipt deduction when updating/deleting a payment order
+     */
+    private function reverseReceiptDeduction($paymentOrder, $explicitAmount = null)
+    {
+        $hospitalId = $paymentOrder->payee_hospital_id;
+        $departmentId = $paymentOrder->department_id;
+
+        if (!$hospitalId) {
+            return;
+        }
+
+        $receipt = FinancialReceipt::where('payee_hospital_id', $hospitalId)
+            ->where('payee_department_id', $departmentId)
+            ->first();
+
+        if (!$receipt) {
+            return;
+        }
+
+        $oldAmount = $explicitAmount ?? $this->getEffectiveDeductAmount(
+            $paymentOrder->amount_after_review,
+            $paymentOrder->amount,
+            $paymentOrder->deduction,
+            $paymentOrder->taxes
+        );
+        $newRemaining = (float) $receipt->remaining_amount + $oldAmount;
+        $receipt->update(['remaining_amount' => $newRemaining]);
+    }
+
+    /**
+     * Calculate the effective amount to deduct from receipt.
+     * deduction and taxes are percentages (e.g. 10 = 10%).
+     * Net = base - (base * deduction%) - (base * taxes%)
+     */
+    private function getEffectiveDeductAmount($amountAfterReview, $amount, $deduction = 0, $taxes = 0)
+    {
+        $baseAmount = (float) ($amountAfterReview ?: $amount ?: 0);
+        if ($baseAmount <= 0) {
+            return 0;
+        }
+
+        $deductionPct = (float) ($deduction ?: 0);
+        $taxesPct = (float) ($taxes ?: 0);
+
+        $deductionAmount = $baseAmount * ($deductionPct / 100);
+        $taxesAmount = $baseAmount * ($taxesPct / 100);
+
+        return max(0, $baseAmount - $deductionAmount - $taxesAmount);
+    }
+
+    /**
+     * Calculate the total deduction amount (from percentages) for discounted invoices
+     */
+    private function getDeductionAmount($amountAfterReview, $amount, $deduction = 0, $taxes = 0)
+    {
+        $baseAmount = (float) ($amountAfterReview ?: $amount ?: 0);
+        if ($baseAmount <= 0) {
+            return 0;
+        }
+
+        $deductionPct = (float) ($deduction ?: 0);
+        $taxesPct = (float) ($taxes ?: 0);
+
+        return ($baseAmount * ($deductionPct / 100)) + ($baseAmount * ($taxesPct / 100));
+    }
+
+    /**
      * Handle auto-creation or update of discounted invoice record
+     * Aggregates all payment orders for the claim to calculate totals
      */
     private function handleDiscountedInvoice($paymentOrder, Request $request, $isUpdate = false)
     {
-        // Only proceed if review values are provided
-        if (empty($request->invoice_count_after_review) && empty($request->amount_after_review)) {
-            return;
-        }
-
-        // If both are 0, means full collection - no discount
-        $invoiceCountAfterReview = $request->invoice_count_after_review ?? 0;
-        $amountAfterReview = $request->amount_after_review ?? 0;
-        if ($invoiceCountAfterReview == 0 && $amountAfterReview == 0) {
-            return;
-        }
-
-        // Get the claim details
+        // Get the claim
         $claim = null;
         if (!empty($request->claim_number)) {
             $claim = \App\Modules\Claims\Models\PrepaidClaim::where('claim_number', $request->claim_number)->first();
@@ -689,19 +799,55 @@ class PrepaidPaymentOrderController extends Controller
             return;
         }
 
-        $originalInvoiceCount = $claim->invoice_count ?? 0;
-        $originalAmount = $claim->claim_value ?? 0;
+        // Aggregate all prepaid payment orders for this claim
+        $allOrders = \App\Modules\Claims\Models\PrepaidPaymentOrder::where(function ($q) use ($claim) {
+                $q->where('claim_number', $claim->claim_number)
+                  ->orWhere('electronic_invoice_no', $claim->electronic_invoice_no);
+            })
+            ->get();
 
-        // If after review equals original, means full collection - no discount
-        if ($invoiceCountAfterReview >= $originalInvoiceCount && $amountAfterReview >= $originalAmount) {
+        if ($allOrders->isEmpty()) {
             return;
         }
 
-        // Calculate discounted values
-        $discountedInvoiceCount = max(0, $originalInvoiceCount - $invoiceCountAfterReview);
-        $unpaidAmount = max(0, $originalAmount - $amountAfterReview);
+        $totalInvoiceCount = 0;
+        $totalNetAmount = 0;
+        $totalDeductionAmount = 0;
+        $totalTaxesAmount = 0;
 
-        // Only create if there's an actual discount
+        foreach ($allOrders as $order) {
+            $invCount = (int) ($order->invoice_count_after_review ?: 0);
+            $totalInvoiceCount += $invCount;
+
+            $baseAmt = (float) ($order->amount_after_review ?: $order->amount ?: 0);
+            $deductionPct = (float) ($order->deduction ?: 0);
+            $taxesPct = (float) ($order->taxes ?: 0);
+            $dedAmt = $baseAmt * ($deductionPct / 100);
+            $taxAmt = $baseAmt * ($taxesPct / 100);
+
+            $totalDeductionAmount += $dedAmt;
+            $totalTaxesAmount += $taxAmt;
+
+            $netAmount = $this->getEffectiveDeductAmount(
+                $order->amount_after_review,
+                $order->amount,
+                $order->deduction,
+                $order->taxes
+            );
+            $totalNetAmount += $netAmount;
+        }
+
+        $originalInvoiceCount = (int) ($claim->invoice_count ?? 0);
+        $originalAmount = (float) ($claim->claim_value ?? 0);
+
+        // If fully paid, no discount
+        if ($totalInvoiceCount >= $originalInvoiceCount && $totalNetAmount >= $originalAmount) {
+            return;
+        }
+
+        $discountedInvoiceCount = max(0, $originalInvoiceCount - $totalInvoiceCount);
+        $unpaidAmount = max(0, $originalAmount - $totalNetAmount);
+
         if ($discountedInvoiceCount > 0 || $unpaidAmount > 0) {
             $discountedInvoiceData = [
                 'claim_id' => $claim->id,
@@ -709,27 +855,19 @@ class PrepaidPaymentOrderController extends Controller
                 'original_invoice_count' => $originalInvoiceCount,
                 'discounted_invoice_count' => $discountedInvoiceCount,
                 'original_amount' => $originalAmount,
-                'discounted_amount' => $amountAfterReview,
+                'discounted_amount' => $totalNetAmount,
+                'deduction_amount' => $totalDeductionAmount,
+                'taxes_amount' => $totalTaxesAmount,
                 'unpaid_amount' => $unpaidAmount,
-                'notes' => 'تم إنشاء تلقائياً من أمر دفع #' . $paymentOrder->id,
+                'notes' => 'آخر تحديث من أمر دفع #' . $paymentOrder->id,
                 'user_id' => auth()->id(),
+                'is_prepaid' => 1,
             ];
 
-            $discountedInvoiceData['is_prepaid'] = 1;
-
-            if ($isUpdate) {
-                // Update existing record if found
-                \App\Modules\Claims\Models\PrepaidDiscountedInvoice::updateOrCreate(
-                    ['claim_id' => $claim->id],
-                    $discountedInvoiceData
-                );
-            } else {
-                // Create new record (only if not exists)
-                \App\Modules\Claims\Models\PrepaidDiscountedInvoice::firstOrCreate(
-                    ['claim_id' => $claim->id],
-                    $discountedInvoiceData
-                );
-            }
+            \App\Modules\Claims\Models\PrepaidDiscountedInvoice::updateOrCreate(
+                ['claim_id' => $claim->id],
+                $discountedInvoiceData
+            );
         }
     }
 }

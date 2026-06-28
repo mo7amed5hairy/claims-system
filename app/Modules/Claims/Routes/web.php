@@ -12,6 +12,8 @@ use App\Modules\Claims\Http\Controllers\PrepaidPaymentOrderController;
 use App\Modules\Claims\Http\Controllers\PrepaidDiscountedInvoiceController;
 use App\Modules\Claims\Http\Controllers\ReportController;
 use App\Modules\Claims\Http\Controllers\PrepaidReportController;
+use App\Modules\Claims\Http\Controllers\FinancialReceiptController;
+use App\Modules\Claims\Http\Controllers\UserController;
 
 /**
  * =====================================================
@@ -113,6 +115,16 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     // Prepaid Discounted Invoices Management
     // =====================================================
     Route::get('prepaid-discounted-invoices', [PrepaidDiscountedInvoiceController::class, 'index'])->name('prepaid-discounted-invoices.index');
+
+    // =====================================================
+    // Financial Receipts Management (استلام دفعة مالية)
+    // =====================================================
+    Route::prefix('financial-receipts')->name('financial-receipts.')->group(function () {
+        Route::get('/', [FinancialReceiptController::class, 'index'])->name('index');
+        Route::post('/', [FinancialReceiptController::class, 'store'])->name('store');
+        Route::put('{financialReceipt}', [FinancialReceiptController::class, 'update'])->name('update');
+        Route::delete('{financialReceipt}', [FinancialReceiptController::class, 'destroy'])->name('destroy');
+    });
 
     // =====================================================
     // Entities Management (Insurance/Ministries/etc)

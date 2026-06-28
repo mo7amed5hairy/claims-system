@@ -32,6 +32,8 @@ class DiscountedInvoice extends Model
         'discounted_invoice_count',
         'original_amount',
         'discounted_amount',
+        'deduction_amount',
+        'taxes_amount',
         'unpaid_amount',
         'notes',
         'user_id',

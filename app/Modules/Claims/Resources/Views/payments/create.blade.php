@@ -1092,6 +1092,8 @@
                             $('#claimDetailsSection').slideDown(300);
                             // Show review fields
                             $('#reviewFieldsRow').slideDown(300);
+                            // Auto-calculate amount_after_review
+                            autoCalcAmountAfterReview();
                         } else {
                             // Claim not found - hide sections but don't alert
                             $('#claimDetailsSection').hide();
@@ -1105,6 +1107,24 @@
                     }
                 });
             }
+
+            // Auto-calculate amount_after_review = amount - (amount * deduction%) - (amount * taxes%)
+            function autoCalcAmountAfterReview() {
+                const amount = parseFloat($('input[name="amount"]').val()) || 0;
+                const deduction = parseFloat($('input[name="deduction"]').val()) || 0;
+                const taxes = parseFloat($('input[name="taxes"]').val()) || 0;
+                if (amount > 0) {
+                    const net = amount - (amount * deduction / 100) - (amount * taxes / 100);
+                    $('#amountAfterReview').val(Math.max(0, net.toFixed(2)));
+                }
+            }
+
+            // Recalculate when amount, deduction, or taxes change
+            $('input[name="amount"], input[name="deduction"], input[name="taxes"]').on('input', function () {
+                if ($('#claimDetailsSection').is(':visible')) {
+                    autoCalcAmountAfterReview();
+                }
+            });
         });
     </script>
 @endsection

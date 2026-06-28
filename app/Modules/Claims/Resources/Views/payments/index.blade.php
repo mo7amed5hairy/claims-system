@@ -143,6 +143,7 @@
                     <th>المبلغ</th>
                     <th>خصم / اشعار دائن</th>
                     <th>ضرائب</th>
+                    <th>المبلغ بعد الخصم</th>
                     <th>تاريخ الاستحقاق</th>
                     <th>الجهة</th>
                     <th>المرفقات</th>
@@ -199,6 +200,10 @@
                         <td style="color: #10b981; font-weight: 600;">{{ number_format($order->amount, 2) }} ج.م</td>
                         <td style="color: #f59e0b; font-weight: 600;">{{ $order->deduction ? number_format($order->deduction, 2) . ' ج.م' : '-' }}</td>
                         <td style="color: #ef4444; font-weight: 600;">{{ $order->taxes ? number_format($order->taxes, 2) . ' ج.م' : '-' }}</td>
+                        @php
+                            $netAmt = max(0, $order->amount - ($order->amount * ($order->deduction ?? 0) / 100) - ($order->amount * ($order->taxes ?? 0) / 100));
+                        @endphp
+                        <td style="color: #6366f1; font-weight: 600;">{{ number_format($netAmt, 2) }} ج.م</td>
                         <td>{{ $order->due_date->format('Y-m-d') }}</td>
                         <td>{{ $order->payerEntity->name ?? '-' }}</td>
                         <td style="text-align: center;">

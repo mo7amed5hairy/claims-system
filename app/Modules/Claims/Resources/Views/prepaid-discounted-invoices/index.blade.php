@@ -54,10 +54,10 @@
                                 <td>{{ number_format($invoice->original_amount, 2) }} ج.م</td>
                                 <td>{{ number_format($invoice->discounted_amount, 2) }} ج.م</td>
                                 <td style="color: #f59e0b; font-weight: 600;">
-                                    {{ $invoice->paymentOrder?->deduction ? number_format($invoice->paymentOrder->deduction, 2) . ' ج.م' : '-' }}
+                                    {{ $invoice->deduction_amount > 0 ? number_format($invoice->deduction_amount, 2) . ' ج.م' : '-' }}
                                 </td>
                                 <td style="color: #ef4444; font-weight: 600;">
-                                    {{ $invoice->paymentOrder?->taxes ? number_format($invoice->paymentOrder->taxes, 2) . ' ج.م' : '-' }}
+                                    {{ $invoice->taxes_amount > 0 ? number_format($invoice->taxes_amount, 2) . ' ج.م' : '-' }}
                                 </td>
                                 <td style="color: #dc2626; font-weight: bold;">{{ number_format($invoice->unpaid_amount, 2) }}
                                     ج.م</td>
