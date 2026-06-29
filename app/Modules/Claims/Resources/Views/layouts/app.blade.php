@@ -17,109 +17,67 @@
     <link rel="stylesheet" href="{{ asset('modules/claims/css/buttons.dataTables.min.css') }}">
 
     <style>
-        /* Navbar Dropdown Styles */
-        .navbar-user-dropdown {
-            position: relative;
-            display: inline-block;
-            background: #ffffff;
-            padding: .1rem;
-            border-radius: 50px;
-        }
-
-        .navbar-user-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
+        /* ===== Navbar Base ===== */
+        .navbar {
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: #333;
-            font-family: inherit;
-            padding: 5px 10px;
-            border-radius: 25px;
-            transition: background 0.2s;
-        }
-
-        .navbar-user-btn:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .user-avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary-color);
-        }
-
-        .user-avatar-placeholder {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            /* background: var(--primary-color); */
+            justify-content: space-between;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            text-transform: uppercase;
+            padding: 0 24px;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            left: 0;
-            top: 100%;
-            background-color: white;
-            min-width: 220px;
-            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 1px;
-        }
-
-        .content-wrapper {
-            padding: 0 !important;
-        }
-
-        .dropdown-content a,
-        .dropdown-content button.dropdown-item {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
+        .navbar-brand {
             display: flex;
             align-items: center;
             gap: 10px;
-            width: 100%;
-            text-align: right;
-            border: none;
-            background: none;
-            font-family: inherit;
-            cursor: pointer;
+            text-decoration: none;
+            color: #fff !important;
             font-size: 14px;
+            font-weight: 700;
+            line-height: 1.3;
+            flex-shrink: 0;
+        }
+
+        .navbar-brand i {
+            font-size: 28px;
+        }
+
+        /* ===== Toggler (Burger) - Always on far left ===== */
+        .navbar-toggler {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
             transition: background 0.2s;
+            margin-left: auto;
+            /* Push to far right in its flex container */
         }
 
-        .dropdown-content a:hover,
-        .dropdown-content button.dropdown-item:hover {
-            background-color: #f1f1f1;
-            color: var(--primary-color);
+        .navbar-toggler:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .dropdown-divider {
-            height: 1px;
-            background-color: #eee;
-            margin: 4px 0;
+        /* ===== Nav Links Container ===== */
+        .nav-links-container {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex: 1;
+            margin: 0 20px;
         }
 
-        .navbar-user-dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        /* Navbar Header Links Styles */
+        /* ===== Desktop Dropdowns ===== */
         .nav-item-dropdown {
             position: relative;
             display: inline-block;
@@ -131,7 +89,7 @@
             color: #fff;
             font-family: inherit;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             padding: 8px 12px;
             border-radius: 6px;
@@ -139,6 +97,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
         }
 
         .nav-item-btn:hover {
@@ -149,48 +108,187 @@
             display: block;
         }
 
-        /* Mobile Responsive Navbar styles */
-        .navbar-toggler {
-            display: none;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            color: white;
-            font-size: 18px;
-            padding: 4px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 15px;
-            /* Spacer from brand */
+        /* ===== User Dropdown (Professional Style) ===== */
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
         }
 
-        .navbar-toggler:hover {
+        .navbar-user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .navbar-user-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            font-family: inherit;
+            padding: 6px 10px 6px 6px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .navbar-user-btn:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        @media (max-width: 1024px) {
-            .navbar {
-                flex-wrap: wrap;
-                position: relative;
-            }
+        .navbar-user-btn span {
+            font-size: 13px;
+            font-weight: 600;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .user-avatar-placeholder {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+        .navbar-user-dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* ===== Dropdown Content (Shared) ===== */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: calc(100% + 6px);
+            background-color: white;
+            min-width: 220px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 6px 0;
+        }
+
+        .nav-item-dropdown .dropdown-content {
+            left: auto;
+            right: 0;
+        }
+
+        .dropdown-content a,
+        .dropdown-content button.dropdown-item {
+            color: #1e293b;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            text-align: right;
+            border: none;
+            background: none;
+            font-family: inherit;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.15s;
+        }
+
+        .dropdown-content a:hover,
+        .dropdown-content button.dropdown-item:hover {
+            background-color: #f1f5f9;
+            color: #6366f1;
+        }
+
+        .dropdown-content a i,
+        .dropdown-content button.dropdown-item i {
+            width: 18px;
+            text-align: center;
+            font-size: 15px;
+            color: #94a3b8;
+        }
+
+        .dropdown-content a:hover i,
+        .dropdown-content button.dropdown-item:hover i {
+            color: #6366f1;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: #e2e8f0;
+            margin: 4px 0;
+        }
+
+        .content-wrapper {
+            padding: 0 !important;
+        }
+
+        /* ===== Mobile Responsive ===== */
+        /* Medium screens: tighten spacing */
+        @media (max-width: 1400px) and (min-width: 1201px) {
+            .nav-links-container {
+                gap: 1px;
+                margin: 0 4px;
+                flex-wrap: nowrap;
+            }
+            .nav-item-btn {
+                font-size: 10px;
+                padding: 6px 6px;
+                gap: 3px;
+            }
+            .navbar-user-btn span {
+                max-width: 70px;
+                font-size: 11px;
+            }
+            .navbar-brand span {
+                font-size: 11px !important;
+            }
+            .navbar-brand i {
+                font-size: 22px !important;
+            }
+            .navbar {
+                padding: 0 12px;
+            }
+        }
+
+        @media (max-width: 1200px) {
             .navbar-toggler {
-                display: block;
-                /* Show burger icon */
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .nav-links-container {
                 display: none !important;
                 flex-direction: column;
-                align-items: flex-start !important;
+                align-items: stretch !important;
                 width: 100%;
-                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+                background: #1e293b;
                 position: absolute;
-                top: 100%;
+                top: 64px;
                 right: 0;
-                padding: 10px 0;
+                left: 0;
+                padding: 8px 0;
                 z-index: 1000;
-                gap: 5px !important;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                gap: 2px !important;
+                margin: 0;
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
             }
 
             .nav-links-container.show-mobile {
@@ -204,25 +302,78 @@
             .nav-item-btn {
                 width: 100%;
                 justify-content: flex-start;
-                padding: 12px 20px;
+                padding: 12px 24px;
                 border-radius: 0;
+                font-size: 13px;
             }
 
-            .dropdown-content {
-                position: static;
+            .nav-item-dropdown .dropdown-content {
+                position: static !important;
                 box-shadow: none;
-                background-color: rgba(0, 0, 0, 0.2);
+                background: rgba(255, 255, 255, 0.06);
                 border-radius: 0;
+                margin: 0;
+                padding: 0;
+                left: auto !important;
+                right: auto !important;
             }
 
-            .dropdown-content a {
-                color: #fff;
-                padding-right: 40px;
+            .nav-item-dropdown .dropdown-content a {
+                color: rgba(255, 255, 255, 0.85);
+                padding: 10px 40px;
+                font-size: 13px;
             }
 
-            .dropdown-content a:hover {
-                background-color: rgba(255, 255, 255, 0.1);
+            .nav-item-dropdown .dropdown-content a:hover {
+                background: rgba(255, 255, 255, 0.1);
                 color: #fff;
+            }
+
+            .nav-item-dropdown .dropdown-content a i {
+                color: rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        /* Small phones (360px - 480px) */
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 0 10px !important;
+                height: 56px !important;
+            }
+            .navbar-brand i {
+                font-size: 22px !important;
+            }
+            .navbar-brand span {
+                font-size: 11px !important;
+                line-height: 1.3;
+                max-height: 14.3px;
+                overflow: hidden;
+                display: block;
+                white-space: normal;
+            }
+            .navbar-user-btn {
+                padding: 4px 8px 4px 4px !important;
+                gap: 5px !important;
+            }
+            .navbar-user-btn span {
+                font-size: 11px !important;
+                max-width: 75px !important;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .user-avatar,
+            .user-avatar-placeholder {
+                width: 30px !important;
+                height: 30px !important;
+            }
+            .navbar-toggler {
+                width: 34px !important;
+                height: 34px !important;
+                font-size: 15px !important;
+            }
+            .nav-links-container.show-mobile {
+                top: 56px !important;
             }
         }
     </style>
@@ -231,7 +382,7 @@
 <body>
     <div class="app-container">
         @if (auth()->check())
-            <nav class="navbar" style="position: relative;">
+            <nav class="navbar">
                 <div style="display: flex; align-items: center;">
                     <a href="{{ route('dashboard') }}" style="color: #fff !important;" class="navbar-brand">
                         <i class="fa-solid fa-file-circle-check"></i>
@@ -241,13 +392,9 @@
                             Claims Management System
                         </span>
                     </a>
-                    <button class="navbar-toggler" id="mobileNavToggle">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
                 </div>
 
-                <div class="nav-links-container"
-                    style="flex-grow: 1; display: flex; justify-content: center; gap: 1px; margin-right: 20px; align-items: center; flex-wrap: wrap;">
+                <div class="nav-links-container">
                     @if(Auth::user()->canAccessNonPayments())
                         <a href="{{ route('hospitals.index') }}" class="nav-item-btn" style="text-decoration: none;">
                             <i class="fa-solid fa-hospital"></i> المستشفيات والأقسام
@@ -323,10 +470,11 @@
                     @endif
                 </div>
 
-                <div class="navbar-menu">
-                    <div class="navbar-user-dropdown">
-                        <button class="navbar-user-btn">
-                            <span>مرحباً، {{ Auth::user()->name }}</span>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <div class="navbar-menu">
+                        <div class="navbar-user-dropdown">
+                            <button class="navbar-user-btn">
+                                <span>مرحباً، {{ Auth::user()->name }}</span>
                             @if(Auth::user()->avatar)
                                 <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="user-avatar">
                             @else
@@ -357,6 +505,9 @@
                             </form>
                         </div>
                     </div>
+                    <button class="navbar-toggler" id="mobileNavToggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
                 </div>
             </nav>
             <div class="dashboard-container">
@@ -406,7 +557,7 @@
 
             // Toggle dropdowns on click in mobile view
             $('.nav-item-btn').on('click', function (e) {
-                if ($(window).width() <= 1024 && $(this).parent().hasClass('nav-item-dropdown')) {
+                if ($(window).width() <= 1200 && $(this).parent().hasClass('nav-item-dropdown')) {
                     var $content = $(this).siblings('.dropdown-content');
                     $('.dropdown-content').not($content).slideUp(200); // close others
                     $content.slideToggle(200);

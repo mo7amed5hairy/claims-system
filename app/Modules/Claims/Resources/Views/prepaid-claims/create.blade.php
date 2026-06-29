@@ -298,7 +298,7 @@
                 @csrf
 
                 <!-- Row 1: All Basic Fields (8 fields) -->
-                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 0.9fr 0.6fr 0.7fr 0.9fr 0.9fr 0.9fr 1.2fr 1.2fr !important; gap: 8px !important;">
+                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 0.9fr 0.6fr 0.7fr 0.9fr 0.9fr 0.9fr 1.2fr 1.2fr; gap: 8px !important;">
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-hashtag"></i> رقم المطالبة <span class="text-danger">*</span></label>
                         <input type="text" name="claim_number" class="form-control" value="{{ old('claim_number') }}" required placeholder="رقم المطالبة" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
@@ -405,7 +405,7 @@
                 </div>
 
                 <!-- Row 2: Entity & Related Fields -->
-                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr 0.9fr 0.9fr !important; gap: 8px !important;">
+                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr 0.9fr 0.9fr; gap: 8px !important;">
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-building"></i> الجهة</label>
                         <select name="entity_id" id="entitySelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">

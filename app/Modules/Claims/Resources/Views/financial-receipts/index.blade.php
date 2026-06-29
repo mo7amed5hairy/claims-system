@@ -22,9 +22,9 @@
 
     .form-row {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 8px;
-        margin-bottom: 8px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 12px;
     }
 
     .form-group {
@@ -102,8 +102,88 @@
         gap: 6px !important;
     }
 
-    #receiptFormContainer {
+    .modal-overlay {
         display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(30px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-box {
+        width: 100%;
+        max-width: 960px;
+        margin: 0 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 16px !important;
+        padding: 0 !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        animation: slideUp 0.25s ease;
+    }
+
+    .modal-box .card-header {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        padding: 18px 24px;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-box .card-header h3 {
+        color: #fff;
+    }
+
+    .modal-box .card-header .close-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #fff;
+        font-size: 18px;
+    }
+
+    .modal-box .card-header .close-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: rotate(90deg);
+    }
+
+    .modal-box textarea.form-control {
+        min-height: 34px !important;
+        height: 34px !important;
     }
 
     .table-container {
@@ -164,66 +244,87 @@
                 </button>
             </div>
 
-            <div id="receiptFormContainer">
-                <form id="receiptForm" method="POST" action="{{ route('financial-receipts.store') }}">
-                    @csrf
-                    <input type="hidden" name="_method" id="formMethod" value="POST">
-                    <input type="hidden" name="receipt_id" id="receiptId" value="">
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label"><i class="fa-solid fa-building"></i> جهة التسليم</label>
-                            <select name="payer_entity_name" id="entitySelect" class="form-control" required>
-                                <option value="">اختر جهة التسليم أو اكتب اسم جديد</option>
-                                @foreach($entities as $entity)
-                                    <option value="{{ $entity->name }}">{{ $entity->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى (جهة الاستلام)</label>
-                            <select name="payee_hospital_id" id="hospitalSelect" class="form-control" required>
-                                <option value="">اختر المستشفى</option>
-                                @foreach($hospitals as $hosp)
-                                    <option value="{{ $hosp->id }}">{{ $hosp->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم</label>
-                            <select name="payee_department_id" id="departmentSelect" class="form-control">
-                                <option value="">اختر القسم</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label"><i class="fa-solid fa-money-bill-wave"></i> المبلغ المستلم</label>
-                            <input type="number" step="0.01" name="amount" id="amountInput" class="form-control" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label"><i class="fa-solid fa-calendar"></i> تاريخ الاستلام</label>
-                            <input type="date" name="receipt_date" class="form-control" required>
-                        </div>
+            <div id="receiptModal" class="modal-overlay">
+                <div class="form-card modal-box">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 700;">
+                            <i class="fa-solid fa-hand-holding-dollar"></i> <span id="modalTitle">إضافة استلام دفعة
+                                مالية</span>
+                        </h3>
+                        <button type="button" id="closeModalBtn" class="close-btn">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group" style="grid-column: span 3;">
-                            <label class="form-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</label>
-                            <textarea name="notes" class="form-control" placeholder="ملاحظات إضافية..."></textarea>
-                        </div>
-                    </div>
+                    <form id="receiptForm" method="POST" action="{{ route('financial-receipts.store') }}"
+                        style="padding: 20px 24px 16px;">
+                        @csrf
+                        <input type="hidden" name="_method" id="formMethod" value="POST">
+                        <input type="hidden" name="receipt_id" id="receiptId" value="">
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fa-solid fa-check"></i>
-                            حفظ</button>
-                        <button type="button" id="cancelFormBtn" class="btn btn-secondary"><i class="fa-solid fa-times"></i>
-                            إلغاء</button>
-                    </div>
-                </form>
-                <hr style="margin: 16px 0; border-color: #e2e8f0;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fa-solid fa-building"></i> جهة التسليم <span
+                                        style="color:#ef4444;">*</span></label>
+                                <select name="payer_entity_name" id="entitySelect" class="form-control" required>
+                                    <option value="">اختر جهة التسليم أو اكتب اسم جديد</option>
+                                    @foreach($entities as $entity)
+                                        <option value="{{ $entity->name }}">{{ $entity->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى <span
+                                        style="color:#ef4444;">*</span></label>
+                                <select name="payee_hospital_id" id="hospitalSelect" class="form-control" required>
+                                    <option value="">اختر المستشفى</option>
+                                    @foreach($hospitals as $hosp)
+                                        <option value="{{ $hosp->id }}">{{ $hosp->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label"><i class="fa-solid fa-stethoscope"></i> القسم <span
+                                        style="color:#ef4444;">*</span></label>
+                                <select name="payee_department_id" id="departmentSelect" class="form-control" required>
+                                    <option value="">اختر القسم</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fa-solid fa-money-bill-wave"></i> المبلغ المستلم <span
+                                        style="color:#ef4444;">*</span></label>
+                                <input type="number" step="0.01" name="amount" id="amountInput" class="form-control"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label"><i class="fa-solid fa-calendar"></i> تاريخ الاستلام</label>
+                                <input type="date" name="receipt_date" class="form-control" value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label"><i class="fa-solid fa-note-sticky"></i> ملاحظات</label>
+                                <textarea name="notes" class="form-control" placeholder="ملاحظات إضافية..."
+                                    style="min-height: 34px !important; height: 34px !important; resize: vertical;"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-actions"
+                            style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fa-solid fa-check"></i> حفظ
+                            </button>
+                            <button type="button" id="cancelFormBtn" class="btn btn-secondary">
+                                <i class="fa-solid fa-times"></i> إلغاء
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <div class="table-container">
@@ -312,13 +413,15 @@
             const $formMethod = $('#formMethod');
             const $receiptId = $('#receiptId');
             const $submitBtn = $('#submitBtn');
-            const $formContainer = $('#receiptFormContainer');
             const $showFormBtn = $('#showFormBtn');
             const $cancelFormBtn = $('#cancelFormBtn');
 
-            $entitySelect.select2({ dir: "rtl", width: '100%', tags: true, placeholder: 'اختر جهة التسليم أو اكتب اسم جديد' });
-            $hospitalSelect.select2({ dir: "rtl", width: '100%', placeholder: 'اختر المستشفى' });
-            $departmentSelect.select2({ dir: "rtl", width: '100%', placeholder: 'اختر القسم' });
+            const $modal = $('#receiptModal');
+            const $closeModalBtn = $('#closeModalBtn');
+
+            $entitySelect.select2({ dir: "rtl", width: '100%', tags: true, placeholder: 'اختر جهة التسليم أو اكتب اسم جديد', dropdownParent: $modal });
+            $hospitalSelect.select2({ dir: "rtl", width: '100%', placeholder: 'اختر المستشفى', dropdownParent: $modal });
+            $departmentSelect.select2({ dir: "rtl", width: '100%', placeholder: 'اختر القسم', dropdownParent: $modal });
 
             $hospitalSelect.on('change', function () {
                 const hospitalId = $(this).val();
@@ -336,14 +439,20 @@
 
             $showFormBtn.on('click', function () {
                 resetForm();
-                $formContainer.slideDown(300);
-                $showFormBtn.hide();
+                $modal.addClass('active');
             });
 
-            $cancelFormBtn.on('click', function () {
-                $formContainer.slideUp(300);
-                $showFormBtn.show();
+            function closeModal() {
+                $modal.removeClass('active');
                 resetForm();
+            }
+
+            $cancelFormBtn.on('click', closeModal);
+            $closeModalBtn.on('click', closeModal);
+            $modal.on('click', function (e) {
+                if ($(e.target).is('.modal-overlay')) {
+                    closeModal();
+                }
             });
 
             $(document).on('click', '.edit-btn', function () {
@@ -358,6 +467,7 @@
 
                 $formMethod.val('PUT');
                 $receiptId.val(id);
+                $('#modalTitle').text('تعديل استلام دفعة مالية');
                 $submitBtn.html('<i class="fa-solid fa-save"></i> تحديث');
                 $receiptForm.attr('action', '{{ url('dashboard/financial-receipts') }}/' + id);
 
@@ -374,13 +484,13 @@
                 $('input[name="receipt_date"]').val(receiptDate);
                 $('textarea[name="notes"]').val(notes);
 
-                $formContainer.slideDown(300);
-                $showFormBtn.hide();
+                $modal.addClass('active');
             });
 
             function resetForm() {
                 $formMethod.val('POST');
                 $receiptId.val('');
+                $('#modalTitle').text('إضافة استلام دفعة مالية');
                 $submitBtn.html('<i class="fa-solid fa-check"></i> حفظ');
                 $receiptForm.attr('action', '{{ route('financial-receipts.store') }}');
                 $receiptForm[0].reset();

@@ -19,7 +19,7 @@
         <p class="page-subtitle">اختر المستشفى والقسم</p>
     </div>
 
-    <div class="form-container">
+    <div style="max-width: 700px; margin: 0 auto; padding: 0 16px;">
         <div class="form-card">
             <form method="POST" action="{{ route('flow.store-waiting-lists-ministry') }}">
                 @csrf

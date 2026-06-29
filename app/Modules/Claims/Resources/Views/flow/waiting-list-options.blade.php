@@ -3,7 +3,6 @@
 @section('title', 'قوائم انتظار التأمين الصحي')
 
 @section('content')
-    <!-- Breadcrumb Navigation -->
     <div class="breadcrumb-nav">
         <a href="{{ route('dashboard') }}" class="breadcrumb-item">
             <i class="fa-solid fa-home"></i> الرئيسية
@@ -19,7 +18,7 @@
         <p class="page-subtitle">اختر المستشفى والقسم والمستفيد</p>
     </div>
 
-    <div class="form-container">
+    <div style="max-width: 700px; margin: 0 auto; padding: 0 16px;">
         <div class="form-card">
             <form method="POST" action="{{ route('flow.store-waiting-lists-insurance') }}">
                 @csrf
@@ -62,7 +61,7 @@
                     </select>
                 </div>
 
-                <div class="form-actions">
+                <div class="form-actions" style="flex-wrap: wrap; gap: 10px;">
                     <button type="submit" id="next_btn" class="btn btn-primary" disabled>
                         <i class="fa-solid fa-arrow-left"></i> التالي
                     </button>

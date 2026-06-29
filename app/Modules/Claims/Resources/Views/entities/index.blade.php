@@ -145,10 +145,10 @@
 </div>
 
 <div id="addEntityModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
-    <div class="card" style="width: 100%; max-width: 850px; margin: 0; background: white; border-radius: 15px; overflow: hidden; display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+    <div class="entity-modal-content" style="width: 100%; max-width: 850px; margin: 0; background: white; border-radius: 16px; overflow: hidden; display: flex; flex-direction: row; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
 
         <!-- Illustration Section (Right Side) -->
-        <div style="flex: 1; background: #ffffff; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center;">
+        <div class="entity-modal-illustration" style="flex: 1; background: #ffffff; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center;">
             <div style="width: 100%; max-width: 350px;">
                 <img src="{{ asset('images/org_illustration.png') }}" alt="Institution" style="width: 100%; height: auto; border-radius: 10px; margin-bottom: 20px;">
                 <h3 style="color: #0056b3; margin: 0; font-size: 18px;">تنظيم البيانات</h3>
@@ -159,7 +159,7 @@
         </div>
 
         <!-- Form Section (Left Side) -->
-        <div style="flex: 1; padding: 40px; border-right: 1px solid #eee;">
+        <div class="entity-modal-form" style="flex: 1; padding: 40px; border-right: 1px solid #eee;">
             <div style="text-align: right; margin-bottom: 30px;">
                 <h2 style="margin: 0; color: #333; font-size: 24px;">إضافة جهة جديدة</h2>
                 <p style="color: #666; font-size: 14px; margin-top: 5px;">أدخل بيانات المؤسسة أو الجهة الرسمية</p>

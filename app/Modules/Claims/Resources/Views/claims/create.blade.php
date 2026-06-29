@@ -15,7 +15,9 @@
         padding: 0 !important;
         margin: 0 !important;
         max-height: calc(100vh - 120px) !important;
+        overflow-x: auto !important;
         overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
     .form-card {
         padding: 4px 8px !important;
@@ -246,23 +248,46 @@
     }
     /* Responsive Design */
     @media (max-width: 1400px) {
-        .form-row {
+        .form-row:not([style*="padding"]) {
             grid-template-columns: repeat(6, 1fr) !important;
         }
     }
-    @media (max-width: 992px) {
+    @media (max-width: 1200px) {
         .form-row {
             grid-template-columns: repeat(4, 1fr) !important;
         }
     }
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
         .form-row {
             grid-template-columns: repeat(3, 1fr) !important;
+        }
+    }
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: repeat(2, 1fr) !important;
         }
     }
     @media (max-width: 576px) {
         .form-row, .form-row-2, .form-row-3, .form-row-4 {
             grid-template-columns: repeat(1, 1fr) !important;
+        }
+    }
+    @media (max-width: 480px) {
+        .form-row, .form-row-2, .form-row-3, .form-row-4 {
+            grid-template-columns: repeat(1, 1fr) !important;
+        }
+        .form-row .form-group,
+        .form-row-2 .form-group,
+        .form-row-3 .form-group,
+        .form-row-4 .form-group {
+            min-width: 0 !important;
+        }
+        .form-label {
+            font-size: 10px !important;
+            white-space: normal !important;
+        }
+        .form-control {
+            font-size: 12px !important;
         }
     }
 </style>
@@ -298,7 +323,7 @@
                 @csrf
 
                 <!-- Row 1: All Basic Fields (8 fields) -->
-                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 0.9fr 0.6fr 0.7fr 0.9fr 0.9fr 0.9fr 1.2fr 1.2fr !important; gap: 8px !important;">
+                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 0.9fr 0.6fr 0.7fr 0.9fr 0.9fr 0.9fr 1.2fr 1.2fr; gap: 8px !important;">
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-hashtag"></i> رقم المطالبة <span class="text-danger">*</span></label>
                         <input type="text" name="claim_number" class="form-control" value="{{ old('claim_number') }}" required placeholder="رقم المطالبة" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
@@ -405,7 +430,7 @@
                 </div>
 
                 <!-- Row 2: Entity & Related Fields -->
-                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr 0.9fr 0.9fr !important; gap: 8px !important;">
+                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr 0.9fr 0.9fr; gap: 8px !important;">
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-building"></i> الجهة</label>
                         <select name="entity_id" id="entitySelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
