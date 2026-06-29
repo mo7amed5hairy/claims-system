@@ -405,6 +405,7 @@
                             <input type="text" name="claim_number" id="claimNumberInput" class="form-control"
                                 value="{{ old('claim_number') }}" placeholder="رقم المطالبة...">
                             <small class="text-muted"><i class="fa-solid fa-info-circle"></i> اكتب للبحث</small>
+                            <span id="claimNumberError" class="error-message" style="display:none;color:#dc3545;font-size:11px;"></span>
                             @error('claim_number') <span class="error-message">{{ $message }}</span> @enderror
                         </div>
                     @endif
@@ -415,6 +416,7 @@
                             <label class="form-label"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
                             <input type="text" name="electronic_invoice_no" id="electronicInvoiceInput" class="form-control"
                                 value="{{ old('electronic_invoice_no') }}" placeholder="رقم الفاتورة الإلكترونية...">
+                            <span id="electronicInvoiceError" class="error-message" style="display:none;color:#dc3545;font-size:11px;"></span>
                             @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
                         </div>
                     @endif
@@ -471,13 +473,13 @@
                         </div>
 
                         {{-- Hidden fields to store claim data --}}
-                        <input type="hidden" name="electronic_invoice_no" id="electronicInvoiceNoField"
+                        <input type="hidden" data-name="electronic_invoice_no" id="electronicInvoiceNoField"
                             value="{{ old('electronic_invoice_no') }}">
-                        <input type="hidden" name="payee_hospital_id" id="hospitalIdField"
+                        <input type="hidden" data-name="payee_hospital_id" id="hospitalIdField"
                             value="{{ old('payee_hospital_id', $hospital->id ?? '') }}">
-                        <input type="hidden" name="department_id" id="departmentIdField"
+                        <input type="hidden" data-name="department_id" id="departmentIdField"
                             value="{{ old('department_id', $department->id ?? '') }}">
-                        <input type="hidden" name="payer_entity_id" id="entityIdField"
+                        <input type="hidden" data-name="payer_entity_id" id="entityIdField"
                             value="{{ old('payer_entity_id', $selectedEntityId ?? '') }}">
                     </div>
                 @endif
@@ -663,7 +665,7 @@
                 </script>
 
                 <div class="form-actions" style="margin-top: 8px;">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="fa-solid fa-check"></i> تأكيد أمر الدفع
                     </button>
                     <a href="{{ route('prepaid-payments.index') }}" class="btn btn-secondary">
@@ -1151,6 +1153,8 @@
                     method: 'GET',
                     data: { electronic_invoice_no: electronicInvoiceNo },
                     success: function (response) {
+                        // Clear previous error
+                        $('#electronicInvoiceError').hide();
                         if (response.success) {
                             // Display claim details
                             $('#claimNumberDisplay').val(response.claim.claim_number);
@@ -1193,18 +1197,45 @@
                             // Auto-calculate amount_after_review
                             autoCalcAmountAfterReview();
                         } else {
-                            // Claim not found - hide sections but don't alert
-                            $('#claimDetailsSection').hide();
-                            $('#reviewFieldsRow').hide();
+                            // Claim not found - show error message on electronic invoice
+                            $('#electronicInvoiceError').text('رقم الفاتورة غير صحيح').show();
+                            $('#claimDetailsSection').slideUp(300);
+                            $('#reviewFieldsRow').slideUp(300);
                         }
                     },
                     error: function () {
-                        // Error - hide sections
-                        $('#claimDetailsSection').hide();
-                        $('#reviewFieldsRow').hide();
+                        $('#electronicInvoiceError').text('رقم الفاتورة غير صحيح').show();
+                        $('#claimDetailsSection').slideUp(300);
+                        $('#reviewFieldsRow').slideUp(300);
                     }
                 });
             }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('form').on('submit', function (e) {
+                var valid = true;
+
+                $(this).find('select[required].select2').each(function () {
+                    if (!$(this).val()) {
+                        valid = false;
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                    } else {
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '');
+                    }
+                });
+
+                if (!valid) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                var $btn = $('#saveBtn');
+                $btn.prop('disabled', true);
+                $btn.html('<i class="fa-solid fa-spinner fa-spin"></i> جارى الحفظ ...');
+            });
         });
     </script>
 @endsection

@@ -282,6 +282,7 @@
             <form action="{{ route('prepaid-claims.update', $claim->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="claim_number" value="{{ $claim->claim_number }}">
 
                 <!-- Main Fields Row 1 (9 columns) -->
                 <div class="form-row form-section" style="padding: 8px !important;">
@@ -341,7 +342,7 @@
 
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
-                        <input type="text" name="electronic_invoice_no" class="form-control" value="{{ old('electronic_invoice_no', $claim->electronic_invoice_no) }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <input type="text" name="electronic_invoice_no" class="form-control" value="{{ old('electronic_invoice_no', $claim->electronic_invoice_no) }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
@@ -351,8 +352,6 @@
                         @error('delivery_date') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="form-group" style="margin: 0;"></div>
-                    <div class="form-group" style="margin: 0;"></div>
                     <div class="form-group" style="margin: 0;"></div>
                 </div>
 
@@ -391,18 +390,6 @@
                                 <option value="{{ $claim->beneficiary }}" selected>{{ $claim->beneficiary }}</option>
                             @endif
                         </select>
-                    </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
-                        <input type="text" name="electronic_invoice_no" class="form-control" value="{{ old('electronic_invoice_no', $claim->electronic_invoice_no) }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                        @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar-check"></i> تاريخ التسليم</label>
-                        <input type="date" name="delivery_date" class="form-control" value="{{ old('delivery_date', $claim->delivery_date ? $claim->delivery_date->format('Y-m-d') : '') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                        @error('delivery_date') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
@@ -886,5 +873,31 @@
                 saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
             }
         }
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('form').on('submit', function (e) {
+                var valid = true;
+
+                $(this).find('select[required].select2').each(function () {
+                    if (!$(this).val()) {
+                        valid = false;
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                    } else {
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '');
+                    }
+                });
+
+                if (!valid) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                var $btn = $('#saveBtn');
+                $btn.prop('disabled', true);
+                $btn.html('<i class="fa-solid fa-spinner fa-spin"></i> جارى الحفظ ...');
+            });
+        });
     </script>
 @endsection

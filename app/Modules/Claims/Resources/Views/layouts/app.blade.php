@@ -104,7 +104,8 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
-        .nav-item-dropdown:hover .dropdown-content {
+        .nav-item-dropdown:hover .dropdown-content,
+        .nav-item-dropdown.dropdown-open .dropdown-content {
             display: block;
         }
 
@@ -167,7 +168,8 @@
             font-size: 15px;
         }
 
-        .navbar-user-dropdown:hover .dropdown-content {
+        .navbar-user-dropdown:hover .dropdown-content,
+        .navbar-user-dropdown.dropdown-open .dropdown-content {
             display: block;
         }
 
@@ -563,6 +565,39 @@
                     $content.slideToggle(200);
                 }
             });
+
+            // Desktop dropdown hover with delay
+            if ($(window).width() > 1200) {
+                $('.nav-item-dropdown, .navbar-user-dropdown').on('mouseenter', function () {
+                    clearTimeout($(this).data('dropdownTimer'));
+                    $(this).addClass('dropdown-open');
+                }).on('mouseleave', function () {
+                    var $self = $(this);
+                    var timer = setTimeout(function () {
+                        $self.removeClass('dropdown-open');
+                    }, 200);
+                    $self.data('dropdownTimer', timer);
+                });
+                // Keep open when hovering on the dropdown content itself
+                $(document).on('mouseenter', '.dropdown-content', function () {
+                    var $parent = $(this).closest('.nav-item-dropdown, .navbar-user-dropdown');
+                    clearTimeout($parent.data('dropdownTimer'));
+                }).on('mouseleave', '.dropdown-content', function () {
+                    var $parent = $(this).closest('.nav-item-dropdown, .navbar-user-dropdown');
+                    if ($parent.length) {
+                        var timer = setTimeout(function () {
+                            $parent.removeClass('dropdown-open');
+                        }, 200);
+                        $parent.data('dropdownTimer', timer);
+                    }
+                });
+                // Close on click outside
+                $(document).on('click', function (e) {
+                    if (!$(e.target).closest('.nav-item-dropdown, .navbar-user-dropdown').length) {
+                        $('.nav-item-dropdown, .navbar-user-dropdown').removeClass('dropdown-open');
+                    }
+                });
+            }
         });
     </script>
 

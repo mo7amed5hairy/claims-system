@@ -378,10 +378,10 @@
                     </div>
                     
                     {{-- Hidden fields to store claim data --}}
-                    <input type="hidden" name="electronic_invoice_no" id="electronicInvoiceNoField" value="{{ $claim->electronic_invoice_no }}">
-                    <input type="hidden" name="payee_hospital_id" id="hospitalIdField" value="{{ old('payee_hospital_id', $payment->payee_hospital_id ?? '') }}">
-                    <input type="hidden" name="department_id" id="departmentIdField" value="{{ old('department_id', $payment->department_id ?? '') }}">
-                    <input type="hidden" name="payer_entity_id" id="entityIdField" value="{{ old('payer_entity_id', $payment->payer_entity_id ?? '') }}">
+                    <input type="hidden" data-name="electronic_invoice_no" id="electronicInvoiceNoField" value="{{ $claim->electronic_invoice_no }}">
+                    <input type="hidden" data-name="payee_hospital_id" id="hospitalIdField" value="{{ old('payee_hospital_id', $payment->payee_hospital_id ?? '') }}">
+                    <input type="hidden" data-name="department_id" id="departmentIdField" value="{{ old('department_id', $payment->department_id ?? '') }}">
+                    <input type="hidden" data-name="payer_entity_id" id="entityIdField" value="{{ old('payer_entity_id', $payment->payer_entity_id ?? '') }}">
                 </div>
                 @endif
 
@@ -571,7 +571,7 @@
                 </script>
 
                 <div class="form-actions" style="margin-top: 8px;">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="fa-solid fa-save"></i> حفظ التعديلات
                     </button>
                     <a href="{{ route('payments.index') }}" class="btn btn-secondary">
@@ -869,6 +869,46 @@
                     }
                 }
             }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Auto-calculate amount_after_review
+            function autoCalcAmountAfterReview() {
+                const amount = parseFloat($('input[name="amount"]').val()) || 0;
+                const deduction = parseFloat($('input[name="deduction"]').val()) || 0;
+                const taxes = parseFloat($('input[name="taxes"]').val()) || 0;
+                if (amount > 0) {
+                    const net = amount - (amount * deduction / 100) - (amount * taxes / 100);
+                    $('#amountAfterReview').val(Math.max(0, net.toFixed(2)));
+                }
+            }
+
+            $('input[name="amount"], input[name="deduction"], input[name="taxes"]').on('input', function () {
+                if ($('#claimDetailsSection').is(':visible')) {
+                    autoCalcAmountAfterReview();
+                }
+            });
+
+            $('form').on('submit', function (e) {
+                var valid = true;
+                $(this).find('select[required].select2').each(function () {
+                    if (!$(this).val()) {
+                        valid = false;
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                    } else {
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '');
+                    }
+                });
+                if (!valid) {
+                    e.preventDefault();
+                    return false;
+                }
+                var $btn = $('#saveBtn');
+                $btn.prop('disabled', true);
+                $btn.html('<i class="fa-solid fa-spinner fa-spin"></i> جارى الحفظ ...');
+            });
         });
     </script>
 @endsection

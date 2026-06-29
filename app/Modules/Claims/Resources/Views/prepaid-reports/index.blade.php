@@ -669,7 +669,8 @@
                             $deptName = $order->department->name ?? '-';
                         @endphp
                         <tr data-year="{{ $year }}" data-month="{{ $fullMonth }}" data-hosp="{{ $hospName }}"
-                            data-entity="{{ $order->entity->name ?? '-' }}" data-dept="{{ $deptName }}">
+                            data-entity="{{ $order->entity->name ?? '-' }}" data-dept="{{ $deptName }}"
+                            data-location="{{ $order->claim->location ?? ($order->location ?? '') }}">
                             <td><span class="badge-hosp">{{ $hospName }}</span></td>
                             <td><span class="badge-entity"
                                     style="background:#ecfeff; color:#0891b2; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:700;">{{ $order->entity->name ?? '-' }}</span>
@@ -750,6 +751,7 @@
             var monthNames = @json($allMonths);
             var othersDepartments = @json($othersDepartments);
             var dbEntities = @json($allEntities);
+            var entitySubFilters = @json($entitySubFilters);
 
             var allYears = [];
             $.each(allRows, function (_, r) { if (allYears.indexOf(r.year) === -1) allYears.push(r.year); });
@@ -879,6 +881,35 @@
                         $dc.slideToggle(200);
                         $(this).html($dc.is(':visible') ? '&#9660;' : '&#9654;');
                     });
+                } else if (colIdx === 1 && entitySubFilters) {
+                    $.each(vals, function (_, v) {
+                        var chk = !currentFilter || currentFilter.indexOf(v) > -1 ? 'checked' : '';
+                        if (entitySubFilters[v]) {
+                            $opts.append(
+                                '<div class="rp-dd-item">' +
+                                '<span class="col-entity-toggle" style="cursor:pointer;font-size:10px;margin-left:5px;user-select:none;">&#9654;</span>' +
+                                '<input type="checkbox" class="col-cb" value="' + v + '" ' + chk + '><label>' + v + '</label></div>'
+                            );
+                            var $ec = $('<div class="col-entity-container" style="display:none;"></div>');
+                            $.each(entitySubFilters[v], function (_, sub) {
+                                var schk = !currentFilter || currentFilter.indexOf(sub) > -1 ? 'checked' : '';
+                                $ec.append(
+                                    '<div class="rp-dd-item" style="margin-right:20px;border-right:2px solid #cbd5e1;padding-right:8px;">' +
+                                    '<input type="checkbox" class="col-cb" value="' + sub + '" ' + schk + '>' +
+                                    '<label style="font-size:11px;color:#475569">' + sub + '</label></div>'
+                                );
+                            });
+                            $opts.append($ec);
+                        } else {
+                            $opts.append('<div class="rp-dd-item"><input type="checkbox" class="col-cb" value="' + v + '" ' + chk + '><label>' + v + '</label></div>');
+                        }
+                    });
+                    $opts.find('.col-entity-toggle').on('click', function (e) {
+                        e.stopPropagation();
+                        var $ec = $(this).closest('.rp-dd-item').next('.col-entity-container');
+                        $ec.slideToggle(200);
+                        $(this).html($ec.is(':visible') ? '&#9660;' : '&#9654;');
+                    });
                 } else {
                     $.each(vals, function (_, v) {
                         var chk = !currentFilter || currentFilter.indexOf(v) > -1 ? 'checked' : '';
@@ -902,8 +933,8 @@
 
             $('#colFilterSearch').on('keyup', function () {
                 var v = normalizeArabic($(this).val().toLowerCase());
-                $('#colFilterOpts').children('.rp-dd-item, .col-dept-container').each(function () {
-                    if ($(this).hasClass('col-dept-container')) {
+                $('#colFilterOpts').children('.rp-dd-item, .col-dept-container, .col-entity-container').each(function () {
+                    if ($(this).hasClass('col-dept-container') || $(this).hasClass('col-entity-container')) {
                         var hasMatch = false;
                         $(this).find('.rp-dd-item').each(function () {
                             var t = normalizeArabic($(this).text().toLowerCase());
@@ -911,8 +942,8 @@
                             $(this).toggle(m);
                             if (m) hasMatch = true;
                         });
-                        if (v && hasMatch) { $(this).show(); $(this).prev('.rp-dd-item').find('.col-dept-toggle').html('&#9660;'); }
-                        else if (!v) { $(this).hide(); $(this).prev('.rp-dd-item').find('.col-dept-toggle').html('&#9654;'); }
+                        if (v && hasMatch) { $(this).show(); $(this).prev('.rp-dd-item').find('.col-dept-toggle, .col-entity-toggle').html('&#9660;'); }
+                        else if (!v) { $(this).hide(); $(this).prev('.rp-dd-item').find('.col-dept-toggle, .col-entity-toggle').html('&#9654;'); }
                     } else {
                         $(this).toggle(normalizeArabic($(this).text().toLowerCase()).indexOf(v) > -1);
                     }
@@ -1064,6 +1095,7 @@
                 var rowMonth = rowNode ? rowNode.getAttribute('data-month') : '';
                 var rowHosp = rowNode ? rowNode.getAttribute('data-hosp') : '';
                 var rowDept = rowNode ? rowNode.getAttribute('data-dept') : '';
+                var rowLocation = rowNode ? rowNode.getAttribute('data-location') : '';
 
                 var selY = $('.cb-year:checked').map(function () { return $(this).val(); }).get();
                 if (selY.length && selY.indexOf(String(rowYear)) === -1) return false;
@@ -1095,6 +1127,22 @@
                         if (!matched && ciNum === 0 && cellText.indexOf('باق') > -1) {
                             for (var k = 0; k < colFilterState[ci].length; k++) {
                                 if (rowDept && normalizeArabic(rowDept).toLowerCase() === normalizeArabic(colFilterState[ci][k]).toLowerCase()) { matched = true; break; }
+                            }
+                        }
+                        if (!matched && ciNum === 1 && entitySubFilters) {
+                            for (var k = 0; k < colFilterState[ci].length; k++) {
+                                var filterVal = normalizeArabic(colFilterState[ci][k]).toLowerCase();
+                                var isSubFilter = false;
+                                for (var entityName in entitySubFilters) {
+                                    if (entitySubFilters[entityName].indexOf(colFilterState[ci][k]) > -1) {
+                                        isSubFilter = true;
+                                        break;
+                                    }
+                                }
+                                if (isSubFilter && rowLocation && normalizeArabic(rowLocation).toLowerCase() === filterVal) {
+                                    matched = true;
+                                    break;
+                                }
                             }
                         }
                         if (!matched) return false;

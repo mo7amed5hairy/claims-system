@@ -276,7 +276,7 @@
 
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-money-bill-wave"></i> مبلغ التحصيل</label>
-                        <input type="number" step="0.01" name="amount" class="form-control"
+                        <input type="number" step="0.01" name="amount" id="paymentAmount" class="form-control"
                             value="{{ old('amount', $payment->amount) }}" required>
                         @error('amount') <span class="error-message">{!! $message !!}</span> @enderror
                     </div>
@@ -334,6 +334,7 @@
                     <div class="form-group" id="electronicInvoiceContainer">
                         <label class="form-label"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
                         <input type="text" name="electronic_invoice_no" id="electronicInvoiceInput" class="form-control" value="{{ old('electronic_invoice_no', $payment->electronic_invoice_no ?? $payment->claim_number) }}" placeholder="رقم الفاتورة الإلكترونية...">
+                        <span id="electronicInvoiceError" class="error-message" style="display:none;color:#dc3545;font-size:11px;"></span>
                         @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
                     @endif
@@ -344,26 +345,25 @@
                     @endif
                 </div>
 
-                {{-- Claim Details Section (shown when editing existing payment with claim) --}}
-                @if($claim)
-                <div id="claimDetailsSection" style="display: block; background: #fefce8; border: 1px dashed #f59e0b; border-radius: 6px; padding: 5px 8px; margin: 4px 0;">
+                {{-- Claim Details Section --}}
+                <div id="claimDetailsSection" style="display: {{ ($claim && !empty($payment->electronic_invoice_no)) ? 'block' : 'none' }}; background: #fefce8; border: 1px dashed #f59e0b; border-radius: 6px; padding: 5px 8px; margin: 4px 0;">
                     <h4 style="color: #d97706; margin-bottom: 4px; font-size: 10px;"><i class="fa-solid fa-clipboard-list"></i> بيانات المطالبة</h4>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" style="font-size: 8px;">رقم المطالبة</label>
-                            <input type="text" id="claimNumberDisplay" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->claim_number }}">
+                            <input type="text" id="claimNumberDisplay" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->claim_number ?? '' }}">
                         </div>
                         <div class="form-group">
                             <label class="form-label" style="font-size: 8px;">عدد الفواتير</label>
-                            <input type="text" id="claimInvoiceCount" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->invoice_count }}">
+                            <input type="text" id="claimInvoiceCount" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->invoice_count ?? '' }}">
                         </div>
                         <div class="form-group">
                             <label class="form-label" style="font-size: 8px;">قيمة المطالبة</label>
-                            <input type="text" id="claimValue" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->claim_value }}">
+                            <input type="text" id="claimValue" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->claim_value ?? '' }}">
                         </div>
                         <div class="form-group">
                             <label class="form-label" style="font-size: 8px;">رقم الفاتورة</label>
-                            <input type="text" id="claimElectronicInvoice" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->electronic_invoice_no }}">
+                            <input type="text" id="claimElectronicInvoice" class="form-control" readonly style="background: #f1f5f9; font-size: 9px;" value="{{ $claim->electronic_invoice_no ?? '' }}">
                         </div>
                         <div class="form-group">
                             <label class="form-label" style="font-size: 8px;"><i class="fa-solid fa-calculator"></i> فواتير بعد المراجعة</label>
@@ -378,12 +378,11 @@
                     </div>
                     
                     {{-- Hidden fields to store claim data --}}
-                    <input type="hidden" name="electronic_invoice_no" id="electronicInvoiceNoField" value="{{ $claim->electronic_invoice_no }}">
-                    <input type="hidden" name="payee_hospital_id" id="hospitalIdField" value="{{ old('payee_hospital_id', $payment->payee_hospital_id ?? '') }}">
-                    <input type="hidden" name="department_id" id="departmentIdField" value="{{ old('department_id', $payment->department_id ?? '') }}">
-                    <input type="hidden" name="payer_entity_id" id="entityIdField" value="{{ old('payer_entity_id', $payment->payer_entity_id ?? '') }}">
+                    <input type="hidden" data-name="electronic_invoice_no" id="electronicInvoiceNoField" value="{{ $claim->electronic_invoice_no ?? '' }}">
+                    <input type="hidden" data-name="payee_hospital_id" id="hospitalIdField" value="{{ old('payee_hospital_id', $payment->payee_hospital_id ?? '') }}">
+                    <input type="hidden" data-name="department_id" id="departmentIdField" value="{{ old('department_id', $payment->department_id ?? '') }}">
+                    <input type="hidden" data-name="payer_entity_id" id="entityIdField" value="{{ old('payer_entity_id', $payment->payer_entity_id ?? '') }}">
                 </div>
-                @endif
 
                 <!-- Dynamic Fields for Entity (Branch, Location, Laws) -->
                 <div class="form-row" style="gap: 4px; margin: 0; margin-bottom: 4px;">
@@ -571,7 +570,7 @@
                 </script>
 
                 <div class="form-actions" style="margin-top: 8px;">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="fa-solid fa-save"></i> حفظ التعديلات
                     </button>
                     <a href="{{ route('prepaid-payments.index') }}" class="btn btn-secondary">
@@ -869,6 +868,108 @@
                     }
                 }
             }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Auto-calculate amount_after_review = amount - (amount * deduction%) - (amount * taxes%)
+            function autoCalcAmountAfterReview() {
+                const amount = parseFloat($('input[name="amount"]').val()) || 0;
+                const deduction = parseFloat($('input[name="deduction"]').val()) || 0;
+                const taxes = parseFloat($('input[name="taxes"]').val()) || 0;
+                if (amount > 0) {
+                    const net = amount - (amount * deduction / 100) - (amount * taxes / 100);
+                    $('#amountAfterReview').val(Math.max(0, net.toFixed(2)));
+                }
+            }
+
+            $('input[name="amount"], input[name="deduction"], input[name="taxes"]').on('input', function () {
+                autoCalcAmountAfterReview();
+            });
+
+            // Search by electronic invoice
+            const electronicInvoiceInput = $('#electronicInvoiceInput');
+            let electronicSearchTimeout;
+
+            function searchByElectronicInvoice(electronicInvoiceNo) {
+                if (!electronicInvoiceNo) {
+                    $('#claimDetailsSection').hide();
+                    $('#electronicInvoiceError').hide();
+                    return;
+                }
+
+                $.ajax({
+                    url: '{{ route("prepaid-payments.search-by-electronic-invoice") }}',
+                    type: 'GET',
+                    data: { electronic_invoice_no: electronicInvoiceNo },
+                    beforeSend: function () {
+                        $('#electronicInvoiceError').hide();
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#claimNumberDisplay').val(response.claim.claim_number);
+                            $('#claimInvoiceCount').val(response.claim.invoice_count);
+                            $('#claimValue').val(response.claim.claim_value);
+                            $('#claimElectronicInvoice').val(response.claim.electronic_invoice_no);
+                            $('#electronicInvoiceNoField').val(response.claim.electronic_invoice_no);
+                            $('#hospitalIdField').val(response.claim.hospital_id);
+                            $('#departmentIdField').val(response.claim.department_id);
+                            $('#entityIdField').val(response.claim.entity_id);
+                            $('#claimDetailsSection').show();
+                            $('#electronicInvoiceError').hide();
+                        } else {
+                            $('#claimDetailsSection').hide();
+                            $('#electronicInvoiceError').text(response.message || 'رقم الفاتورة غير صحيح').show();
+                        }
+                    },
+                    error: function () {
+                        $('#claimDetailsSection').hide();
+                        $('#electronicInvoiceError').text('رقم الفاتورة غير صحيح').show();
+                    }
+                });
+            }
+
+            electronicInvoiceInput.on('input', function () {
+                const val = $(this).val().trim();
+                clearTimeout(electronicSearchTimeout);
+                if (!val) {
+                    $('#claimDetailsSection').hide();
+                    $('#electronicInvoiceError').hide();
+                    return;
+                }
+                electronicSearchTimeout = setTimeout(function () {
+                    searchByElectronicInvoice(val);
+                }, 500);
+            });
+
+            electronicInvoiceInput.on('blur', function () {
+                const val = $(this).val().trim();
+                clearTimeout(electronicSearchTimeout);
+                if (val) {
+                    searchByElectronicInvoice(val);
+                }
+            });
+
+            // Form submit: validate required Select2 fields and show loading
+            $('form').on('submit', function (e) {
+                var valid = true;
+                $(this).find('select[required].select2').each(function () {
+                    if (!$(this).val()) {
+                        valid = false;
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                    } else {
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '');
+                    }
+                });
+                if (!valid) {
+                    e.preventDefault();
+                    return false;
+                }
+                var $btn = $('#saveBtn');
+                $btn.prop('disabled', true);
+                $btn.html('<i class="fa-solid fa-spinner fa-spin"></i> جارى الحفظ ...');
+            });
         });
     </script>
 @endsection

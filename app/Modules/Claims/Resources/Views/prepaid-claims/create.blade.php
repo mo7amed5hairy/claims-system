@@ -446,7 +446,7 @@
 
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
-                        <input type="text" name="electronic_invoice_no" class="form-control" value="{{ old('electronic_invoice_no') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <input type="text" name="electronic_invoice_no" class="form-control" value="{{ old('electronic_invoice_no') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
@@ -1159,5 +1159,35 @@
                 saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ المطالبة';
             }
         }
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Form submit: validate required Select2 fields and show loading
+            $('form').on('submit', function (e) {
+                var valid = true;
+
+                // Validate Select2 fields with required attribute
+                $(this).find('select[required].select2').each(function () {
+                    if (!$(this).val()) {
+                        valid = false;
+                        // Highlight the Select2 container
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '#dc3545');
+                    } else {
+                        $(this).next('.select2-container').find('.select2-selection').css('border-color', '');
+                    }
+                });
+
+                if (!valid) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Disable button and show loading
+                var $btn = $('#saveBtn');
+                $btn.prop('disabled', true);
+                $btn.html('<i class="fa-solid fa-spinner fa-spin"></i> جارى الحفظ ...');
+            });
+        });
     </script>
 @endsection

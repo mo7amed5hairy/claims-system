@@ -80,13 +80,23 @@ class ReportController extends Controller
         // All Contracting Entities
         $allEntities = \App\Modules\Claims\Models\ClaimEntity::orderBy('name')->pluck('name');
 
+        // Add virtual entities for reporting
+        $allEntities->push('قوائم الانتظار');
+
         // Sub-departments of others hospital ("باقي المستشفيات" or "باقى المستشفيات")
         $othersHospital = Hospital::where('name', 'like', '%باق%')->first();
         $othersDepartments = $othersHospital ? $othersHospital->departments()->orderBy('name')->pluck('name') : collect();
 
+        // Entity sub-filters for report (governorates for insurance entities, types for waiting lists)
+        $entitySubFilters = [
+            'الهيئة العامة للتأمين الصحي' => ['القاهرة', 'الجيزة', 'رئاسة الهيئة', 'القليوبية', 'مدينة نصر'],
+            'الهيئة العامة للتأمين الصحي الشامل' => ['السويس', 'اسماعيلية', 'الأقصر', 'أسوان', 'جنوب سيناء', 'بورسعيد'],
+            'قوائم الانتظار' => ['قوائم انتظار التأمين الصحي', 'قوائم انتظار مديرية الشئون الصحية'],
+        ];
+
         $allMonths = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
-        return view('claims::reports.index', compact('paymentOrders', 'allHospitals', 'allMonths', 'allEntities', 'othersDepartments'));
+        return view('claims::reports.index', compact('paymentOrders', 'allHospitals', 'allMonths', 'allEntities', 'othersDepartments', 'entitySubFilters'));
     }
 
 }

@@ -44,13 +44,19 @@
                         format: {
                             body: function (data, row, column, node) {
                                 if (typeof data === 'string') {
-                                    return data.replace(/\s*ج\.م\s*/g, '').trim();
+                                    var temp = document.createElement('div');
+                                    temp.innerHTML = data;
+                                    var text = temp.textContent || temp.innerText || '';
+                                    return text.replace(/\s*ج\.م\s*/g, '').trim();
                                 }
                                 return data;
                             },
                             footer: function (data, column, node) {
                                 if (typeof data === 'string') {
-                                    return data.replace(/\s*ج\.م\s*/g, '').trim();
+                                    var temp = document.createElement('div');
+                                    temp.innerHTML = data;
+                                    var text = temp.textContent || temp.innerText || '';
+                                    return text.replace(/\s*ج\.م\s*/g, '').trim();
                                 }
                                 return data;
                             }

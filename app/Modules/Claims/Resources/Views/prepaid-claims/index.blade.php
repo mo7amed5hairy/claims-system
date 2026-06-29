@@ -28,7 +28,18 @@
                         style: 'background: #198754 !important; color: white; border: none; padding: 5px 15px; border-radius: 4px; font-family: Cairo; margin-bottom: 10px; cursor: pointer;'
                     },
                     exportOptions: {
-                        columns: ':visible'
+                        columns: ':visible',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (typeof data === 'string') {
+                                    var temp = document.createElement('div');
+                                    temp.innerHTML = data;
+                                    var text = temp.textContent || temp.innerText || '';
+                                    return text.replace(/\s*ج\.م\s*/g, '').trim();
+                                }
+                                return data;
+                            }
+                        }
                     },
                     customize: function (xlsx) {
                         var sheet = xlsx.xl.worksheets['sheet1.xml'];

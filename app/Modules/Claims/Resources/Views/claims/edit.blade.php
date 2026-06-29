@@ -282,6 +282,7 @@
             <form action="{{ route('claims.update', $claim->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="claim_number" value="{{ $claim->claim_number }}">
 
                 <!-- Main Fields Row 1 (9 columns) -->
                 <div class="form-row form-section" style="padding: 8px !important;">
@@ -391,18 +392,6 @@
                                 <option value="{{ $claim->beneficiary }}" selected>{{ $claim->beneficiary }}</option>
                             @endif
                         </select>
-                    </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
-                        <input type="text" name="electronic_invoice_no" class="form-control" value="{{ old('electronic_invoice_no', $claim->electronic_invoice_no) }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                        @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar-check"></i> تاريخ التسليم</label>
-                        <input type="date" name="delivery_date" class="form-control" value="{{ old('delivery_date', $claim->delivery_date ? $claim->delivery_date->format('Y-m-d') : '') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
-                        @error('delivery_date') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">

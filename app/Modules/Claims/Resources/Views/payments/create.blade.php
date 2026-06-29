@@ -411,10 +411,10 @@
                     </div>
                     
                     {{-- Hidden fields to store claim data --}}
-                    <input type="hidden" name="electronic_invoice_no" id="electronicInvoiceNoField" value="{{ old('electronic_invoice_no') }}">
-                    <input type="hidden" name="payee_hospital_id" id="hospitalIdField" value="{{ old('payee_hospital_id', $hospital->id ?? '') }}">
-                    <input type="hidden" name="department_id" id="departmentIdField" value="{{ old('department_id', $department->id ?? '') }}">
-                    <input type="hidden" name="payer_entity_id" id="entityIdField" value="{{ old('payer_entity_id', $selectedEntityId ?? '') }}">
+                    <input type="hidden" data-name="electronic_invoice_no" id="electronicInvoiceNoField" value="{{ old('electronic_invoice_no') }}">
+                    <input type="hidden" data-name="payee_hospital_id" id="hospitalIdField" value="{{ old('payee_hospital_id', $hospital->id ?? '') }}">
+                    <input type="hidden" data-name="department_id" id="departmentIdField" value="{{ old('department_id', $department->id ?? '') }}">
+                    <input type="hidden" data-name="payer_entity_id" id="entityIdField" value="{{ old('payer_entity_id', $selectedEntityId ?? '') }}">
                 </div>
                 @endif
 

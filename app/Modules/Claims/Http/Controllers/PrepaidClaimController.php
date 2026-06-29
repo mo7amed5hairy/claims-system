@@ -180,7 +180,7 @@ class PrepaidClaimController extends Controller
             'claim_date' => 'required|date',
             'claim_value' => 'required|numeric|min:0',
             'reviewer_name' => 'nullable|string|max:255',
-            'electronic_invoice_no' => 'nullable|string|max:255|unique:claims,electronic_invoice_no',
+            'electronic_invoice_no' => 'required|string|max:255|unique:claims,electronic_invoice_no',
             'entity_id' => 'required|exists:claim_entities,id',
             'insurance_claim_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
@@ -278,7 +278,7 @@ class PrepaidClaimController extends Controller
             'claim_value' => 'required|numeric|min:0',
             'reviewer_name' => 'nullable|string|max:255',
             'electronic_invoice_no' => [
-                'nullable',
+                'required',
                 'string',
                 'max:255',
                 Rule::unique('claims', 'electronic_invoice_no')->ignore($claim->id),
@@ -325,7 +325,7 @@ class PrepaidClaimController extends Controller
 
         $data['is_prepaid'] = 1;
 
-        $this->claimService->updateClaim($claim->id, $data);
+        $claim->update($data);
 
         return redirect()->route('prepaid-claims.index')
             ->with('success', trans('messages.claim_updated_successfully'));
@@ -338,7 +338,7 @@ class PrepaidClaimController extends Controller
     public function destroy(Claim $claim)
     {
         $this->authorize('delete', $claim);
-        $this->claimService->deleteClaim($claim->id);
+        $claim->delete();
 
         return redirect()->route('prepaid-claims.index')
             ->with('success', trans('messages.claim_deleted_successfully'));
