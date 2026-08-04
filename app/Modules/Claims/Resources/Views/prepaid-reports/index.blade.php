@@ -697,7 +697,7 @@
                                 data-val="{{ $rawDiff }}" data-search="{{ (int) $rawDiff }} {{ number_format($rawDiff, 2) }}">
                                 {{ number_format($rawDiff, 2) }}
                             </td>
-                            <td style="font-family:monospace">{{ $order->electronic_invoice_no ?? '-' }}</td>
+                            <td style="font-family:monospace">{{ $order->gp_number ?? '-' }}</td>
                             <td>{{ $order->due_date ? (\Carbon\Carbon::parse($order->due_date)->format('Y-m-d')) : '-' }}</td>
                         </tr>
                     @endforeach

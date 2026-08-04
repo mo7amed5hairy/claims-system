@@ -96,10 +96,10 @@ class PrepaidPaymentOrderController extends Controller
         if ($waitingListType) {
             // Waiting Lists Flow (insurance or ministry)
             if ($waitingListType === 'insurance') {
-                $selectedEntity = ClaimEntity::where('name', 'الهيئة العامة للتأمين الصحي')->first();
+                $selectedEntity = ClaimEntity::find(36); // تأمين صحي فروع
                 $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
             } elseif ($waitingListType === 'ministry') {
-                $selectedEntity = ClaimEntity::where('name', 'وزارة الصحة والسكان')->first();
+                $selectedEntity = ClaimEntity::find(3); // قوائم انتظار وزارة صحة
                 $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
             }
             // For waiting lists, get law from session directly (flow_law)
@@ -434,6 +434,24 @@ class PrepaidPaymentOrderController extends Controller
                         'amount' => "قيمة أمر الدفع (<strong>" . number_format($paymentAmount, 2) . " ج.م</strong>) تتجاوز قيمة المطالبة (<strong>" . number_format($maxAmount, 2) . " ج.م</strong>). يرجى التأكد من المبلغ."
                     ])->withInput();
                 }
+            }
+        }
+
+        // Check financial receipt balance for the payee hospital+department
+        $hospitalId = $data['payee_hospital_id'] ?? null;
+        $departmentId = $data['department_id'] ?? null;
+        if ($hospitalId && $departmentId) {
+            $totalRemaining = (float) FinancialReceipt::where('payee_hospital_id', $hospitalId)
+                ->where('payee_department_id', $departmentId)
+                ->sum('remaining_amount');
+
+            if ($totalRemaining <= 0) {
+                $hospName = is_numeric($hospitalId)
+                    ? (Hospital::find($hospitalId)?->name ?? $hospitalId)
+                    : $this->getHospitalName($hospitalId);
+                return back()->withErrors([
+                    'payee_hospital_id' => "لا يمكن سداد أمر الدفع الخاص بـ ($hospName) حيث أن المبلغ المالى المستلم قيمته 0."
+                ])->withInput();
             }
         }
 

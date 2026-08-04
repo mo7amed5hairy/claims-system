@@ -95,10 +95,10 @@ class PaymentOrderController extends Controller
         if ($waitingListType) {
             // Waiting Lists Flow (insurance or ministry)
             if ($waitingListType === 'insurance') {
-                $selectedEntity = ClaimEntity::where('name', 'الهيئة العامة للتأمين الصحي')->first();
+                $selectedEntity = ClaimEntity::find(36); // تأمين صحي فروع
                 $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
             } elseif ($waitingListType === 'ministry') {
-                $selectedEntity = ClaimEntity::where('name', 'وزارة الصحة والسكان')->first();
+                $selectedEntity = ClaimEntity::find(3); // قوائم انتظار وزارة صحة
                 $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
             }
             // For waiting lists, get law from session directly (flow_law)

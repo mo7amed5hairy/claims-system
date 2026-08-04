@@ -119,7 +119,9 @@
     }
     /* Error messages */
     .error-message {
-        font-size: 9px !important;
+        font-size: 12px !important;
+        color: var(--danger-color) !important;
+        font-weight: 600;
     }
     /* Small text */
     small.text-muted {

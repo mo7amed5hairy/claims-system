@@ -49,21 +49,17 @@ class FlowController extends Controller
 
         // Filtering Logic based on User Requirements
         if ($type === 'contracts') {
-            // Exclude specific entities
-            $query->whereNotIn('name', [
-                'الهيئة العامة للتأمين الصحي',
-                'وزارة الصحة والسكان',
-                'الهيئة العامة للتأمين الصحي الشامل'
-            ]);
+            // Exclude specific entities (by ID, immune to renames)
+            $query->whereNotIn('id', [36, 3, 12]);
         } elseif ($type === 'ministry') {
-            // Only Ministry of Health
-            $query->where('name', 'وزارة الصحة والسكان');
+            // Only Ministry of Health (قوائم انتظار وزارة صحة)
+            $query->where('id', 3);
         } elseif ($type === 'insurance') {
-            // Only Health Insurance Authority
-            $query->where('name', 'الهيئة العامة للتأمين الصحي');
+            // Only Health Insurance Authority (تأمين صحي فروع)
+            $query->where('id', 36);
         } elseif ($type === 'comprehensive') {
             // Only Comprehensive Health Insurance
-            $query->where('name', 'الهيئة العامة للتأمين الصحي الشامل');
+            $query->where('id', 12);
         }
 
         $entities = $query->get();

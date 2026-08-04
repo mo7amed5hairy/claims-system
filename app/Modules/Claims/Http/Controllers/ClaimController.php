@@ -10,6 +10,7 @@ use App\Modules\Claims\Models\Department;
 use App\Modules\Claims\Models\ClaimEntity;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 
 /**
  * Claims Controller
@@ -94,10 +95,10 @@ class ClaimController extends Controller
         if ($waitingListType) {
             // Waiting Lists Flow (insurance or ministry)
             if ($waitingListType === 'insurance') {
-                $selectedEntity = ClaimEntity::where('name', 'الهيئة العامة للتأمين الصحي')->first();
+                $selectedEntity = ClaimEntity::find(36); // تأمين صحي فروع
                 $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
             } elseif ($waitingListType === 'ministry') {
-                $selectedEntity = ClaimEntity::where('name', 'وزارة الصحة والسكان')->first();
+                $selectedEntity = ClaimEntity::find(3); // قوائم انتظار وزارة صحة
                 $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
             }
             $law = session('flow_law');
@@ -233,7 +234,14 @@ class ClaimController extends Controller
         }
 
         // Create the claim
-        $claim = $this->claimService->createClaim($data);
+        try {
+            $claim = $this->claimService->createClaim($data);
+        } catch (QueryException $e) {
+            \Log::error('Claim create DB error: ' . $e->getMessage());
+            return back()->withErrors([
+                'entity_id' => 'حدث خطأ أثناء حفظ المطالبة. تأكد من اختيار الجهة المتعاقدة بشكل صحيح وحاول مرة أخرى.'
+            ])->withInput();
+        }
 
         return redirect()->route('claims.index')
             ->with('success', trans('messages.claim_created_successfully'));
@@ -321,7 +329,14 @@ class ClaimController extends Controller
             );
         }
 
-        $this->claimService->updateClaim($claim->id, $data);
+        try {
+            $this->claimService->updateClaim($claim->id, $data);
+        } catch (QueryException $e) {
+            \Log::error('Claim update DB error: ' . $e->getMessage());
+            return back()->withErrors([
+                'entity_id' => 'حدث خطأ أثناء تحديث المطالبة. تأكد من اختيار الجهة المتعاقدة بشكل صحيح وحاول مرة أخرى.'
+            ])->withInput();
+        }
 
         return redirect()->route('claims.index')
             ->with('success', trans('messages.claim_updated_successfully'));

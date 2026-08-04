@@ -115,6 +115,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     // Prepaid Discounted Invoices Management
     // =====================================================
     Route::get('prepaid-discounted-invoices', [PrepaidDiscountedInvoiceController::class, 'index'])->name('prepaid-discounted-invoices.index');
+    Route::put('prepaid-discounted-invoices/{discountedInvoice}', [PrepaidDiscountedInvoiceController::class, 'update'])->name('prepaid-discounted-invoices.update');
 
     // =====================================================
     // Financial Receipts Management (استلام دفعة مالية)
@@ -148,9 +149,10 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     });
 
     // =====================================================
-    // Discounted Invoices Management (الفواتير المخصمة) - Read Only
+    // Discounted Invoices Management (الفواتير المخصمة)
     // =====================================================
     Route::get('discounted-invoices', [DiscountedInvoiceController::class, 'index'])->name('discounted-invoices.index');
+    Route::put('discounted-invoices/{discountedInvoice}', [DiscountedInvoiceController::class, 'update'])->name('discounted-invoices.update');
 
     // =====================================================
     // Reports Management
