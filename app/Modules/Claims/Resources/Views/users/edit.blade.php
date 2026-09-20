@@ -61,6 +61,18 @@
                     </label>
                 </div>
 
+                <div id="viewAllSection" style="{{ old('role', $user->role) == 'admin' ? 'display: none;' : '' }}">
+                    <div class="alert alert-info">
+                        <label class="checkbox-container"
+                            style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" name="can_view_all_data" value="1" {{ old('can_view_all_data', $user->can_view_all_data) ? 'checked' : '' }}
+                                style="width: 20px; height: 20px;">
+                            <span>عرض جميع بيانات المستخدمين (المطالبات + أوامر الدفع + الفواتير المخصمة + سندات القبض)</span>
+                        </label>
+                        <small class="text-muted">إذا لم يُفعّل، سيظهر للمستخدم بياناته فقط</small>
+                    </div>
+                </div>
+
                 <hr>
 
                 <div id="permissionsSection" style="{{ old('role', $user->role) == 'admin' ? 'display: none;' : '' }}">
@@ -168,9 +180,11 @@
                 if ($(this).val() === 'admin') {
                     $('#permissionsSection').slideUp(300);
                     $('#userTypeSection').slideUp(300);
+                    $('#viewAllSection').slideUp(300);
                 } else {
                     $('#permissionsSection').slideDown(300);
                     $('#userTypeSection').slideDown(300);
+                    $('#viewAllSection').slideDown(300);
                 }
             });
         });

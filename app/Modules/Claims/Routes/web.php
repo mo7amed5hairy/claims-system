@@ -68,6 +68,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::put('{claim}', [ClaimController::class, 'update'])->name('update');
         Route::delete('{claim}', [ClaimController::class, 'destroy'])->name('destroy');
         Route::post('{claim}/toggle-type', [ClaimController::class, 'toggleType'])->name('toggle-type');
+        Route::delete('{claim}/attachments/{type}', [ClaimController::class, 'destroyAttachment'])->name('attachments.destroy');
 
     });
 
@@ -95,6 +96,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::get('{claim}/edit', [PrepaidClaimController::class, 'edit'])->name('edit');
         Route::put('{claim}', [PrepaidClaimController::class, 'update'])->name('update');
         Route::delete('{claim}', [PrepaidClaimController::class, 'destroy'])->name('destroy');
+        Route::delete('{claim}/attachments/{type}', [PrepaidClaimController::class, 'destroyAttachment'])->name('attachments.destroy');
     });
 
     // =====================================================
@@ -145,7 +147,11 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::prefix('hospitals')->name('hospitals.')->group(function () {
         Route::get('/', [HospitalController::class, 'index'])->name('index');
         Route::post('/', [HospitalController::class, 'store'])->name('store');
+        Route::put('{hospital}', [HospitalController::class, 'update'])->name('update');
+        Route::delete('{hospital}', [HospitalController::class, 'destroy'])->name('destroy');
         Route::post('{hospital}/departments', [HospitalController::class, 'storeDepartment'])->name('departments.store');
+        Route::put('departments/{department}', [HospitalController::class, 'updateDepartment'])->name('departments.update');
+        Route::delete('departments/{department}', [HospitalController::class, 'destroyDepartment'])->name('departments.destroy');
     });
 
     // =====================================================

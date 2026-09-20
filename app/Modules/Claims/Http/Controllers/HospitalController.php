@@ -4,6 +4,7 @@ namespace App\Modules\Claims\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Claims\Models\Hospital;
+use App\Modules\Claims\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -86,5 +87,68 @@ class HospitalController extends Controller
 
         return redirect()->back()
             ->with('success', trans('messages.department_created_successfully'));
+    }
+
+    /**
+     * Update a hospital
+     */
+    public function update(Request $request, Hospital $hospital)
+    {
+        $this->authorize('update', $hospital);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:hospitals,name,' . $hospital->id,
+        ]);
+
+        $hospital->update($data);
+
+        return redirect()->back()
+            ->with('success', 'تم تعديل المستشفى بنجاح');
+    }
+
+    /**
+     * Delete a hospital and its departments
+     */
+    public function destroy(Hospital $hospital)
+    {
+        $this->authorize('delete', $hospital);
+
+        $hospital->departments()->delete();
+        $hospital->delete();
+
+        return redirect()->back()
+            ->with('success', 'تم حذف المستشفى بنجاح');
+    }
+
+    /**
+     * Update a department
+     */
+    public function updateDepartment(Request $request, Department $department)
+    {
+        $hospital = $department->hospital;
+        $this->authorize('update', $hospital);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $department->update($data);
+
+        return redirect()->back()
+            ->with('success', 'تم تعديل القسم بنجاح');
+    }
+
+    /**
+     * Delete a department
+     */
+    public function destroyDepartment(Department $department)
+    {
+        $hospital = $department->hospital;
+        $this->authorize('update', $hospital);
+
+        $department->delete();
+
+        return redirect()->back()
+            ->with('success', 'تم حذف القسم بنجاح');
     }
 }

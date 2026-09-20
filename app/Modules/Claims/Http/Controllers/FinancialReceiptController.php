@@ -19,7 +19,7 @@ class FinancialReceiptController extends Controller
 
     public function index()
     {
-        $receipts = FinancialReceipt::with('user', 'hospital', 'department')->orderBy('id', 'desc')->get();
+        $receipts = FinancialReceipt::visibleTo(auth()->user())->with('user', 'hospital', 'department')->orderBy('id', 'desc')->get();
         $entities = ClaimEntity::all();
         $hospitals = Hospital::with('departments')->get();
 

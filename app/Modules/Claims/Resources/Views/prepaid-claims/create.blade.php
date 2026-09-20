@@ -458,8 +458,12 @@
 
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-upload"></i> مرفقات التسليم</label>
-                        <input type="file" name="delivery_attachments[]" class="form-control" multiple style="height: 30px !important; font-size: 12px; padding: 4px 8px;">
-                        <small class="text-muted" style="font-size: 9px;">ملفات متعددة</small>
+                        <div id="deliveryDropZone" style="border: 2px dashed #cbd5e1; border-radius: 6px; padding: 6px; text-align: center; cursor: pointer; background: #f8fafc; min-height: 28px;" onclick="document.getElementById('deliveryFileInput').click();">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 12px; color: #64748b;"></i>
+                            <span style="font-size: 10px; color: #64748b;">اضغط لاختيار ملفات</span>
+                            <input type="file" name="delivery_attachments[]" id="deliveryFileInput" multiple style="display: none;">
+                        </div>
+                        <div id="deliveryFileList" style="max-height: 50px; overflow-y: auto; margin-top: 2px;"></div>
                     </div>
                 </div>
 
@@ -1158,6 +1162,50 @@
                 saveBtn.style.opacity = '1';
                 saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ المطالبة';
             }
+        }
+
+        // Delivery Attachments - Accumulate files
+        const deliveryFileInput = document.getElementById('deliveryFileInput');
+        const deliveryFileList = document.getElementById('deliveryFileList');
+        let selectedDeliveryFiles = [];
+
+        deliveryFileInput.addEventListener('change', function(e) {
+            Array.from(e.target.files).forEach(file => {
+                if (selectedDeliveryFiles.some(f => f.name === file.name && f.size === file.size)) return;
+                selectedDeliveryFiles.push(file);
+                addDeliveryFileItem(file);
+            });
+            syncDeliveryInput();
+            deliveryFileInput.value = '';
+        });
+
+        function addDeliveryFileItem(file) {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.style.cssText = 'display:flex;align-items:center;gap:6px;padding:3px 6px;background:#f1f5f9;border-radius:4px;margin-bottom:2px;font-size:10px;';
+            const extension = file.name.split('.').pop().toLowerCase();
+            let icon = 'fa-file-lines', color = '#3b82f6';
+            if (['jpg','jpeg','png','gif'].includes(extension)) { icon = 'fa-file-image'; color = '#10b981'; }
+            else if (extension === 'pdf') { icon = 'fa-file-pdf'; color = '#ef4444'; }
+            else if (['xls','xlsx','csv'].includes(extension)) { icon = 'fa-file-excel'; color = '#059669'; }
+
+            div.innerHTML = '<i class="fa-solid ' + icon + '" style="color:' + color + ';font-size:11px;"></i>' +
+                '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;">' + file.name + '</span>' +
+                '<span style="font-size:9px;color:#64748b;">' + (file.size / 1024).toFixed(0) + ' KB</span>' +
+                '<button type="button" onclick="removeDeliveryFile(this, \'' + file.name + '\', ' + file.size + ')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:10px;padding:2px;"><i class="fa-solid fa-times"></i></button>';
+            deliveryFileList.appendChild(div);
+        }
+
+        function removeDeliveryFile(btn, name, size) {
+            selectedDeliveryFiles = selectedDeliveryFiles.filter(f => !(f.name === name && f.size === size));
+            btn.closest('.file-item').remove();
+            syncDeliveryInput();
+        }
+
+        function syncDeliveryInput() {
+            const dt = new DataTransfer();
+            selectedDeliveryFiles.forEach(file => dt.items.add(file));
+            deliveryFileInput.files = dt.files;
         }
     </script>
 

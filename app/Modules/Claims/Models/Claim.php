@@ -5,10 +5,12 @@ namespace App\Modules\Claims\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\HasMediaUpload;
+use App\Modules\Claims\Traits\ScopedByOwner;
 
 class Claim extends Model
 {
     use HasMediaUpload;
+    use ScopedByOwner;
     protected $table = 'claims';
 
     protected static function booted()
@@ -95,16 +97,52 @@ class Claim extends Model
         return $this->hasMany(PaymentOrder::class, 'electronic_invoice_no', 'electronic_invoice_no');
     }
 
+    public function allPayments()
+    {
+        // Find payment orders matching by EITHER claim_number OR electronic_invoice_no,
+        // since some payment orders only have one of them populated
+        $modelClass = $this instanceof PrepaidClaim
+            ? PrepaidPaymentOrder::class
+            : PaymentOrder::class;
+
+        return $modelClass::query()
+            ->where(function ($query) {
+                if (!empty($this->claim_number)) {
+                    $query->orWhere('claim_number', $this->claim_number);
+                }
+                if (!empty($this->electronic_invoice_no)) {
+                    $query->orWhere('electronic_invoice_no', $this->electronic_invoice_no);
+                }
+            })
+            ->orderBy('due_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+    }
+
     public function getPaymentStatusAttribute()
     {
-        // Use claim_number for waiting lists, electronic_invoice_no for regular flows
-        if (!empty($this->claim_number)) {
-            $paidAmount = $this->payments->sum('amount');
-        } elseif (!empty($this->electronic_invoice_no)) {
-            $paidAmount = $this->paymentsByElectronicInvoice->sum('amount');
-        } else {
+        $hasClaimNumber = !empty($this->claim_number);
+        $hasElectronicInvoice = !empty($this->electronic_invoice_no);
+
+        if (!$hasClaimNumber && !$hasElectronicInvoice) {
             return 'unpaid';
         }
+
+        // Use a single query with OR to avoid double-counting
+        $modelClass = $this instanceof PrepaidClaim
+            ? PrepaidPaymentOrder::class
+            : PaymentOrder::class;
+
+        $paidAmount = (float) $modelClass::query()
+            ->where(function ($query) use ($hasClaimNumber, $hasElectronicInvoice) {
+                if ($hasClaimNumber) {
+                    $query->orWhere('claim_number', $this->claim_number);
+                }
+                if ($hasElectronicInvoice) {
+                    $query->orWhere('electronic_invoice_no', $this->electronic_invoice_no);
+                }
+            })
+            ->sum('amount');
 
         if ($paidAmount >= $this->claim_value && $this->claim_value > 0) {
             return 'paid';

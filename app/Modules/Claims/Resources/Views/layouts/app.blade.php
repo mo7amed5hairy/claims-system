@@ -88,7 +88,7 @@
             border: none;
             color: #fff;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px !important;
             font-weight: 700;
             cursor: pointer;
             padding: 8px 12px;
@@ -248,21 +248,26 @@
                 margin: 0 4px;
                 flex-wrap: nowrap;
             }
+
             .nav-item-btn {
                 font-size: 10px;
                 padding: 6px 6px;
                 gap: 3px;
             }
+
             .navbar-user-btn span {
                 max-width: 70px;
                 font-size: 11px;
             }
+
             .navbar-brand span {
                 font-size: 11px !important;
             }
+
             .navbar-brand i {
                 font-size: 22px !important;
             }
+
             .navbar {
                 padding: 0 12px;
             }
@@ -342,9 +347,11 @@
                 padding: 0 10px !important;
                 height: 56px !important;
             }
+
             .navbar-brand i {
                 font-size: 22px !important;
             }
+
             .navbar-brand span {
                 font-size: 11px !important;
                 line-height: 1.3;
@@ -353,10 +360,12 @@
                 display: block;
                 white-space: normal;
             }
+
             .navbar-user-btn {
                 padding: 4px 8px 4px 4px !important;
                 gap: 5px !important;
             }
+
             .navbar-user-btn span {
                 font-size: 11px !important;
                 max-width: 75px !important;
@@ -364,16 +373,19 @@
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
+
             .user-avatar,
             .user-avatar-placeholder {
                 width: 30px !important;
                 height: 30px !important;
             }
+
             .navbar-toggler {
                 width: 34px !important;
                 height: 34px !important;
                 font-size: 15px !important;
             }
+
             .nav-links-container.show-mobile {
                 top: 56px !important;
             }
@@ -477,40 +489,40 @@
                         <div class="navbar-user-dropdown">
                             <button class="navbar-user-btn">
                                 <span>مرحباً، {{ Auth::user()->name }}</span>
-                            @if(Auth::user()->avatar)
-                                <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="user-avatar">
-                            @else
-                                <div class="user-avatar-placeholder">
-                                    <i class="fa-solid fa-user"></i>
-                                </div>
-                            @endif
-                            <i class="fa-solid fa-chevron-down" style="font-size: 12px; margin-right: 5px;"></i>
-                        </button>
-                        <div class="dropdown-content">
-                            <a href="{{ route('dashboard') }}">
-                                <i class="fa-solid fa-home"></i> {{ trans('messages.dashboard') }}
-                            </a>
-                            <a href="{{ route('profile.edit') }}">
-                                <i class="fa-solid fa-user-circle"></i> الملف الشخصي
-                            </a>
-                            @if(Auth::user()->role === 'admin')
-                                <a href="{{ route('users.index') }}">
-                                    <i class="fa-solid fa-users-cog"></i> إدارة المستخدمين
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="user-avatar">
+                                @else
+                                    <div class="user-avatar-placeholder">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                @endif
+                                <i class="fa-solid fa-chevron-down" style="font-size: 12px; margin-right: 5px;"></i>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="{{ route('dashboard') }}">
+                                    <i class="fa-solid fa-home"></i> {{ trans('messages.dashboard') }}
                                 </a>
-                            @endif
-                            <div class="dropdown-divider"></div>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fa-solid fa-sign-out-alt"></i> {{ trans('messages.logout') }}
-                                </button>
-                            </form>
+                                <a href="{{ route('profile.edit') }}">
+                                    <i class="fa-solid fa-user-circle"></i> الملف الشخصي
+                                </a>
+                                @if(Auth::user()->role === 'admin')
+                                    <a href="{{ route('users.index') }}">
+                                        <i class="fa-solid fa-users-cog"></i> إدارة المستخدمين
+                                    </a>
+                                @endif
+                                <div class="dropdown-divider"></div>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fa-solid fa-sign-out-alt"></i> {{ trans('messages.logout') }}
+                                    </button>
+                                </form>
+                            </div>
                         </div>
+                        <button class="navbar-toggler" id="mobileNavToggle">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
                     </div>
-                    <button class="navbar-toggler" id="mobileNavToggle">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                </div>
             </nav>
             <div class="dashboard-container">
         @endif
@@ -543,6 +555,9 @@
     <script src="{{ asset('modules/claims/js/jszip.min.js') }}"></script>
     <script src="{{ asset('modules/claims/js/buttons.html5.min.js') }}"></script>
     <script src="{{ asset('modules/claims/js/buttons.print.min.js') }}"></script>
+
+    <!-- Arabic letters-insensitive search (DataTables + Select2) -->
+    <script src="{{ asset('modules/claims/js/arabic-normalize.js') }}"></script>
 
     <script>
         $(document).ready(function () {

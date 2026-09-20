@@ -45,6 +45,19 @@
                                 <span class="badge"
                                     style="background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 8px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e2e8f0;">
                                     <i class="fa-solid fa-stethoscope" style="font-size: 10px; color: #64748b;"></i> {{ $dept->name }}
+                                    @can('update', $hospital)
+                                        <button onclick="editDept('{{ $dept->id }}', '{{ addslashes($dept->name) }}')" style="background:none;border:none;color:#3b82f6;cursor:pointer;font-size:11px;padding:0;margin:0;" title="تعديل القسم">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                    @endcan
+                                    @can('update', $hospital)
+                                        <form action="{{ route('hospitals.departments.destroy', $dept->id) }}" method="POST" style="display:inline;margin:0;padding:0;" onsubmit="return confirm('هل أنت متأكد من حذف قسم {{ addslashes($dept->name) }}؟');">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;padding:0;margin:0;" title="حذف القسم">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </span>
                             @endforeach
                         </div>
@@ -141,6 +154,28 @@
         </div>
     </div>
 
+    <!-- Edit Dept Modal -->
+    <div id="editDeptModal" class="modal-overlay"
+        style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+        <div class="form-card" style="width: 100%; max-width: 450px; margin: 0; max-height: 90vh; overflow-y: auto;">
+            <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-pen-to-square"></i> تعديل اسم القسم</h3>
+            </div>
+            <form id="editDeptForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="form-group" style="margin-top: 20px;">
+                    <label class="form-label">اسم القسم</label>
+                    <input type="text" name="name" id="editDeptName" class="form-control" required placeholder="اسم القسم">
+                </div>
+                <div class="form-actions" style="margin-top: 25px;">
+                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    <button type="button" class="btn btn-secondary" onclick="$('#editDeptModal').fadeOut()">إغلاق</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 @endsection
 
 @section('scripts')
@@ -166,6 +201,12 @@
                                     </div>
                                 `);
             $('#addDeptModal').css('display', 'flex').fadeIn();
+        }
+
+        function editDept(id, name) {
+            $('#editDeptName').val(name);
+            $('#editDeptForm').attr('action', '{{ route("hospitals.departments.update", ":id") }}'.replace(':id', id));
+            $('#editDeptModal').css('display', 'flex').fadeIn();
         }
 
         $(document).ready(function () {

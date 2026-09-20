@@ -19,7 +19,8 @@ class DiscountedInvoiceController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $discountedInvoices = DiscountedInvoice::with(['claim', 'user', 'paymentOrder'])
+        $discountedInvoices = DiscountedInvoice::visibleTo(auth()->user())
+            ->with(['claim', 'user', 'paymentOrder'])
             ->orderBy('id', 'desc')
             ->get();
 
@@ -29,14 +30,14 @@ class DiscountedInvoiceController extends Controller
     /**
      * Update the specified discounted invoice.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, DiscountedInvoice $discountedInvoice)
     {
         $user = auth()->user();
         if (!$user->isReviewer() && !$user->isFinancial()) {
             abort(403, 'Unauthorized access');
         }
 
-        $invoice = DiscountedInvoice::findOrFail($id);
+        $invoice = $discountedInvoice;
 
         $data = $request->validate([
             'original_invoice_count' => 'nullable|integer|min:0',

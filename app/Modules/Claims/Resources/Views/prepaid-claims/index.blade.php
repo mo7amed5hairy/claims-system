@@ -97,6 +97,7 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>رقم المطالبة</th>
                     <th>أضيف بواسطة</th>
                     <th>المستشفى / القسم</th>
                     <th>الشهر</th>
@@ -121,6 +122,7 @@
                     @endphp
                     <tr style="{{ $isNew ? 'background-color: #f0fdf4; border-right: 4px solid #22c55e;' : '' }}">
                         <td><span style="font-weight: 700; color: var(--primary-color);">#{{ $claim->id }}</span></td>
+                        <td><span style="font-weight: 600; color: #1e293b; font-size: 12px;">{{ $claim->claim_number }}</span></td>
                         <td>
                             <div style="font-size: 12px; font-weight: 600; color: #475569;">
                                 <i class="fa-solid fa-user-pen" style="font-size: 10px; color: #94a3b8;"></i> 
@@ -152,7 +154,7 @@
                             <div style="font-weight: 600; color: #1e293b; font-size: 13px;">{{ $hospitalName ?? '-' }}</div>
                             <div style="color: #64748b; font-size: 11px;"><i class="fa-solid fa-stethoscope"></i> {{ $deptName ?? '-' }}</div>
                         </td>
-                        <td>{{ $claim->month }}</td>
+                        <td>{{ $claim->month }} {{ $claim->claim_date->format('Y') }}</td>
                         <td>{{ $claim->invoice_count }}</td>
                         <td>{{ $claim->claim_date->toDateString() }}</td>
                         <td style="font-weight: 500;">
@@ -215,7 +217,7 @@
                         </td>
                         <td>
                             <div class="attachment-badges">
-                                @if($claim->attachments && is_array($claim->attachments))
+                                @if($claim->attachments && is_array($claim->attachments) && count($claim->attachments) > 0)
                                     @foreach($claim->attachments as $path)
                                         @php
                                             $ext = pathinfo($path, PATHINFO_EXTENSION);
@@ -237,7 +239,31 @@
                                             <i class="fa-solid {{ $icon }}"></i>
                                         </a>
                                     @endforeach
-                                @else
+                                @endif
+                                @if($claim->delivery_attachments && is_array($claim->delivery_attachments) && count($claim->delivery_attachments) > 0)
+                                    @foreach($claim->delivery_attachments as $path)
+                                        @php
+                                            $ext = pathinfo($path, PATHINFO_EXTENSION);
+                                            $icon = 'fa-file';
+                                            $class = '';
+                                            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                                $icon = 'fa-image';
+                                                $class = 'badge-image';
+                                            } elseif ($ext == 'pdf') {
+                                                $icon = 'fa-file-pdf';
+                                                $class = 'badge-pdf';
+                                            } elseif (in_array($ext, ['xls', 'xlsx', 'csv'])) {
+                                                $icon = 'fa-file-excel';
+                                                $class = 'badge-excel';
+                                            }
+                                        @endphp
+                                        <a href="{{ asset('storage/' . $path) }}" target="_blank" class="attachment-badge {{ $class }}"
+                                            title="مرفق تسليم">
+                                            <i class="fa-solid {{ $icon }}" style="border-bottom: 2px solid #3b82f6;"></i>
+                                        </a>
+                                    @endforeach
+                                @endif
+                                @if((!$claim->attachments || count($claim->attachments) == 0) && (!$claim->delivery_attachments || count($claim->delivery_attachments) == 0))
                                     <span style="color: #cbd5e1; font-size: 12px;">لا يوجد</span>
                                 @endif
                             </div>

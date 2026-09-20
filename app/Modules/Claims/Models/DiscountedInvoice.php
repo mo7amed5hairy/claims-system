@@ -5,10 +5,12 @@ namespace App\Modules\Claims\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Modules\Claims\Traits\ScopedByOwner;
 
 class DiscountedInvoice extends Model
 {
     use HasFactory;
+    use ScopedByOwner;
 
     protected $table = 'discounted_invoices';
 

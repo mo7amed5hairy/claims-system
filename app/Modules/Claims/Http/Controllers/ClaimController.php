@@ -37,7 +37,8 @@ class ClaimController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Claim::class);
-        $claims = Claim::with(['entity', 'hospital', 'department', 'payments', 'user'])->orderBy('id', 'desc')->get();
+        $claims = Claim::visibleTo(auth()->user())
+            ->with(['entity', 'hospital', 'department', 'payments', 'user'])->orderBy('id', 'desc')->get();
 
         return view('claims::claims.index', compact('claims'));
     }
@@ -322,11 +323,22 @@ class ClaimController extends Controller
             );
         }
 
+        $existingDelivery = $claim->delivery_attachments ?? [];
+
+        // Handle removal of selected delivery attachments
+        if ($request->has('remove_delivery_attachments') && is_array($request->remove_delivery_attachments)) {
+            foreach ($request->remove_delivery_attachments as $path) {
+                $claim->deleteMedia($path);
+            }
+            $existingDelivery = array_values(array_filter($existingDelivery, fn($p) => !in_array($p, $request->remove_delivery_attachments)));
+        }
+
+        // Handle new delivery attachments upload (append to remaining)
         if ($request->hasFile('delivery_attachments')) {
-            $data['delivery_attachments'] = $claim->replaceMultipleMedia(
-                $request->file('delivery_attachments'),
-                $claim->delivery_attachments ?? []
-            );
+            $newDelivery = $claim->uploadMultipleMedia($request->file('delivery_attachments'));
+            $data['delivery_attachments'] = array_values(array_merge($existingDelivery, $newDelivery));
+        } else {
+            $data['delivery_attachments'] = $existingDelivery;
         }
 
         try {
@@ -353,6 +365,32 @@ class ClaimController extends Controller
 
         return redirect()->route('claims.index')
             ->with('success', trans('messages.claim_deleted_successfully'));
+    }
+
+    /**
+     * Delete a single attachment from a claim (AJAX)
+     */
+    public function destroyAttachment(Claim $claim, string $type)
+    {
+        $this->authorize('update', $claim);
+
+        $path = request()->input('path');
+        if (!$path) {
+            return response()->json(['success' => false, 'message' => 'المسار مطلوب'], 400);
+        }
+
+        $field = $type === 'delivery' ? 'delivery_attachments' : 'attachments';
+        $existing = $claim->{$field} ?? [];
+
+        if (!in_array($path, $existing)) {
+            return response()->json(['success' => false, 'message' => 'المرفق غير موجود'], 404);
+        }
+
+        $claim->deleteMedia($path);
+        $updated = array_values(array_filter($existing, fn($p) => $p !== $path));
+        $claim->update([$field => $updated]);
+
+        return response()->json(['success' => true, 'message' => 'تم حذف المرفق بنجاح']);
     }
 
     /**

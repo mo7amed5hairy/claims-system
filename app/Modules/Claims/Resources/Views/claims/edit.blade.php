@@ -396,8 +396,11 @@
 
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-upload"></i> مرفقات التسليم</label>
-                        <input type="file" name="delivery_attachments[]" class="form-control" multiple style="height: 30px !important; font-size: 12px; padding: 4px 8px;">
-                        <small class="text-muted" style="font-size: 9px;">ملفات متعددة</small>
+                        <div id="deliveryDropZone" style="border: 2px dashed #cbd5e1; border-radius: 6px; padding: 6px; text-align: center; cursor: pointer; background: #f8fafc; min-height: 28px;" onclick="document.getElementById('deliveryFileInput').click();">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 12px; color: #64748b;"></i>
+                            <span style="font-size: 10px; color: #64748b;">اضغط لاضافة ملفات تسليم جديدة</span>
+                            <input type="file" name="delivery_attachments[]" id="deliveryFileInput" multiple style="display: none;">
+                        </div>
                     </div>
 
                     <div class="form-group" style="margin: 0;"></div>
@@ -413,39 +416,69 @@
                 </div>
 
                 <!-- Existing Attachments Section -->
-                @if($claim->attachments && count($claim->attachments) > 0)
-                    <div class="form-section" style="padding: 10px !important;">
+                    <div id="existingAttachmentsSection" class="form-section" style="padding: 10px !important; {{ (!$claim->attachments || count($claim->attachments) == 0) && (!$claim->delivery_attachments || count($claim->delivery_attachments) == 0) ? 'display:none;' : '' }}">
                         <h3 class="section-title" style="font-size: 13px; margin-bottom: 8px;">
                             <i class="fa-solid fa-folder-open"></i> المرفقات الحالية
                         </h3>
                         <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
-                            <i class="fa-solid fa-info-circle"></i> يمكنك الإبقاء عليها أو إضافة مرفقات جديدة لاستبدالها.
+                            <i class="fa-solid fa-info-circle"></i> يمكنك الإبقاء عليها أو حذف أو إضافة مرفقات جديدة.
                         </p>
-                        <div class="file-list" style="margin-top: 8px;">
-                            @foreach($claim->attachments as $path)
-                                @php
-                                    $ext = pathinfo($path, PATHINFO_EXTENSION);
-                                    $icon = 'fa-file-lines';
-                                    $typeClass = 'icon-default';
-                                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) { $icon = 'fa-file-image'; $typeClass = 'icon-image'; }
-                                    elseif ($ext == 'pdf') { $icon = 'fa-file-pdf'; $typeClass = 'icon-pdf'; }
-                                    elseif (in_array($ext, ['xls', 'xlsx', 'csv'])) { $icon = 'fa-file-excel'; $typeClass = 'icon-excel'; }
-                                @endphp
-                                <div class="file-item" style="padding: 6px 10px; margin-bottom: 4px; font-size: 12px;">
-                                    <div class="file-icon {{ $typeClass }}">
-                                        <i class="fa-solid {{ $icon }}"></i>
+                        <div id="existingAttachmentsList" class="file-list" style="margin-top: 8px; max-height: 300px; overflow-y: auto;">
+                            @if($claim->attachments && count($claim->attachments) > 0)
+                                @foreach($claim->attachments as $path)
+                                    @php
+                                        $ext = pathinfo($path, PATHINFO_EXTENSION);
+                                        $icon = 'fa-file-lines';
+                                        $typeClass = 'icon-default';
+                                        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) { $icon = 'fa-file-image'; $typeClass = 'icon-image'; }
+                                        elseif ($ext == 'pdf') { $icon = 'fa-file-pdf'; $typeClass = 'icon-pdf'; }
+                                        elseif (in_array($ext, ['xls', 'xlsx', 'csv'])) { $icon = 'fa-file-excel'; $typeClass = 'icon-excel'; }
+                                    @endphp
+                                    <div class="file-item existing-attachment" data-path="{{ $path }}" style="padding: 6px 10px; margin-bottom: 4px; font-size: 12px;">
+                                        <div class="file-icon {{ $typeClass }}">
+                                            <i class="fa-solid {{ $icon }}"></i>
+                                        </div>
+                                        <div class="file-details">
+                                            <div class="file-name">{{ basename($path) }}</div>
+                                        </div>
+                                        <a href="{{ asset('storage/' . $path) }}" target="_blank" class="attachment-badge" style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 11px; text-decoration: none;">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn-delete-attachment" onclick="deleteExistingAttachment(this, '{{ $path }}', 'attachment')" style="background: #fee2e2; color: #ef4444; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;" title="حذف المرفق">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
                                     </div>
-                                    <div class="file-details">
-                                        <div class="file-name">{{ basename($path) }}</div>
+                                @endforeach
+                            @endif
+                            @if($claim->delivery_attachments && count($claim->delivery_attachments) > 0)
+                                @foreach($claim->delivery_attachments as $path)
+                                    @php
+                                        $ext = pathinfo($path, PATHINFO_EXTENSION);
+                                        $icon = 'fa-file-lines';
+                                        $typeClass = 'icon-default';
+                                        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) { $icon = 'fa-file-image'; $typeClass = 'icon-image'; }
+                                        elseif ($ext == 'pdf') { $icon = 'fa-file-pdf'; $typeClass = 'icon-pdf'; }
+                                        elseif (in_array($ext, ['xls', 'xlsx', 'csv'])) { $icon = 'fa-file-excel'; $typeClass = 'icon-excel'; }
+                                    @endphp
+                                    <div class="file-item existing-attachment" data-path="{{ $path }}" style="padding: 6px 10px; margin-bottom: 4px; font-size: 12px;">
+                                        <div class="file-icon {{ $typeClass }}">
+                                            <i class="fa-solid {{ $icon }}"></i>
+                                        </div>
+                                        <div class="file-details">
+                                            <div class="file-name">{{ basename($path) }}</div>
+                                            <span style="font-size:9px;color:#3b82f6;font-weight:600;">مرفق تسليم</span>
+                                        </div>
+                                        <a href="{{ asset('storage/' . $path) }}" target="_blank" class="attachment-badge" style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 11px; text-decoration: none;">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn-delete-attachment" onclick="deleteExistingAttachment(this, '{{ $path }}', 'delivery')" style="background: #fee2e2; color: #ef4444; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;" title="حذف المرفق">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
                                     </div>
-                                    <a href="{{ asset('storage/' . $path) }}" target="_blank" class="attachment-badge" style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 11px; text-decoration: none;">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
-                                </div>
-                            @endforeach
+                                @endforeach
+                            @endif
                         </div>
                     </div>
-                @endif
 
                 <!-- New Attachments Section -->
                 <div class="form-section" style="padding: 10px !important;">
@@ -874,6 +907,156 @@
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
             }
+        }
+
+        // Delivery Attachments - Accumulate files
+        const deliveryFileInput = document.getElementById('deliveryFileInput');
+        let selectedDeliveryFiles = [];
+
+        deliveryFileInput.addEventListener('change', function(e) {
+            Array.from(e.target.files).forEach(file => {
+                if (selectedDeliveryFiles.some(f => f.name === file.name && f.size === file.size)) return;
+                selectedDeliveryFiles.push(file);
+                addDeliveryFileItem(file);
+            });
+            deliveryFileInput.value = '';
+            syncDeliveryInput();
+        });
+
+        function addDeliveryFileItem(file) {
+            var section = document.getElementById('existingAttachmentsSection');
+            var list = document.getElementById('existingAttachmentsList');
+            if (section) section.style.display = '';
+
+            const extension = file.name.split('.').pop().toLowerCase();
+            let icon = 'fa-file-lines', color = '#3b82f6';
+            if (['jpg','jpeg','png','gif'].includes(extension)) { icon = 'fa-file-image'; color = '#10b981'; }
+            else if (extension === 'pdf') { icon = 'fa-file-pdf'; color = '#ef4444'; }
+            else if (['xls','xlsx','csv'].includes(extension)) { icon = 'fa-file-excel'; color = '#059669'; }
+
+            const div = document.createElement('div');
+            div.className = 'file-item existing-attachment';
+            div.style.cssText = 'padding: 6px 10px; margin-bottom: 4px; font-size: 12px; background: #f0f9ff; border: 1px dashed #93c5fd; border-radius: 6px;';
+            div.innerHTML =
+                '<div class="file-icon" style="background:' + color + '15;color:' + color + ';"><i class="fa-solid ' + icon + '"></i></div>' +
+                '<div class="file-details"><div class="file-name">' + file.name + '</div>' +
+                '<div class="file-size" style="font-size:10px;color:#64748b;">جديد - ' + (file.size / 1024).toFixed(0) + ' KB</div>' +
+                '<div class="progress-container" style="display:block;"><div class="progress-bar"></div></div></div>' +
+                '<button type="button" onclick="removeNewDeliveryFile(this, \'' + file.name + '\', ' + file.size + ')" style="background:#fee2e2;color:#ef4444;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;" title="حذف"><i class="fa-solid fa-trash"></i></button>';
+            list.appendChild(div);
+            document.getElementById('existingAttachmentsSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            simulateDeliveryProgress(div);
+        }
+
+        function removeNewDeliveryFile(btn, name, size) {
+            selectedDeliveryFiles = selectedDeliveryFiles.filter(f => !(f.name === name && f.size === size));
+            var fileItem = btn.closest('.file-item');
+            if (fileItem.uploadInterval) clearInterval(fileItem.uploadInterval);
+            fileItem.style.transition = 'all 0.3s ease';
+            fileItem.style.opacity = '0';
+            fileItem.style.transform = 'translateY(-10px)';
+            setTimeout(function() {
+                fileItem.remove();
+                syncDeliveryInput();
+                var list = document.getElementById('existingAttachmentsList');
+                if (list && list.children.length === 0) {
+                    var section = document.getElementById('existingAttachmentsSection');
+                    if (section) section.style.display = 'none';
+                }
+                checkDeliveryProgress();
+            }, 300);
+        }
+
+        function simulateDeliveryProgress(fileItem) {
+            const bar = fileItem.querySelector('.progress-bar');
+            const container = fileItem.querySelector('.progress-container');
+            if (!bar || !container) return;
+            let width = 0;
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...';
+
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        container.style.opacity = '0';
+                        setTimeout(() => {
+                            container.style.display = 'none';
+                            checkDeliveryProgress();
+                        }, 500);
+                    }, 500);
+                } else {
+                    width += Math.random() * 10;
+                    if (width > 100) width = 100;
+                    bar.style.width = width + '%';
+                }
+            }, 150);
+            fileItem.uploadInterval = interval;
+        }
+
+        function checkDeliveryProgress() {
+            const remaining = document.querySelectorAll('#existingAttachmentsList .progress-container[style*="display: block"]');
+            const mainRemaining = document.querySelectorAll('.file-list .progress-container[style*="display: block"]');
+            if (remaining.length === 0 && mainRemaining.length === 0) {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ التعديلات';
+            }
+        }
+
+        function syncDeliveryInput() {
+            const dt = new DataTransfer();
+            selectedDeliveryFiles.forEach(file => dt.items.add(file));
+            deliveryFileInput.files = dt.files;
+        }
+
+        // Delete existing attachment (AJAX)
+        function deleteExistingAttachment(btn, path, type) {
+            if (!confirm('هل أنت متأكد من حذف هذا المرفق؟ سيتم حذف الملف من الخادم أيضاً.')) return;
+
+            var claimId = '{{ $claim->id }}';
+            var url = '{{ route("claims.attachments.destroy", [$claim->id, "attachment"]) }}';
+            if (type === 'delivery') {
+                url = '{{ route("claims.attachments.destroy", [$claim->id, "delivery"]) }}';
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            $.ajax({
+                url: url,
+                type: 'DELETE',
+                data: {
+                    path: path,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        var fileItem = btn.closest('.existing-attachment, .file-item');
+                        fileItem.style.transition = 'all 0.3s ease';
+                        fileItem.style.opacity = '0';
+                        fileItem.style.transform = 'translateX(20px)';
+                        setTimeout(function() {
+                            fileItem.remove();
+                            var remaining = document.querySelectorAll('.existing-attachment');
+                            if (remaining.length === 0) {
+                                var section = document.querySelector('.file-list')?.closest('.form-section');
+                                if (section) section.remove();
+                            }
+                        }, 300);
+                    } else {
+                        alert(response.message || 'حدث خطأ أثناء الحذف');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                    }
+                },
+                error: function() {
+                    alert('حدث خطأ أثناء الحذف');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                }
+            });
         }
     </script>
 @endsection

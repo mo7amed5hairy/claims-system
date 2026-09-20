@@ -44,6 +44,7 @@ class UserController extends Controller
             'user_type' => 'nullable|array',
             'user_type.*' => 'in:مراجع,معاملات مالية',
             'active' => 'nullable',
+            'can_view_all_data' => 'nullable',
             'permissions' => 'nullable|array',
         ]);
 
@@ -54,8 +55,10 @@ class UserController extends Controller
         // Only save user_type if role is user, otherwise set to null
         if ($data['role'] === 'user') {
             $data['user_type'] = $request->input('user_type', []);
+            $data['can_view_all_data'] = $request->has('can_view_all_data');
         } else {
             $data['user_type'] = null;
+            $data['can_view_all_data'] = true;
         }
 
         User::create($data);
@@ -85,6 +88,7 @@ class UserController extends Controller
             'user_type' => 'nullable|array',
             'user_type.*' => 'in:مراجع,معاملات مالية',
             'active' => 'nullable',
+            'can_view_all_data' => 'nullable',
             'permissions' => 'nullable|array',
         ]);
 
@@ -100,8 +104,10 @@ class UserController extends Controller
         // Only save user_type if role is user, otherwise set to null
         if ($data['role'] === 'user') {
             $data['user_type'] = $request->input('user_type', []);
+            $data['can_view_all_data'] = $request->has('can_view_all_data');
         } else {
             $data['user_type'] = null;
+            $data['can_view_all_data'] = true;
         }
 
         $user->update($data);

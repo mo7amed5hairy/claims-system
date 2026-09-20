@@ -16,7 +16,8 @@ class ReportController extends Controller
         }
 
         // Fetch regular claims with their relationships
-        $claims = \App\Modules\Claims\Models\Claim::with(['payments', 'hospital', 'department', 'entity'])
+        $claims = \App\Modules\Claims\Models\Claim::visibleTo(auth()->user())
+            ->with(['payments', 'hospital', 'department', 'entity'])
             ->orderBy('id', 'desc')
             ->get();
 
@@ -27,7 +28,9 @@ class ReportController extends Controller
             $cYear = $claim->claim_date?->year ?? date('Y');
             $cMonth = $claim->month;
 
-            if ($claim->payments->isEmpty()) {
+            $claimPayments = $claim->allPayments();
+
+            if ($claimPayments->isEmpty()) {
                 $paymentOrders[] = (object) [
                     'id' => $claim->id,
                     'is_payment' => false,
@@ -48,9 +51,7 @@ class ReportController extends Controller
                     'rendered_month' => $cMonth . ' ' . $cYear,
                 ];
             } else {
-                foreach ($claim->payments as $payment) {
-                    $y = $payment->due_date?->year ?? $payment->created_at?->year ?? $cYear;
-                    $mn = $payment->due_date?->month ?? $payment->created_at?->month ?? 0;
+                foreach ($claimPayments as $payment) {
                     $paymentOrders[] = (object) [
                         'id' => $claim->id . '_' . $payment->id,
                         'is_payment' => true,
@@ -67,8 +68,8 @@ class ReportController extends Controller
                         'due_date' => $payment->due_date,
                         'created_at' => $payment->created_at,
                         'invoice_count_after_review' => $payment->invoice_count_after_review ?? 0,
-                        'rendered_year' => $y,
-                        'rendered_month' => ($mn > 0 ? $monthsAr[$mn] : '-') . ' ' . $y,
+                        'rendered_year' => $cYear,
+                        'rendered_month' => $cMonth . ' ' . $cYear,
                     ];
                 }
             }

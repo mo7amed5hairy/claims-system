@@ -26,6 +26,7 @@ class User extends Authenticatable
         'role',
         'user_type',
         'active',
+        'can_view_all_data',
         'avatar',
         'permissions',
     ];
@@ -52,6 +53,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'permissions' => 'array',
             'user_type' => 'array',
+            'can_view_all_data' => 'boolean',
         ];
     }
 
@@ -149,5 +151,17 @@ class User extends Authenticatable
         }
         
         return true;
+    }
+
+    /**
+     * Check if user can view all data (claims, payment orders, invoices, receipts) regardless of creator
+     * Admin always sees everything.
+     */
+    public function canViewAllData(): bool
+    {
+        if ($this->role === 'admin') {
+            return true;
+        }
+        return (bool) $this->can_view_all_data;
     }
 }

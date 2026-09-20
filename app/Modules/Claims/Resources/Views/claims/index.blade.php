@@ -24,9 +24,14 @@
         function normalizeArabic(text) {
             if (typeof text !== 'string') return text;
             return text
-                .replace(/[أإآ]/g, 'ا')
+                .replace(/[\u064B-\u0652\u0670\u0640]/g, '')
+                .replace(/[أإآٱ]/g, 'ا')
                 .replace(/ى/g, 'ي')
-                .replace(/ة/g, 'ه');
+                .replace(/ة/g, 'ه')
+                .replace(/ؤ/g, 'و')
+                .replace(/ئ/g, 'ي')
+                .replace(/ء/g, '')
+                .toLowerCase();
         }
 
         $(document).ready(function () {
@@ -116,14 +121,29 @@
 
             // Arabic normalization global search integration
             var globalSearchQuery = '';
+            var claimNumberQuery = '';
             $('.dataTables_filter input').off().on('input keyup', function () {
                 globalSearchQuery = $(this).val();
+                dt.draw();
+            });
+
+            $('#claimNumberSearch').on('input keyup', function () {
+                claimNumberQuery = $(this).val().trim();
                 dt.draw();
             });
 
             $.fn.dataTable.ext.search.push(function (settings, searchData, index, rowData, counter) {
                 // If it is the claims Table page
                 if (settings.sTableId !== 'claimsTable') return true;
+
+                // Claim number filter (column 1 contains claim_number)
+                if (claimNumberQuery) {
+                    var claimNum = normalizeArabic(searchData[1].replace(/<[^>]*>/g, '').trim()).toLowerCase();
+                    var searchNum = normalizeArabic(claimNumberQuery).toLowerCase();
+                    if (claimNum.indexOf(searchNum) === -1) {
+                        return false;
+                    }
+                }
 
                 if (globalSearchQuery) {
                     var terms = normalizeArabic(globalSearchQuery).toLowerCase().split(/\s+/);
@@ -157,10 +177,17 @@
     </div>
 
     <div class="table-container">
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+            <div style="position: relative;">
+                <i class="fa-solid fa-hashtag" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px;"></i>
+                <input type="text" id="claimNumberSearch" placeholder="ابحث برقم المطالبة" style="padding: 6px 30px 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: Cairo; height: 34px; width: 220px; outline: none;">
+            </div>
+        </div>
         <table id="claimsTable" class="table" style="width:100%">
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>رقم المطالبة</th>
                     <th>أضيف بواسطة</th>
                     <th>المستشفى / القسم</th>
                     <th>الشهر</th>
@@ -186,6 +213,7 @@
                     @endphp
                     <tr style="{{ $isNew ? 'background-color: #f0fdf4; border-right: 4px solid #22c55e;' : '' }}">
                         <td><span style="font-weight: 700; color: var(--primary-color);">#{{ $claim->id }}</span></td>
+                        <td><span style="font-weight: 600; color: #1e293b; font-size: 12px;">{{ $claim->claim_number }}</span></td>
                         <td>
                             <div style="font-size: 12px; font-weight: 600; color: #475569;">
                                 <i class="fa-solid fa-user-pen" style="font-size: 10px; color: #94a3b8;"></i> 
@@ -217,7 +245,7 @@
                             <div style="font-weight: 600; color: #1e293b; font-size: 13px;">{{ $hospitalName ?? '-' }}</div>
                             <div style="color: #64748b; font-size: 11px;"><i class="fa-solid fa-stethoscope"></i> {{ $deptName ?? '-' }}</div>
                         </td>
-                        <td>{{ $claim->month }}</td>
+                        <td>{{ $claim->month }} {{ $claim->claim_date->format('Y') }}</td>
                         <td>{{ $claim->invoice_count }}</td>
                         <td>{{ $claim->claim_date->toDateString() }}</td>
                         <td style="font-weight: 500;">
@@ -280,7 +308,7 @@
                         </td>
                         <td>
                             <div class="attachment-badges">
-                                @if($claim->attachments && is_array($claim->attachments))
+                                @if($claim->attachments && is_array($claim->attachments) && count($claim->attachments) > 0)
                                     @foreach($claim->attachments as $path)
                                         @php
                                             $ext = pathinfo($path, PATHINFO_EXTENSION);
@@ -302,7 +330,31 @@
                                             <i class="fa-solid {{ $icon }}"></i>
                                         </a>
                                     @endforeach
-                                @else
+                                @endif
+                                @if($claim->delivery_attachments && is_array($claim->delivery_attachments) && count($claim->delivery_attachments) > 0)
+                                    @foreach($claim->delivery_attachments as $path)
+                                        @php
+                                            $ext = pathinfo($path, PATHINFO_EXTENSION);
+                                            $icon = 'fa-file';
+                                            $class = '';
+                                            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                                $icon = 'fa-image';
+                                                $class = 'badge-image';
+                                            } elseif ($ext == 'pdf') {
+                                                $icon = 'fa-file-pdf';
+                                                $class = 'badge-pdf';
+                                            } elseif (in_array($ext, ['xls', 'xlsx', 'csv'])) {
+                                                $icon = 'fa-file-excel';
+                                                $class = 'badge-excel';
+                                            }
+                                        @endphp
+                                        <a href="{{ asset('storage/' . $path) }}" target="_blank" class="attachment-badge {{ $class }}"
+                                            title="مرفق تسليم">
+                                            <i class="fa-solid {{ $icon }}" style="border-bottom: 2px solid #3b82f6;"></i>
+                                        </a>
+                                    @endforeach
+                                @endif
+                                @if((!$claim->attachments || count($claim->attachments) == 0) && (!$claim->delivery_attachments || count($claim->delivery_attachments) == 0))
                                     <span style="color: #cbd5e1; font-size: 12px;">لا يوجد</span>
                                 @endif
                             </div>
@@ -343,7 +395,7 @@
             </tbody>
             <tfoot>
                 <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #cbd5e1;">
-                    <th colspan="10" style="text-align: right; font-weight: 800; font-size: 13px; color: #1e293b;">الإجمالي</th>
+                    <th colspan="11" style="text-align: right; font-weight: 800; font-size: 13px; color: #1e293b;">الإجمالي</th>
                     <th id="claims_foot_val" style="font-weight: 900; font-size: 13px; color: #0f172a; text-align: left;">0.00 ج.م</th>
                     <th id="claims_foot_rev_val" style="font-weight: 900; font-size: 13px; color: #10b981; text-align: left;">0.00 ج.م</th>
                     <th></th>

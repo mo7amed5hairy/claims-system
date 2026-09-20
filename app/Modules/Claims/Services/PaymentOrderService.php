@@ -25,9 +25,11 @@ class PaymentOrderService
     {
         $paymentOrder = $this->paymentOrderRepository->create($data);
 
-        // Update claim status to paid
-        if (!empty($data['electronic_invoice_no'])) {
-            $this->updateClaimStatus($data['electronic_invoice_no'], 'paid');
+        // Update claim status based on identifiers available
+        if (!empty($data['claim_number'])) {
+            $this->updateClaimStatusByClaimNumber($data['claim_number'], $data['is_prepaid'] ?? 0);
+        } elseif (!empty($data['electronic_invoice_no'])) {
+            $this->updateClaimStatus($data['electronic_invoice_no'], $data['is_prepaid'] ?? 0);
         }
 
         return $paymentOrder;
@@ -49,15 +51,26 @@ class PaymentOrderService
 
         if ($oldOrder) {
             // If invoice number changed, revert old claim status and update new one
-            if ($oldOrder->electronic_invoice_no !== $data['electronic_invoice_no']) {
+            if ($oldOrder->electronic_invoice_no !== ($data['electronic_invoice_no'] ?? null)) {
                 if (!empty($oldOrder->electronic_invoice_no)) {
-                    $this->updateClaimStatus($oldOrder->electronic_invoice_no, 'unpaid');
+                    $this->updateClaimStatus($oldOrder->electronic_invoice_no);
+                }
+                if (!empty($oldOrder->claim_number)) {
+                    $this->updateClaimStatusByClaimNumber($oldOrder->claim_number);
+                }
+            }
+            if ($oldOrder->claim_number !== ($data['claim_number'] ?? null)) {
+                if (!empty($oldOrder->claim_number)) {
+                    $this->updateClaimStatusByClaimNumber($oldOrder->claim_number);
                 }
             }
         }
 
         if (!empty($data['electronic_invoice_no'])) {
-            $this->updateClaimStatus($data['electronic_invoice_no'], 'paid');
+            $this->updateClaimStatus($data['electronic_invoice_no']);
+        }
+        if (!empty($data['claim_number'])) {
+            $this->updateClaimStatusByClaimNumber($data['claim_number']);
         }
 
         return $paymentOrder;
@@ -77,9 +90,14 @@ class PaymentOrderService
             $result = $this->paymentOrderRepository->delete($orderId);
         }
 
-        // Revert claim status to unpaid
-        if ($order && !empty($order->electronic_invoice_no)) {
-            $this->updateClaimStatus($order->electronic_invoice_no, 'unpaid');
+        // Revert claim status when payment order is deleted
+        if ($order) {
+            if (!empty($order->electronic_invoice_no)) {
+                $this->updateClaimStatus($order->electronic_invoice_no);
+            }
+            if (!empty($order->claim_number)) {
+                $this->updateClaimStatusByClaimNumber($order->claim_number);
+            }
         }
 
         return $result;
@@ -88,18 +106,48 @@ class PaymentOrderService
     /**
      * Helper to update claim status
      */
-    protected function updateClaimStatus($invoiceNo, $status)
+    protected function updateClaimStatus($invoiceNo, $isPrepaid = 0)
     {
-        $claim = \App\Modules\Claims\Models\Claim::where('electronic_invoice_no', $invoiceNo)->first();
+        $claim = \App\Modules\Claims\Models\Claim::withoutGlobalScopes()
+            ->where('electronic_invoice_no', $invoiceNo)
+            ->first();
 
         if ($claim) {
-            // Calculate total payments for this claim
-            $totalPaid = \App\Modules\Claims\Models\PaymentOrder::where('electronic_invoice_no', $invoiceNo)->sum('amount');
+            // Calculate total payments using both identifiers to avoid missing any
+            $totalPaid = \App\Modules\Claims\Models\PaymentOrder::withoutGlobalScopes()
+                ->where(function ($query) use ($invoiceNo, $claim) {
+                    $query->where('electronic_invoice_no', $invoiceNo);
+                    if (!empty($claim->claim_number)) {
+                        $query->orWhere('claim_number', $claim->claim_number);
+                    }
+                })
+                ->sum('amount');
 
-            // Determine status based on total payments vs reviewed value
-            // Allow a small margin of error for float comparisons (0.1)
-            $newStatus = ($totalPaid >= ($claim->reviewed_value - 0.1)) ? 'paid' : 'unpaid';
+            $newStatus = ($totalPaid >= ($claim->claim_value - 0.1)) ? 'paid' : 'unpaid';
+            $claim->update(['status' => $newStatus]);
+        }
+    }
 
+    /**
+     * Helper to update claim status by claim number
+     */
+    protected function updateClaimStatusByClaimNumber($claimNumber, $isPrepaid = 0)
+    {
+        $claim = \App\Modules\Claims\Models\Claim::withoutGlobalScopes()
+            ->where('claim_number', $claimNumber)
+            ->first();
+
+        if ($claim) {
+            $totalPaid = \App\Modules\Claims\Models\PaymentOrder::withoutGlobalScopes()
+                ->where(function ($query) use ($claimNumber, $claim) {
+                    $query->where('claim_number', $claimNumber);
+                    if (!empty($claim->electronic_invoice_no)) {
+                        $query->orWhere('electronic_invoice_no', $claim->electronic_invoice_no);
+                    }
+                })
+                ->sum('amount');
+
+            $newStatus = ($totalPaid >= ($claim->claim_value - 0.1)) ? 'paid' : 'unpaid';
             $claim->update(['status' => $newStatus]);
         }
     }

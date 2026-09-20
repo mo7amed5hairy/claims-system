@@ -3,9 +3,11 @@
 namespace App\Modules\Claims\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Modules\Claims\Traits\ScopedByOwner;
 
 class FinancialReceipt extends Model
 {
+    use ScopedByOwner;
     protected $table = 'financial_receipts';
 
     protected $fillable = [

@@ -486,7 +486,7 @@
                             <div id="year-opts">
                                 @php
                                     $years = collect($paymentOrders)
-                                        ->map(fn($o) => $o->due_date?->year ?? $o->created_at?->year ?? date('Y'))
+                                        ->map(fn($o) => $o->rendered_year ?? null)
                                         ->filter()->unique()->sort();
                                 @endphp
                                 @foreach($years as $y)
@@ -734,9 +734,14 @@
         function normalizeArabic(text) {
             if (typeof text !== 'string') return text;
             return text
-                .replace(/[أإآ]/g, 'ا')
+                .replace(/[\u064B-\u0652\u0670\u0640]/g, '')
+                .replace(/[أإآٱ]/g, 'ا')
                 .replace(/ى/g, 'ي')
-                .replace(/ة/g, 'ه');
+                .replace(/ة/g, 'ه')
+                .replace(/ؤ/g, 'و')
+                .replace(/ئ/g, 'ي')
+                .replace(/ء/g, '')
+                .toLowerCase();
         }
 
         $(function () {
@@ -756,6 +761,9 @@
             var allYears = [];
             $.each(allRows, function (_, r) { if (allYears.indexOf(r.year) === -1) allYears.push(r.year); });
             allYears.sort();
+
+            var allMonthYear = [];
+            $.each(allRows, function (_, r) { if (r.month && allMonthYear.indexOf(r.month) === -1) allMonthYear.push(r.month); });
 
             var dt = $('#reportsTable').DataTable({
                 dom: 'Blfrtip',
@@ -1074,7 +1082,21 @@
                 var selY = $('.cb-year:checked').map(function () { return $(this).val(); }).get();
                 var prevSel = $('.cb-month:checked').map(function () { return $(this).val(); }).get();
                 var months = [];
-                $.each(selY, function (_, y) { $.each(monthNames, function (_, m) { var f = m + ' ' + y; if (months.indexOf(f) === -1) months.push(f); }); });
+                $.each(allMonthYear, function (_, m) {
+                    var parts = String(m).split(' ');
+                    var y = parts[parts.length - 1];
+                    if (selY.indexOf(y) > -1 && months.indexOf(m) === -1) months.push(m);
+                });
+                months.sort(function (a, b) {
+                    var pa = String(a).split(' '), pb = String(b).split(' ');
+                    var ya = parseInt(pa[pa.length - 1]) || 0, yb = parseInt(pb[pb.length - 1]) || 0;
+                    if (ya !== yb) return ya - yb;
+                    var ma = monthNames.indexOf(pa.slice(0, -1).join(' '));
+                    var mb = monthNames.indexOf(pb.slice(0, -1).join(' '));
+                    if (ma === -1) ma = 99;
+                    if (mb === -1) mb = 99;
+                    return ma - mb;
+                });
                 var $c = $('#month-opts').empty();
                 $.each(months, function (_, m) {
                     var chk = prevSel.length === 0 || prevSel.indexOf(m) > -1 ? 'checked' : '';

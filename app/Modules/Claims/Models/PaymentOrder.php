@@ -4,9 +4,11 @@ namespace App\Modules\Claims\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Modules\Claims\Traits\ScopedByOwner;
 
 class PaymentOrder extends Model
 {
+    use ScopedByOwner;
     protected $table = 'payment_orders';
 
     protected static function booted()

@@ -38,7 +38,8 @@ class PrepaidPaymentOrderController extends Controller
     public function index()
     {
         $this->authorize('viewAny', PaymentOrder::class);
-        $orders = PaymentOrder::with(['payerEntity', 'payeeHospital', 'department', 'user'])->orderBy('id', 'desc')->get();
+        $orders = PaymentOrder::visibleTo(auth()->user())
+            ->with(['payerEntity', 'payeeHospital', 'department', 'user'])->orderBy('id', 'desc')->get();
 
         return view('claims::prepaid-payments.index', compact('orders'));
     }
@@ -191,7 +192,7 @@ class PrepaidPaymentOrderController extends Controller
             return response()->json(['success' => false, 'message' => 'رقم المطالبة مطلوب']);
         }
 
-        $claim = Claim::where('claim_number', $claimNumber)->first();
+        $claim = Claim::visibleTo(auth()->user())->where('claim_number', $claimNumber)->first();
 
         if (!$claim) {
             return response()->json(['success' => false, 'message' => 'المطالبة غير موجودة']);
@@ -236,7 +237,7 @@ class PrepaidPaymentOrderController extends Controller
             return response()->json(['success' => false, 'message' => 'رقم الفاتورة الإلكترونية مطلوب']);
         }
 
-        $claim = Claim::where('electronic_invoice_no', $electronicInvoiceNo)->first();
+        $claim = Claim::visibleTo(auth()->user())->where('electronic_invoice_no', $electronicInvoiceNo)->first();
 
         if (!$claim) {
             return response()->json(['success' => false, 'message' => 'المطالبة غير موجودة']);
@@ -455,6 +456,20 @@ class PrepaidPaymentOrderController extends Controller
             }
         }
 
+        // Always populate both claim_number and electronic_invoice_no from the claim
+        // to ensure payment status calculation works correctly
+        if (empty($data['claim_number']) && !empty($data['electronic_invoice_no'])) {
+            $claimForNumber = \App\Modules\Claims\Models\PrepaidClaim::withoutGlobalScopes()->where('electronic_invoice_no', $data['electronic_invoice_no'])->first();
+            if ($claimForNumber && !empty($claimForNumber->claim_number)) {
+                $data['claim_number'] = $claimForNumber->claim_number;
+            }
+        } elseif (empty($data['electronic_invoice_no']) && !empty($data['claim_number'])) {
+            $claimForNumber = \App\Modules\Claims\Models\PrepaidClaim::withoutGlobalScopes()->where('claim_number', $data['claim_number'])->first();
+            if ($claimForNumber && !empty($claimForNumber->electronic_invoice_no)) {
+                $data['electronic_invoice_no'] = $claimForNumber->electronic_invoice_no;
+            }
+        }
+
         $data['user_id'] = auth()->id();
 
         // Handle file attachments
@@ -592,6 +607,19 @@ class PrepaidPaymentOrderController extends Controller
         // Update invoice_no if electronic_invoice_no is present
         if (!empty($data['electronic_invoice_no'])) {
             $data['invoice_no'] = $data['electronic_invoice_no'];
+        }
+
+        // Always populate both claim_number and electronic_invoice_no from the claim
+        if (empty($data['claim_number']) && !empty($data['electronic_invoice_no'])) {
+            $claimForNumber = \App\Modules\Claims\Models\PrepaidClaim::withoutGlobalScopes()->where('electronic_invoice_no', $data['electronic_invoice_no'])->first();
+            if ($claimForNumber && !empty($claimForNumber->claim_number)) {
+                $data['claim_number'] = $claimForNumber->claim_number;
+            }
+        } elseif (empty($data['electronic_invoice_no']) && !empty($data['claim_number'])) {
+            $claimForNumber = \App\Modules\Claims\Models\PrepaidClaim::withoutGlobalScopes()->where('claim_number', $data['claim_number'])->first();
+            if ($claimForNumber && !empty($claimForNumber->electronic_invoice_no)) {
+                $data['electronic_invoice_no'] = $claimForNumber->electronic_invoice_no;
+            }
         }
 
         // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches
