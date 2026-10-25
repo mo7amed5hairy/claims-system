@@ -237,11 +237,48 @@ class PrepaidPaymentOrderController extends Controller
             return response()->json(['success' => false, 'message' => 'رقم الفاتورة الإلكترونية مطلوب']);
         }
 
-        $claim = Claim::visibleTo(auth()->user())->where('electronic_invoice_no', $electronicInvoiceNo)->first();
+        $claims = Claim::visibleTo(auth()->user())
+            ->where('electronic_invoice_no', $electronicInvoiceNo)
+            ->get();
 
-        if (!$claim) {
+        if ($claims->isEmpty()) {
             return response()->json(['success' => false, 'message' => 'المطالبة غير موجودة']);
         }
+
+        // If the invoice is shared by more than one claim (same entity),
+        // return all matches so the user can pick the correct claim number
+        if ($claims->count() > 1) {
+            return response()->json([
+                'success' => true,
+                'duplicate' => true,
+                'claims' => $claims->map(function ($claim) {
+                    // Load hospital relation if exists
+                    $hospitalName = null;
+                    if ($claim->hospital_id) {
+                        if (is_numeric($claim->hospital_id)) {
+                            $hospital = Hospital::find($claim->hospital_id);
+                            $hospitalName = $hospital ? $hospital->name : null;
+                        } else {
+                            $hospitalName = $this->getHospitalName($claim->hospital_id);
+                        }
+                    }
+                    return [
+                        'id' => $claim->id,
+                        'claim_number' => $claim->claim_number,
+                        'invoice_count' => $claim->invoice_count,
+                        'claim_value' => $claim->claim_value,
+                        'electronic_invoice_no' => $claim->electronic_invoice_no,
+                        'hospital_id' => $claim->hospital_id,
+                        'hospital_name' => $hospitalName,
+                        'department_id' => $claim->department_id,
+                        'entity_id' => $claim->entity_id,
+                        'reviewed_value' => $claim->reviewed_value,
+                    ];
+                })->values(),
+            ]);
+        }
+
+        $claim = $claims->first();
 
         // Load hospital relation if exists
         $hospitalName = null;
@@ -404,37 +441,35 @@ class PrepaidPaymentOrderController extends Controller
             $data['invoice_no'] = null;
         }
 
-        // Business Logic Validation: Amount vs Claim Value (for regular flows)
-        if (!empty($request->electronic_invoice_no)) {
-            $claim = \App\Modules\Claims\Models\PrepaidClaim::where('electronic_invoice_no', $request->electronic_invoice_no)->first();
-
-            if ($claim) {
-                $maxAmount = (float) $claim->claim_value;  // Changed from reviewed_value to claim_value
-                $paymentAmount = (float) $request->amount;
-
-                // Validate against claim_value
-                if ($paymentAmount > $maxAmount) {
+        // Duplicate electronic invoice (same entity, different claim numbers):
+        // settlement must be keyed by claim number
+        if (!empty($data['electronic_invoice_no'])) {
+            $invoiceClaims = $this->paymentOrderService->findInvoiceClaims($data['electronic_invoice_no'], 1);
+            if ($invoiceClaims->count() > 1) {
+                $matchingClaim = $invoiceClaims->where('claim_number', $data['claim_number'] ?? null)->first();
+                if (empty($data['claim_number']) || !$matchingClaim) {
                     return back()->withErrors([
-                        'amount' => "قيمة أمر الدفع (<strong>" . number_format($paymentAmount, 2) . " ج.م</strong>) تتجاوز قيمة المطالبة (<strong>" . number_format($maxAmount, 2) . " ج.م</strong>). يرجى التأكد من المبلغ."
+                        'claim_number' => 'رقم الفاتورة الإلكترونية مسجل لأكثر من مطالبة لنفس الجهة بأرقام مطالبة مختلفة. يرجى إدخال رقم المطالبة الصحيح لتحديد المطالبة المطلوب سدادها.'
                     ])->withInput();
                 }
             }
         }
 
-        // For waiting lists - validate against claim by claim_number
-        $waitingListType = session('flow_waiting_list_type');
-        if ($waitingListType && !empty($request->claim_number)) {
-            $claim = \App\Modules\Claims\Models\PrepaidClaim::where('claim_number', $request->claim_number)->first();
+        // Business Logic Validation: Amount vs Claim Value
+        [$resolvedClaim, ] = $this->paymentOrderService->resolveClaimForPayment(
+            $data['electronic_invoice_no'] ?? null,
+            $data['claim_number'] ?? null,
+            1
+        );
 
-            if ($claim) {
-                $maxAmount = (float) $claim->claim_value;
-                $paymentAmount = (float) $request->amount;
+        if ($resolvedClaim) {
+            $maxAmount = (float) $resolvedClaim->claim_value;
+            $paymentAmount = (float) $request->amount;
 
-                if ($paymentAmount > $maxAmount) {
-                    return back()->withErrors([
-                        'amount' => "قيمة أمر الدفع (<strong>" . number_format($paymentAmount, 2) . " ج.م</strong>) تتجاوز قيمة المطالبة (<strong>" . number_format($maxAmount, 2) . " ج.م</strong>). يرجى التأكد من المبلغ."
-                    ])->withInput();
-                }
+            if ($paymentAmount > $maxAmount) {
+                return back()->withErrors([
+                    'amount' => "قيمة أمر الدفع (<strong>" . number_format($paymentAmount, 2) . " ج.م</strong>) تتجاوز قيمة المطالبة (<strong>" . number_format($maxAmount, 2) . " ج.م</strong>). يرجى التأكد من المبلغ."
+                ])->withInput();
             }
         }
 
@@ -457,10 +492,10 @@ class PrepaidPaymentOrderController extends Controller
         }
 
         // Always populate both claim_number and electronic_invoice_no from the claim
-        // to ensure payment status calculation works correctly
         if (empty($data['claim_number']) && !empty($data['electronic_invoice_no'])) {
-            $claimForNumber = \App\Modules\Claims\Models\PrepaidClaim::withoutGlobalScopes()->where('electronic_invoice_no', $data['electronic_invoice_no'])->first();
-            if ($claimForNumber && !empty($claimForNumber->claim_number)) {
+            $invoiceClaims = $this->paymentOrderService->findInvoiceClaims($data['electronic_invoice_no'], 1);
+            if ($invoiceClaims->count() === 1) {
+                $claimForNumber = $invoiceClaims->first();
                 $data['claim_number'] = $claimForNumber->claim_number;
             }
         } elseif (empty($data['electronic_invoice_no']) && !empty($data['claim_number'])) {
@@ -609,10 +644,27 @@ class PrepaidPaymentOrderController extends Controller
             $data['invoice_no'] = $data['electronic_invoice_no'];
         }
 
+        // Duplicate electronic invoice (same entity, different claim numbers):
+        // settlement must stay keyed by the claim number attached to this payment
+        if (!empty($data['electronic_invoice_no'])) {
+            $invoiceClaims = $this->paymentOrderService->findInvoiceClaims($data['electronic_invoice_no'], 1);
+            if ($invoiceClaims->count() > 1) {
+                $effectiveClaimNumber = $data['claim_number'] ?? $payment->claim_number ?? null;
+                $matchingClaim = $invoiceClaims->where('claim_number', $effectiveClaimNumber)->first();
+                if (empty($effectiveClaimNumber) || !$matchingClaim) {
+                    return back()->withErrors([
+                        'claim_number' => 'رقم الفاتورة الإلكترونية مسجل لأكثر من مطالبة لنفس الجهة بأرقام مطالبة مختلفة. يرجى إدخال رقم المطالبة الصحيح لتحديد المطالبة المطلوب سدادها.'
+                    ])->withInput();
+                }
+                $data['claim_number'] = $effectiveClaimNumber;
+            }
+        }
+
         // Always populate both claim_number and electronic_invoice_no from the claim
         if (empty($data['claim_number']) && !empty($data['electronic_invoice_no'])) {
-            $claimForNumber = \App\Modules\Claims\Models\PrepaidClaim::withoutGlobalScopes()->where('electronic_invoice_no', $data['electronic_invoice_no'])->first();
-            if ($claimForNumber && !empty($claimForNumber->claim_number)) {
+            $invoiceClaims = $this->paymentOrderService->findInvoiceClaims($data['electronic_invoice_no'], 1);
+            if ($invoiceClaims->count() === 1) {
+                $claimForNumber = $invoiceClaims->first();
                 $data['claim_number'] = $claimForNumber->claim_number;
             }
         } elseif (empty($data['electronic_invoice_no']) && !empty($data['claim_number'])) {
@@ -630,37 +682,21 @@ class PrepaidPaymentOrderController extends Controller
             $data['beneficiary'] = $flowOptions['law'] ?? null;
         }
 
-        // Business Logic Validation: Amount vs Claim Value (for regular flows)
-        if (!empty($request->electronic_invoice_no)) {
-            $claim = \App\Modules\Claims\Models\PrepaidClaim::where('electronic_invoice_no', $request->electronic_invoice_no)->first();
+        // Business Logic Validation: Amount vs Claim Value
+        [$resolvedClaim, ] = $this->paymentOrderService->resolveClaimForPayment(
+            $data['electronic_invoice_no'] ?? null,
+            $data['claim_number'] ?? null,
+            1
+        );
 
-            if ($claim) {
-                $maxAmount = (float) $claim->claim_value;  // Changed from reviewed_value to claim_value
-                $paymentAmount = (float) $request->amount;
+        if ($resolvedClaim) {
+            $maxAmount = (float) $resolvedClaim->claim_value;
+            $paymentAmount = (float) $request->amount;
 
-                // Validate against claim_value
-                if ($paymentAmount > $maxAmount) {
-                    return back()->withErrors([
-                        'amount' => "قيمة أمر الدفع (<strong>" . number_format($paymentAmount, 2) . " ج.م</strong>) تتجاوز قيمة المطالبة (<strong>" . number_format($maxAmount, 2) . " ج.م</strong>). يرجى التأكد من المبلغ."
-                    ])->withInput();
-                }
-            }
-        }
-
-        // For waiting lists - validate against claim by claim_number
-        $waitingListType = session('flow_waiting_list_type');
-        if ($waitingListType && !empty($request->claim_number)) {
-            $claim = \App\Modules\Claims\Models\PrepaidClaim::where('claim_number', $request->claim_number)->first();
-
-            if ($claim) {
-                $maxAmount = (float) $claim->claim_value;
-                $paymentAmount = (float) $request->amount;
-
-                if ($paymentAmount > $maxAmount) {
-                    return back()->withErrors([
-                        'amount' => "قيمة أمر الدفع (<strong>" . number_format($paymentAmount, 2) . " ج.م</strong>) تتجاوز قيمة المطالبة (<strong>" . number_format($maxAmount, 2) . " ج.م</strong>). يرجى التأكد من المبلغ."
-                    ])->withInput();
-                }
+            if ($paymentAmount > $maxAmount) {
+                return back()->withErrors([
+                    'amount' => "قيمة أمر الدفع (<strong>" . number_format($paymentAmount, 2) . " ج.م</strong>) تتجاوز قيمة المطالبة (<strong>" . number_format($maxAmount, 2) . " ج.م</strong>). يرجى التأكد من المبلغ."
+                ])->withInput();
             }
         }
 

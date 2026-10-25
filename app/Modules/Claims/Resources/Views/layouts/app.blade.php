@@ -240,6 +240,36 @@
             padding: 0 !important;
         }
 
+        /* ===== Footer ===== */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            text-align: center;
+            padding: 16px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: auto;
+            font-family: inherit;
+        }
+
+        .footer .footer-link {
+            color: #fff !important;
+            text-decoration: none;
+            font-weight: 800;
+            font-family: inherit;
+        }
+
+        .footer .footer-link:hover {
+            text-decoration: underline;
+            opacity: 0.9;
+        }
+
         /* ===== Mobile Responsive ===== */
         /* Medium screens: tighten spacing */
         @media (max-width: 1400px) and (min-width: 1201px) {
@@ -543,6 +573,9 @@
 
             @if (auth()->check())
                 </div>
+                <footer class="footer">
+                    برمجة وتصميم مهندس/ <a href="https://wa.me/201000876076" target="_blank" rel="noopener noreferrer" class="footer-link">محمد خيري</a> @ {{ date('Y') }}
+                </footer>
             @endif
     </div>
 

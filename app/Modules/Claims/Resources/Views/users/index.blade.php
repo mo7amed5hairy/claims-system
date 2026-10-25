@@ -19,6 +19,7 @@
                             <th>البريد الإلكتروني</th>
                             <th>الدور</th>
                             <th>نوع المستخدم</th>
+                            <th>الجهة المربوطة</th>
                             <th>الحالة</th>
                             <th>الإجراءات</th>
                         </tr>
@@ -43,6 +44,33 @@
                                         @foreach($user->user_type as $type)
                                             <span class="badge badge-user-type">{{ $type }}</span>
                                         @endforeach
+                                    @else
+                                        <span class="text-muted">---</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @php
+                                        $bf = is_array($user->bound_flow) ? $user->bound_flow : null;
+                                        $boundLabel = null;
+                                        $boundClass = 'badge-user-type';
+                                        if ($bf) {
+                                            if (($bf['entity_type'] ?? '') === 'waiting_lists') {
+                                                $wlLabels = [
+                                                    'children' => 'مستشفى الأطفال',
+                                                    'women' => 'مستشفى النساء والتوليد',
+                                                    'ain_shams' => 'مستشفى عين شمس الباطنة',
+                                                    'others' => 'باقى المستشفيات',
+                                                ];
+                                                $wltLabel = ($bf['waiting_list_type'] ?? '') === 'insurance' ? 'قوائم انتظار التأمين الصحي' : 'قوائم انتظار مديرية الشئون الصحية';
+                                                $wH = $wlLabels[$bf['hospital'] ?? ''] ?? ($bf['hospital'] ?? '');
+                                                $boundLabel = $wltLabel . ' - ' . $wH . ' / ' . ($bf['department'] ?? '');
+                                            } else {
+                                                $boundLabel = $entityNames[$bf['entity_id'] ?? null] ?? ($bf['entity_id'] ?? '-');
+                                            }
+                                        }
+                                    @endphp
+                                    @if($boundLabel)
+                                        <span class="badge badge-bound">{{ $boundLabel }}</span>
                                     @else
                                         <span class="text-muted">---</span>
                                     @endif
@@ -103,6 +131,13 @@
             background-color: #e8f5e9;
             color: #2e7d32;
             margin: 0 2px;
+        }
+
+        .badge-bound {
+            background-color: #fff3e0;
+            color: #e65100;
+            margin: 2px 0;
+            display: inline-block;
         }
 
         .text-success {

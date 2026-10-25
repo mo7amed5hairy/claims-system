@@ -297,6 +297,12 @@
                                     {{ trim(($claim->branch ?? '') . ' - ' . ($claim->location ?? ''), ' -') }}
                                 </div>
                             @endif
+
+                            @if(!empty($beneficiaryEntityIds) && !empty($claim->beneficiary) && in_array((int)($claim->entity_id ?? 0), $beneficiaryEntityIds, true))
+                                <div style="font-size:11px;color:#475569;">
+                                    <i class="fa-solid fa-user-group"></i> المستفيد: {{ $claim->beneficiary }}
+                                </div>
+                            @endif
                         </td>
                         <td style="color: #0f172a; font-weight: 600;" class="claim-val-cell" data-val="{{ $claim->claim_value }}" data-search="{{ (int)$claim->claim_value }} {{ number_format($claim->claim_value, 2) }}">{{ number_format($claim->claim_value, 2) }} ج.م</td>
                         <td style="color: #10b981;" class="claim-rev-cell" data-val="{{ $claim->reviewed_value ?? 0 }}" data-search="{{ $claim->reviewed_value ? (int)$claim->reviewed_value . ' ' . number_format($claim->reviewed_value, 2) : '' }}">

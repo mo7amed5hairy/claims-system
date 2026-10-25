@@ -29,6 +29,7 @@ class User extends Authenticatable
         'can_view_all_data',
         'avatar',
         'permissions',
+        'bound_flow',
     ];
 
     /**
@@ -53,6 +54,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'permissions' => 'array',
             'user_type' => 'array',
+            'bound_flow' => 'array',
             'can_view_all_data' => 'boolean',
         ];
     }
@@ -163,5 +165,13 @@ class User extends Authenticatable
             return true;
         }
         return (bool) $this->can_view_all_data;
+    }
+
+    /**
+     * Check if user is bound to a specific flow/entity (ربط المستخدم بجهة)
+     */
+    public function hasBoundFlow(): bool
+    {
+        return !empty($this->bound_flow) && is_array($this->bound_flow);
     }
 }

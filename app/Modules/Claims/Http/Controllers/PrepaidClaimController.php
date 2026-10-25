@@ -40,7 +40,14 @@ class PrepaidClaimController extends Controller
         $claims = Claim::visibleTo(auth()->user())
             ->with(['entity', 'hospital', 'department', 'payments', 'user'])->orderBy('id', 'desc')->get();
 
-        return view('claims::prepaid-claims.index', compact('claims'));
+        $beneficiaryEntityIds = ClaimEntity::where('name', 'like', '%تأمين صحي فروع%')
+            ->orWhere('name', 'like', '%قوائم انتظار تامين صحي%')
+            ->orWhere('name', 'like', '%قوائم انتظار تأمين صحي%')
+            ->pluck('id')
+            ->map(function ($id) { return (int) $id; })
+            ->all();
+
+        return view('claims::prepaid-claims.index', compact('claims', 'beneficiaryEntityIds'));
     }
 
     /**
@@ -182,7 +189,23 @@ class PrepaidClaimController extends Controller
             'claim_date' => 'required|date',
             'claim_value' => 'required|numeric|min:0',
             'reviewer_name' => 'nullable|string|max:255',
-            'electronic_invoice_no' => 'required|string|max:255|unique:claims,electronic_invoice_no',
+            'electronic_invoice_no' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request) {
+                    if (empty($request->input('entity_id'))) {
+                        return;
+                    }
+                    $exists = Claim::withoutGlobalScopes()
+                        ->where('electronic_invoice_no', $value)
+                        ->where('entity_id', '!=', $request->input('entity_id'))
+                        ->exists();
+                    if ($exists) {
+                        $fail('رقم الفاتورة الإلكترونية مستخدم بالفعل في مطالبة مسجلة لجهة أخرى.');
+                    }
+                },
+            ],
             'entity_id' => 'required|exists:claim_entities,id',
             'insurance_claim_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
@@ -290,7 +313,19 @@ class PrepaidClaimController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('claims', 'electronic_invoice_no')->ignore($claim->id),
+                function ($attribute, $value, $fail) use ($request, $claim) {
+                    if (empty($request->input('entity_id'))) {
+                        return;
+                    }
+                    $exists = Claim::withoutGlobalScopes()
+                        ->where('electronic_invoice_no', $value)
+                        ->where('entity_id', '!=', $request->input('entity_id'))
+                        ->where('id', '!=', $claim->id)
+                        ->exists();
+                    if ($exists) {
+                        $fail('رقم الفاتورة الإلكترونية مستخدم بالفعل في مطالبة مسجلة لجهة أخرى.');
+                    }
+                },
             ],
             'entity_id' => 'required|exists:claim_entities,id',
             'insurance_claim_number' => 'nullable|string|max:255',

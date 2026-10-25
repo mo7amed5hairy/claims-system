@@ -26,7 +26,46 @@ class FlowController extends Controller
         }
         Log::info('Session ID: ' . session()->getId());
 
+        $user = Auth::user();
+        if ($user && $user->hasBoundFlow()) {
+            return $this->applyBoundFlow($user);
+        }
+
         return view('claims::flow.select-type');
+    }
+
+    /**
+     * Apply a user's bound flow session and redirect them to the right step
+     */
+    private function applyBoundFlow(\App\Models\User $user)
+    {
+        $bf = $user->bound_flow;
+
+        if (($bf['entity_type'] ?? null) === 'waiting_lists') {
+            session([
+                'flow_waiting_list_type' => $bf['waiting_list_type'] ?? null,
+                'flow_hospital_id' => $bf['hospital'] ?? null,
+                'flow_department_id' => $bf['department'] ?? null,
+                'flow_law' => $bf['law'] ?? null,
+            ]);
+            session()->forget(['flow_entity_type', 'flow_options']);
+
+            return redirect()->route('flow.payment-type');
+        }
+
+        $type = $bf['entity_type'] ?? null;
+        session([
+            'flow_entity_type' => $type,
+            'flow_options' => [
+                'entity_type' => $type,
+                'entity_id' => $bf['entity_id'] ?? null,
+                'location' => $bf['location'] ?? null,
+                'law' => $bf['law'] ?? null,
+            ],
+        ]);
+        session()->forget(['flow_waiting_list_type', 'flow_law']);
+
+        return redirect()->route('flow.hospital');
     }
 
     public function storeType(Request $request)
@@ -39,12 +78,27 @@ class FlowController extends Controller
             return redirect()->route('flow.waiting-lists');
         }
 
+        // مديرية الشئون الصحية: skip options page, go straight to hospital with entity pre-selected
+        if ($request->entity_type === 'ministry') {
+            session(['flow_options' => [
+                'entity_type' => 'ministry',
+                'entity_id' => 84, // مديريه الشؤون الصحيه
+            ]]);
+            return redirect()->route('flow.hospital');
+        }
+
         return redirect()->route('flow.options');
     }
 
     public function showOptions()
     {
         $type = session('flow_entity_type');
+
+        // مديرية الشئون الصحية no longer uses the options page
+        if ($type === 'ministry') {
+            return redirect()->route('flow.hospital');
+        }
+
         $query = ClaimEntity::query();
 
         // Filtering Logic based on User Requirements
@@ -92,7 +146,8 @@ class FlowController extends Controller
     public function showHospital()
     {
         $hospitals = Hospital::with('departments')->get();
-        return view('claims::flow.select-hospital', compact('hospitals'));
+        $skipOptions = session('flow_entity_type') === 'ministry';
+        return view('claims::flow.select-hospital', compact('hospitals', 'skipOptions'));
     }
 
     public function storeHospital(Request $request)

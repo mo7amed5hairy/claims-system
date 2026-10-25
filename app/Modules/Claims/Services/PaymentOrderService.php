@@ -36,6 +36,52 @@ class PaymentOrderService
     }
 
     /**
+     * Find all claims matching an electronic invoice number (table-wide).
+     */
+    public function findInvoiceClaims($invoiceNo, $isPrepaid = 0)
+    {
+        return \App\Modules\Claims\Models\Claim::withoutGlobalScopes()
+            ->where('is_prepaid', $isPrepaid)
+            ->where('electronic_invoice_no', $invoiceNo)
+            ->get();
+    }
+
+    /**
+     * Resolve the target claim for a payment order.
+     *
+     * Returns [Claim|null, bool $ambiguous]. $ambiguous is true only when the
+     * electronic invoice is shared by more than one claim and no claim number
+     * was given to disambiguate (same entity reusing the invoice).
+     */
+    public function resolveClaimForPayment($invoiceNo = null, $claimNumber = null, $isPrepaid = 0)
+    {
+        if (!empty($claimNumber)) {
+            $claim = \App\Modules\Claims\Models\Claim::withoutGlobalScopes()
+                ->where('is_prepaid', $isPrepaid)
+                ->where('claim_number', $claimNumber)
+                ->first();
+
+            if ($claim && !empty($invoiceNo) && $claim->electronic_invoice_no !== $invoiceNo) {
+                $claim = null;
+            }
+
+            return [$claim, false];
+        }
+
+        if (!empty($invoiceNo)) {
+            $claims = $this->findInvoiceClaims($invoiceNo, $isPrepaid);
+            if ($claims->count() === 1) {
+                return [$claims->first(), false];
+            }
+            if ($claims->count() > 1) {
+                return [null, true];
+            }
+        }
+
+        return [null, false];
+    }
+
+    /**
      * Update a payment order
      */
     public function updatePaymentOrder($orderId, array $data, $model = null)
@@ -105,31 +151,43 @@ class PaymentOrderService
 
     /**
      * Helper to update claim status
+     *
+     * Invoice-based status is only applied when the invoice maps to exactly one
+     * claim. When the same invoice is shared by several claims (same entity,
+     * different claim numbers), status must be driven by claim number instead.
      */
     protected function updateClaimStatus($invoiceNo, $isPrepaid = 0)
     {
-        $claim = \App\Modules\Claims\Models\Claim::withoutGlobalScopes()
+        $claims = \App\Modules\Claims\Models\Claim::withoutGlobalScopes()
             ->where('electronic_invoice_no', $invoiceNo)
-            ->first();
+            ->get();
 
-        if ($claim) {
-            // Calculate total payments using both identifiers to avoid missing any
-            $totalPaid = \App\Modules\Claims\Models\PaymentOrder::withoutGlobalScopes()
-                ->where(function ($query) use ($invoiceNo, $claim) {
-                    $query->where('electronic_invoice_no', $invoiceNo);
-                    if (!empty($claim->claim_number)) {
-                        $query->orWhere('claim_number', $claim->claim_number);
-                    }
-                })
-                ->sum('amount');
-
-            $newStatus = ($totalPaid >= ($claim->claim_value - 0.1)) ? 'paid' : 'unpaid';
-            $claim->update(['status' => $newStatus]);
+        if ($claims->count() !== 1) {
+            return;
         }
+
+        $claim = $claims->first();
+
+        // Calculate total payments using the claim identifiers to avoid missing any
+        $totalPaid = \App\Modules\Claims\Models\PaymentOrder::withoutGlobalScopes()
+            ->where(function ($query) use ($invoiceNo, $claim) {
+                $query->where('electronic_invoice_no', $invoiceNo);
+                if (!empty($claim->claim_number)) {
+                    $query->orWhere('claim_number', $claim->claim_number);
+                }
+            })
+            ->sum('amount');
+
+        $newStatus = ($totalPaid >= ($claim->claim_value - 0.1)) ? 'paid' : 'unpaid';
+        $claim->update(['status' => $newStatus]);
     }
 
     /**
      * Helper to update claim status by claim number
+     *
+     * Payments are summed by claim number. When the claim's invoice is unique, it
+     * also counts invoices recorded without a claim number. When the invoice is
+     * shared by another claim, only the claim number is trusted.
      */
     protected function updateClaimStatusByClaimNumber($claimNumber, $isPrepaid = 0)
     {
@@ -142,7 +200,12 @@ class PaymentOrderService
                 ->where(function ($query) use ($claimNumber, $claim) {
                     $query->where('claim_number', $claimNumber);
                     if (!empty($claim->electronic_invoice_no)) {
-                        $query->orWhere('electronic_invoice_no', $claim->electronic_invoice_no);
+                        $duplicateCount = \App\Modules\Claims\Models\Claim::withoutGlobalScopes()
+                            ->where('electronic_invoice_no', $claim->electronic_invoice_no)
+                            ->count();
+                        if ($duplicateCount <= 1) {
+                            $query->orWhere('electronic_invoice_no', $claim->electronic_invoice_no);
+                        }
                     }
                 })
                 ->sum('amount');

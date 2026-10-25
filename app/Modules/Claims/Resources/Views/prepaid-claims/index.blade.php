@@ -206,6 +206,12 @@
                                     {{ trim(($claim->branch ?? '') . ' - ' . ($claim->location ?? ''), ' -') }}
                                 </div>
                             @endif
+
+                            @if(!empty($beneficiaryEntityIds) && !empty($claim->beneficiary) && in_array((int)($claim->entity_id ?? 0), $beneficiaryEntityIds, true))
+                                <div style="font-size:11px;color:#475569;">
+                                    <i class="fa-solid fa-user-group"></i> المستفيد: {{ $claim->beneficiary }}
+                                </div>
+                            @endif
                         </td>
                         <td style="color: #0f172a; font-weight: 600;">{{ number_format($claim->claim_value, 2) }} ج.م</td>
                         <td style="color: #10b981;">

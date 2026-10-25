@@ -1156,51 +1156,20 @@
                         // Clear previous error
                         $('#electronicInvoiceError').hide();
                         if (response.success) {
-                            // Display claim details
-                            $('#claimNumberDisplay').val(response.claim.claim_number);
-                            $('#claimInvoiceCount').val(response.claim.invoice_count);
-                            $('#claimValue').val(response.claim.claim_value + ' ج.م');
-                            $('#claimElectronicInvoice').val(response.claim.electronic_invoice_no);
-
-                            // Set hidden fields
-                            $('#electronicInvoiceNoField').val(response.claim.electronic_invoice_no);
-                            $('#hospitalIdField').val(response.claim.hospital_id);
-                            $('#departmentIdField').val(response.claim.department_id);
-                            $('#entityIdField').val(response.claim.entity_id);
-
-                            // Update hospital and department dropdowns
-                            if (response.claim.hospital_id) {
-                                // Check if hospital exists in dropdown, if not add it
-                                const hospitalExists = hospitalSelect.find('option[value="' + response.claim.hospital_id + '"]').length > 0;
-                                if (!hospitalExists && response.claim.hospital_name) {
-                                    hospitalSelect.append('<option value="' + response.claim.hospital_id + '">' + response.claim.hospital_name + '</option>');
-                                }
-
-                                hospitalSelect.val(response.claim.hospital_id).trigger('change');
-                                hospitalSelect.trigger('change.select2'); // Refresh Select2
-
-                                // Small delay to let hospital update before setting department
-                                setTimeout(function () {
-                                    populateDepartments(response.claim.hospital_id, response.claim.department_id);
-                                }, 100);
+                            if (response.duplicate && response.claims) {
+                                handleDuplicateInvoice(response.claims);
+                                return;
                             }
-
-                            // Update entity dropdown
-                            if (response.claim.entity_id) {
-                                entitySelect.val(response.claim.entity_id).trigger('change');
-                            }
-
-                            // Show claim details section
-                            $('#claimDetailsSection').slideDown(300);
-                            // Show review fields
-                            $('#reviewFieldsRow').slideDown(300);
-                            // Auto-calculate amount_after_review
-                            autoCalcAmountAfterReview();
+                            populateClaimFromSearch(response.claim);
                         } else {
                             // Claim not found - show error message on electronic invoice
                             $('#electronicInvoiceError').text('رقم الفاتورة غير صحيح').show();
                             $('#claimDetailsSection').slideUp(300);
                             $('#reviewFieldsRow').slideUp(300);
+                            if ($('#dupClaimNumberContainer').length) {
+                                $('#dupClaimNumberHidden').remove();
+                                $('#dupClaimNumberContainer').hide();
+                            }
                         }
                     },
                     error: function () {
@@ -1209,6 +1178,96 @@
                         $('#reviewFieldsRow').slideUp(300);
                     }
                 });
+            }
+
+            // Populate the claim details section from a resolved claim
+            function populateClaimFromSearch(claim) {
+                if (!$('#dupClaimNumberContainer').length) {
+                    // Single claim - remove any previously injected helper
+                    $('#dupClaimNumberHidden').remove();
+                }
+                // Display claim details
+                $('#claimNumberDisplay').val(claim.claim_number);
+                $('#claimInvoiceCount').val(claim.invoice_count);
+                $('#claimValue').val(claim.claim_value + ' ج.م');
+                $('#claimElectronicInvoice').val(claim.electronic_invoice_no);
+
+                // Set hidden fields
+                $('#electronicInvoiceNoField').val(claim.electronic_invoice_no);
+                $('#hospitalIdField').val(claim.hospital_id);
+                $('#departmentIdField').val(claim.department_id);
+                $('#entityIdField').val(claim.entity_id);
+
+                // Update hospital and department dropdowns
+                if (claim.hospital_id) {
+                    // Check if hospital exists in dropdown, if not add it
+                    const hospitalExists = hospitalSelect.find('option[value="' + claim.hospital_id + '"]').length > 0;
+                    if (!hospitalExists && claim.hospital_name) {
+                        hospitalSelect.append('<option value="' + claim.hospital_id + '">' + claim.hospital_name + '</option>');
+                    }
+
+                    hospitalSelect.val(claim.hospital_id).trigger('change');
+                    hospitalSelect.trigger('change.select2'); // Refresh Select2
+
+                    // Small delay to let hospital update before setting department
+                    setTimeout(function () {
+                        populateDepartments(claim.hospital_id, claim.department_id);
+                    }, 100);
+                }
+
+                // Update entity dropdown
+                if (claim.entity_id) {
+                    entitySelect.val(claim.entity_id).trigger('change');
+                }
+
+                // Show claim details section
+                $('#claimDetailsSection').slideDown(300);
+                // Show review fields
+                $('#reviewFieldsRow').slideDown(300);
+                // Auto-calculate amount_after_review
+                autoCalcAmountAfterReview();
+            }
+
+            // Handle an invoice that is shared by more than one claim (same entity)
+            function handleDuplicateInvoice(claims) {
+                let select = $('#dupClaimNumberSelect');
+                if (!select.length) {
+                    $('#electronicInvoiceContainer').after(
+                        '<div class="form-group" id="dupClaimNumberContainer">' +
+                        '<label class="form-label"><i class="fa-solid fa-hashtag"></i> اختر رقم المطالبة</label>' +
+                        '<select id="dupClaimNumberSelect" class="form-control">' +
+                        '<option value="">-- اختر رقم المطالبة --</option>' +
+                        '</select>' +
+                        '<small class="text-muted"><i class="fa-solid fa-info-circle"></i> رقم الفاتورة مسجل لأكثر من مطالبة لنفس الجهة، حدد المطالبة المطلوب سدادها</small>' +
+                        '</div>'
+                    );
+                    select = $('#dupClaimNumberSelect');
+                    select.on('change', function () {
+                        const claimNumber = $(this).val();
+                        if (!claimNumber) return;
+                        const chosen = claims.find(function (c) { return c.claim_number === claimNumber; });
+                        if (chosen) {
+                            let hidden = $('#dupClaimNumberHidden');
+                            if (!hidden.length) {
+                                $('#dupClaimNumberContainer').append('<input type="hidden" name="claim_number" id="dupClaimNumberHidden" value="">');
+                                hidden = $('#dupClaimNumberHidden');
+                            }
+                            hidden.val(chosen.claim_number);
+                            if ($('#claimNumberInput').length) {
+                                $('#claimNumberInput').val(chosen.claim_number);
+                            }
+                            populateClaimFromSearch(chosen);
+                            $('#dupClaimNumberContainer').hide();
+                        }
+                    });
+                }
+                select.empty().append('<option value="">-- اختر رقم المطالبة --</option>');
+                claims.forEach(function (c) {
+                    select.append('<option value="' + c.claim_number + '">' + c.claim_number + '</option>');
+                });
+                $('#dupClaimNumberContainer').show();
+                $('#claimDetailsSection').hide();
+                $('#reviewFieldsRow').hide();
             }
         });
     </script>

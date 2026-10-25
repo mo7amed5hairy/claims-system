@@ -7,10 +7,12 @@
     <a href="{{ route('dashboard') }}" class="breadcrumb-item">
         <i class="fa-solid fa-home"></i> الرئيسية
     </a>
+    @if(!($skipOptions ?? false))
     <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-left"></i></span>
     <a href="{{ route('flow.options') }}" class="breadcrumb-item">
         الخيارات
     </a>
+    @endif
     <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-left"></i></span>
     <span class="breadcrumb-item active">اختيار المستشفى والقسم</span>
 </div>
@@ -73,7 +75,7 @@
             <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
                 <i class="fa-solid fa-arrow-left"></i> التالي
             </button>
-            <a href="{{ route('flow.options') }}" class="btn btn-secondary">
+            <a href="{{ ($skipOptions ?? false) ? route('dashboard') : route('flow.options') }}" class="btn btn-secondary">
                 <i class="fa-solid fa-arrow-right"></i> العودة
             </a>
         </div>
