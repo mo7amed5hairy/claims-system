@@ -8,6 +8,19 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    private function getHospitalName($key)
+    {
+        $names = [
+            'children' => 'مستشفى الأطفال',
+            'women' => 'مستشفى النساء والتوليد الجامعى',
+            'ain_shams' => 'مستشفى عين شمس التخصصى',
+            'others' => 'باقى المستشفيات',
+        ];
+        if (is_numeric($key)) {
+            return null;
+        }
+        return $names[$key] ?? $key;
+    }
     public function index()
     {
         $user = auth()->user();
@@ -31,11 +44,12 @@ class ReportController extends Controller
             $claimPayments = $claim->allPayments();
 
             if ($claimPayments->isEmpty()) {
+                $hospitalName = $claim->hospital ? $claim->hospital->name : ($this->getHospitalName($claim->hospital_id) ?? '-');
                 $paymentOrders[] = (object) [
                     'id' => $claim->id,
                     'is_payment' => false,
                     'claim' => $claim,
-                    'payeeHospital' => $claim->hospital ? (object) ['name' => $claim->hospital->name] : (object) ['name' => '-'],
+                    'payeeHospital' => (object) ['name' => $hospitalName],
                     'department' => $claim->department ? (object) ['name' => $claim->department->name] : (object) ['name' => '-'],
                     'entity' => $claim->entity ? (object) ['name' => $claim->entity->name] : (object) ['name' => '-'],
                     'claim_number' => $claim->claim_number,
@@ -52,11 +66,12 @@ class ReportController extends Controller
                 ];
             } else {
                 foreach ($claimPayments as $payment) {
+                    $payeeHospitalName = $payment->payeeHospital ? $payment->payeeHospital->name : ($claim->hospital ? $claim->hospital->name : ($this->getHospitalName($claim->hospital_id) ?? $this->getHospitalName($payment->payee_hospital_id) ?? '-'));
                     $paymentOrders[] = (object) [
                         'id' => $claim->id . '_' . $payment->id,
                         'is_payment' => true,
                         'claim' => $claim,
-                        'payeeHospital' => $payment->payeeHospital ?? $claim->hospital ?? (object) ['name' => '-'],
+                        'payeeHospital' => (object) ['name' => $payeeHospitalName],
                         'department' => $payment->department ?? $claim->department ?? (object) ['name' => '-'],
                         'entity' => $claim->entity ? (object) ['name' => $claim->entity->name] : (object) ['name' => '-'],
                         'claim_number' => $claim->claim_number,

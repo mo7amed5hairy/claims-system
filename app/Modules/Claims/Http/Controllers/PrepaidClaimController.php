@@ -103,7 +103,7 @@ class PrepaidClaimController extends Controller
         if ($waitingListType) {
             // Waiting Lists Flow (insurance or ministry)
             if ($waitingListType === 'insurance') {
-                $selectedEntity = ClaimEntity::find(36); // تأمين صحي فروع
+                $selectedEntity = ClaimEntity::find(86); // قوائم انتظار تامين صحي
                 $selectedEntityId = $selectedEntity ? $selectedEntity->id : null;
             } elseif ($waitingListType === 'ministry') {
                 $selectedEntity = ClaimEntity::find(3); // قوائم انتظار وزارة صحة

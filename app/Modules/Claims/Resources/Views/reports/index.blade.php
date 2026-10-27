@@ -595,7 +595,7 @@
         </div>
 
         {{-- Table --}}
-        <div class="table-card" style="overflow-x: auto;">
+        <div class="table-card" style="overflow-x: auto; padding: 1rem;">
             <table id="reportsTable" class="table table-bordered table-hover" style="width:100%; min-width: 1400px;">
                 <thead>
                     <tr>
@@ -608,51 +608,55 @@
                             </div>
                         </th>
                         <th>
-                            <div class="th-inner">بيان <i class="fa-solid fa-filter th-filter-icon" data-col="2"></i></div>
+                            <div class="th-inner">الفرع <i class="fa-solid fa-filter th-filter-icon" data-col="2"></i>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-inner">بيان <i class="fa-solid fa-filter th-filter-icon" data-col="3"></i></div>
                         </th>
                         <th>
                             <div class="th-inner">رقم المطالبة <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="3"></i></div>
+                                    data-col="4"></i></div>
                         </th>
                         <th>
-                            <div class="th-inner">الشهر <i class="fa-solid fa-filter th-filter-icon" data-col="4"></i></div>
+                            <div class="th-inner">الشهر <i class="fa-solid fa-filter th-filter-icon" data-col="5"></i></div>
                         </th>
                         <th style="background:#dbeafe;">
-                            <div class="th-inner">عدد الحالات <i class="fa-solid fa-filter th-filter-icon" data-col="5"></i>
+                            <div class="th-inner">عدد الحالات <i class="fa-solid fa-filter th-filter-icon" data-col="6"></i>
                             </div>
                         </th>
                         <th style="background:#dbeafe;">
                             <div class="th-inner">مبلغ العملية <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="6"></i></div>
-                        </th>
-                        <th style="background:#fef08a;color:#713f12;">
-                            <div class="th-inner">عدد الحالات بعد المراجعة <i class="fa-solid fa-filter th-filter-icon"
                                     data-col="7"></i></div>
                         </th>
                         <th style="background:#fef08a;color:#713f12;">
-                            <div class="th-inner">المبلغ بعد المراجعة <i class="fa-solid fa-filter th-filter-icon"
+                            <div class="th-inner">عدد الحالات بعد المراجعة <i class="fa-solid fa-filter th-filter-icon"
                                     data-col="8"></i></div>
+                        </th>
+                        <th style="background:#fef08a;color:#713f12;">
+                            <div class="th-inner">المبلغ بعد المراجعة <i class="fa-solid fa-filter th-filter-icon"
+                                    data-col="9"></i></div>
                         </th>
                         <th style="background:#bfdbfe;">
                             <div class="th-inner">عدد الحالات المحصلة <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="9"></i>
+                                    data-col="10"></i>
                             </div>
                         </th>
                         <th style="background:#bfdbfe;">
                             <div class="th-inner">ماتم تحصيله فى امر الدفع <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="10"></i></div>
+                                    data-col="11"></i></div>
                         </th>
                         <th style="background:#fed7aa;color:#7c2d12;">
-                            <div class="th-inner">الفرق <i class="fa-solid fa-filter th-filter-icon" data-col="11"></i>
+                            <div class="th-inner">الفرق <i class="fa-solid fa-filter th-filter-icon" data-col="12"></i>
                             </div>
                         </th>
                         <th style="background:#f1f5f9;">
                             <div class="th-inner">رقم امر الدفع <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="12"></i></div>
+                                    data-col="13"></i></div>
                         </th>
                         <th style="background:#f1f5f9;">
                             <div class="th-inner">تاريخ الاستحقاق <i class="fa-solid fa-filter th-filter-icon"
-                                    data-col="13"></i></div>
+                                    data-col="14"></i></div>
                         </th>
                     </tr>
                 </thead>
@@ -675,6 +679,16 @@
                             <td><span class="badge-hosp">{{ $hospName }}</span></td>
                             <td><span class="badge-entity"
                                     style="background:#f1f5f9; color:#475569; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:700;">{{ $order->entity->name ?? '-' }}</span>
+                            </td>
+                            <td>
+                                @php
+                                    $entityName = $order->entity->name ?? '';
+                                    if (in_array($entityName, ['تأمين صحي فروع', 'الهيئة العامة للتأمين الصحي الشامل'])) {
+                                        echo $order->claim->location ?? '-';
+                                    } else {
+                                        echo $order->claim->branch ?? $order->claim->location ?? '-';
+                                    }
+                                @endphp
                             </td>
                             <td>{{ $deptName }}</td>
                             <td style="font-family:monospace">{{ $order->claim_number ?? '-' }}</td>
@@ -707,7 +721,7 @@
                 </tbody>
                 <tfoot>
                     <tr style="background:#f8fafc; font-weight:bold; border-top:2px solid #cbd5e1;">
-                        <th colspan="5" style="text-align: right; font-weight: 800; font-size: 13px; color: #1e293b;">
+                        <th colspan="6" style="text-align: right; font-weight: 800; font-size: 13px; color: #1e293b;">
                             الإجمالي</th>
                         <th id="foot_cases" style="font-weight: 900; font-size: 13px; text-align: center; color: #0f172a;">0
                         </th>
@@ -754,7 +768,7 @@
                 @foreach($paymentOrders as $order)
                     { year: "{{ $order->rendered_year }}", month: "{{ $order->rendered_month }}", hosp: "{{ addslashes($order->payeeHospital->name ?? '-') }}", entity: "{{ addslashes($order->entity->name ?? '-') }}" },
                 @endforeach
-                                ];
+                                    ];
 
             var allHospitals = @json($allHospitals);
             var monthNames = @json($allMonths);
@@ -816,16 +830,17 @@
                         addCell(newRow, 'B' + rNum);
                         addCell(newRow, 'C' + rNum);
                         addCell(newRow, 'D' + rNum);
-                        addCell(newRow, 'E' + rNum, 'الإجمالي');
+                        addCell(newRow, 'E' + rNum);
+                        addCell(newRow, 'F' + rNum, 'الإجمالي');
 
-                        var footIds = ['foot_cases','foot_amt','foot_rev_cases','foot_rev_amt','foot_coll_cases','foot_pay_amt','foot_diff'];
-                        var colRefs = ['F','G','H','I','J','K','L'];
+                        var footIds = ['foot_cases', 'foot_amt', 'foot_rev_cases', 'foot_rev_amt', 'foot_coll_cases', 'foot_pay_amt', 'foot_diff'];
+                        var colRefs = ['G', 'H', 'I', 'J', 'K', 'L', 'M'];
                         for (var i = 0; i < footIds.length; i++) {
                             var el = document.getElementById(footIds[i]);
                             addCell(newRow, colRefs[i] + rNum, el ? el.textContent : '0');
                         }
-                        addCell(newRow, 'M' + rNum);
                         addCell(newRow, 'N' + rNum);
+                        addCell(newRow, 'O' + rNum);
                         sheetData.appendChild(newRow);
                     }
                 }],

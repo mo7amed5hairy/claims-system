@@ -134,17 +134,18 @@
                             @php
                                 // Map waiting list hospital IDs to Arabic names
                                 $hospitalNames = [
-                                    'ain_shams' => 'مستشفى عين شمس',
+                                    'ain_shams' => 'مستشفى عين شمس التخصصى',
                                     'children' => 'مستشفى الأطفال',
-                                    'women' => 'مستشفى النساء',
-                                    'other' => 'أخرى'
+                                    'women' => 'مستشفى النساء والتوليد الجامعى',
+                                    'other' => 'باقى المستشفيات',
+                                    'others' => 'باقى المستشفيات',
                                 ];
                                 
                                 $hospitalName = $claim->hospital->name ?? null;
                                 if (!$hospitalName && $claim->hospital_id) {
                                     $hospitalName = is_numeric($claim->hospital_id) 
                                         ? '-' 
-                                        : ($hospitalNames[$claim->hospital_id] ?? $claim->hospital_id);
+                                        : ($hospitalNames[$claim->hospital_id] ?? ($claim->hospital_id === 'others' || $claim->hospital_id === 'other' ? 'باقى المستشفيات' : $claim->hospital_id));
                                 }
                                 $deptName = $claim->department->name ?? null;
                                 if (!$deptName && $claim->department_id) {

@@ -447,12 +447,14 @@
                         @error('entity_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
+                    @if(!(isset($waitingListType) && $waitingListType))
                     <div class="form-group" id="branchContainer" style="display: none; margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-layer-group"></i> الفروع</label>
                         <select name="branch" id="branchSelect" class="form-control select2" style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر الفرع</option>
                         </select>
                     </div>
+                    @endif
 
                     <div class="form-group" id="subContainer" style="display: none; margin: 0;">
                         <label class="form-label" id="subLabel" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-map-marker-alt"></i> المحافظة</label>
@@ -552,6 +554,19 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Prevent double submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const saveBtn = document.getElementById('saveBtn');
+            if (saveBtn.disabled) {
+                e.preventDefault();
+                return false;
+            }
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+        });
+    </script>
 @endsection
 
 
@@ -823,6 +838,7 @@
             entitySelect.on('change', function () {
                 const selectedOption = $(this).find('option:selected');
                 const metadata = selectedOption.data('metadata');
+                const selectedEntityName = selectedOption.text().trim();
 
                 // Reset all containers
                 branchContainer.hide();
@@ -830,6 +846,20 @@
                 lawsContainer.hide();
 
                 if (!metadata) return;
+
+                // === حالة خاصة: قوائم انتظار تأمين صحي ===
+                // عند اختيار هذه الجهة، نعرض المستفيدين مباشرة
+                if (selectedEntityName.includes('قوائم انتظار تأمين صحي') || selectedEntityName.includes('قوائم انتظار تامين صحي')) {
+                    if (metadata.laws && metadata.laws.length > 0) {
+                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                        metadata.laws.forEach(law => {
+                            lawsSelect.append(`<option value="${law}">${law}</option>`);
+                        });
+                        lawsSelect.select2('destroy').select2({ dir: "rtl", width: '100%', closeOnSelect: true });
+                        lawsContainer.show();
+                    }
+                    return;
+                }
 
                 // === لو الهيئة العامة للتأمين الصحي أو التأمين الصحي الشامل ===
                 if (metadata.laws) {
@@ -928,30 +958,41 @@
             const initialEntityId = "{{ old('entity_id', $selectedEntityId ?? '') }}";
             console.log('Initial Entity ID from PHP:', initialEntityId);
             console.log('Preselected values:', { branch: preselectedBranch, location: preselectedLocation, law: preselectedLaw });
-            
+
             if (initialEntityId) {
                 console.log('Setting entity value to:', initialEntityId);
                 entitySelect.val(initialEntityId).trigger('change');
-                
+
                 // Get metadata for the selected entity
                 const selectedOption = entitySelect.find('option:selected');
                 const metadata = selectedOption.data('metadata');
-                
+                const selectedEntityName = selectedOption.text().trim();
+
                 console.log('Selected entity metadata:', metadata);
-                
+
                 if (metadata) {
                     // Wait for the change event to populate the dropdowns
                     setTimeout(() => {
+                        // Special Case: قوائم انتظار تأمين صحي - show laws directly
+                        if (selectedEntityName.includes('قوائم انتظار تأمين صحي') || selectedEntityName.includes('قوائم انتظار تامين صحي')) {
+                            if (preselectedLaw && metadata.laws && metadata.laws.includes(preselectedLaw)) {
+                                populateLawsOnly(metadata, preselectedLaw);
+                            } else if (metadata.laws && metadata.laws.length > 0) {
+                                populateLawsOnly(metadata, '');
+                            }
+                            return;
+                        }
+
                         // Case 1: Entity has branches (e.g., Ministry flow)
                         if (preselectedBranch && metadata.branches && metadata.branches.includes(preselectedBranch)) {
                             console.log('Setting branch to:', preselectedBranch);
                             branchSelect.val(preselectedBranch).trigger('change');
-                            
+
                             // After branch change, wait for locations to populate
                             setTimeout(() => {
                                 handleLocationAndLaw(metadata, preselectedLocation, preselectedLaw);
                             }, 300);
-                        } 
+                        }
                         // Case 2: Entity has NO branches but has locations/governorates (e.g., Insurance, Comprehensive)
                         else if (preselectedLocation && !preselectedBranch) {
                             console.log('No branch, handling location directly');
