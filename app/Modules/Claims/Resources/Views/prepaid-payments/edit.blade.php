@@ -580,6 +580,19 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Prevent double submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const saveBtn = document.getElementById('saveBtn');
+            if (saveBtn.disabled) {
+                e.preventDefault();
+                return false;
+            }
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+        });
+    </script>
 @endsection
 
 @section('scripts')
@@ -767,6 +780,23 @@
             entitySelect.on('change', function () {
                 const selectedOption = $(this).find('option:selected');
                 const metadata = selectedOption.data('metadata');
+                const entityName = selectedOption.text().trim();
+
+                // === حالة خاصة: قوائم انتظار تأمين صحي ===
+                // عند اختيار هذه الجهة، نعرض المستفيدين مباشرة
+                if (entityName.includes('قوائم انتظار تأمين صحي') || entityName.includes('قوائم انتظار تامين صحي')) {
+                    branchContainer.slideUp(300);
+                    subContainer.slideUp(300);
+                    if (metadata.laws && metadata.laws.length > 0) {
+                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                        metadata.laws.forEach(law => {
+                            lawsSelect.append(`<option value="${law}">${law}</option>`);
+                        });
+                        lawsContainer.slideDown(300);
+                    }
+                    return;
+                }
+
                 fillBranchOptions(metadata);
                 // resetSub(); // Handled by flow
             });
@@ -833,9 +863,25 @@
             if (initialEntity) {
                 entitySelect.val(initialEntity).trigger('change');
                 const selectedOption = entitySelect.find('option:selected');
-                
+                const entityName = selectedOption.text().trim();
+
                 if (selectedOption.length) {
                     const metadata = selectedOption.data('metadata');
+
+                    // Special Case: قوائم انتظار تأمين صحي - show laws directly
+                    if (entityName.includes('قوائم انتظار تأمين صحي') || entityName.includes('قوائم انتظار تامين صحي')) {
+                        branchContainer.slideUp(300);
+                        subContainer.slideUp(300);
+                        if (metadata.laws && metadata.laws.length > 0) {
+                            lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                            metadata.laws.forEach(law => {
+                                const isSelected = (law === initialLaw) ? 'selected' : '';
+                                lawsSelect.append(`<option value="${law}" ${isSelected}>${law}</option>`);
+                            });
+                            lawsContainer.slideDown(300);
+                        }
+                        return;
+                    }
 
                     // Case 1: Has branch (Ministry flow)
                     if (initialBranch && metadata && metadata.branches && metadata.branches.includes(initialBranch)) {

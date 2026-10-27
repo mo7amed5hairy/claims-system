@@ -9,6 +9,7 @@
         margin: 0 !important;
         overflow: hidden !important;
     }
+
     .form-container {
         max-width: 100% !important;
         width: 100% !important;
@@ -17,11 +18,13 @@
         max-height: calc(100vh - 120px) !important;
         overflow-y: auto !important;
     }
+
     .form-card {
         padding: 4px 8px !important;
         margin: 0 !important;
         border-radius: 0 !important;
     }
+
     /* Compact rows */
     .form-row {
         display: grid;
@@ -29,27 +32,32 @@
         gap: 3px !important;
         margin-bottom: 2px !important;
     }
+
     .form-row-3 {
         display: grid;
         grid-template-columns: repeat(3, 1fr) !important;
         gap: 3px !important;
         margin-bottom: 2px !important;
     }
+
     .form-row-4 {
         display: grid;
         grid-template-columns: repeat(4, 1fr) !important;
         gap: 3px !important;
         margin-bottom: 2px !important;
     }
+
     .form-row-2 {
         display: grid;
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 3px !important;
         margin-bottom: 2px !important;
     }
+
     .form-group {
         margin-bottom: 1px !important;
     }
+
     /* Compact labels - slightly larger */
     .form-label {
         font-size: 12px !important;
@@ -59,15 +67,18 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+
     /* Compact inputs - slightly larger */
     .form-control {
         height: 32px !important;
         padding: 4px 8px !important;
     }
+
     /* Select2 slightly larger */
     .select2-container {
         width: 100% !important;
     }
+
     .select2-container .select2-selection--single {
         height: 36px !important;
         min-height: 36px !important;
@@ -80,6 +91,7 @@
         display: flex !important;
         align-items: center !important;
     }
+
     .select2-container--default .select2-selection--single .select2-selection__rendered {
         line-height: 34px !important;
         padding-left: 2px !important;
@@ -89,67 +101,81 @@
         display: flex !important;
         align-items: center !important;
     }
+
     .select2-container--default .select2-selection--single .select2-selection__arrow {
         height: 34px !important;
         width: 24px !important;
         top: 0 !important;
         right: 2px !important;
     }
+
     .select2-container--default .select2-selection--single .select2-selection__arrow b {
         border-width: 4px !important;
         margin-top: -2px !important;
     }
+
     .select2-dropdown {
         font-size: 12px !important;
         border-radius: 4px !important;
     }
+
     .select2-results__option {
         padding: 4px 8px !important;
         font-size: 12px !important;
         min-height: 22px !important;
         line-height: 18px !important;
     }
+
     /* Compact textarea */
     textarea.form-control {
         min-height: 45px !important;
         height: 45px !important;
         font-size: 12px !important;
     }
+
     /* Error messages */
     .error-message {
         font-size: 9px !important;
     }
+
     /* Small text */
     small.text-muted {
         font-size: 8px !important;
         display: block;
         line-height: 1.1;
     }
+
     /* Page header compact */
     .page-header {
         padding: 6px 10px !important;
         margin-bottom: 4px !important;
     }
+
     .page-title {
         font-size: 16px !important;
     }
+
     .page-subtitle {
         font-size: 11px !important;
     }
+
     /* Breadcrumb compact */
     .breadcrumb-nav {
         padding: 4px 10px !important;
         margin-bottom: 4px !important;
     }
+
     /* Form sections very compact */
     .form-section {
         padding: 4px !important;
         margin-bottom: 2px !important;
     }
+
     .section-title {
         font-size: 12px !important;
         margin-bottom: 4px !important;
     }
+
     /* Buttons compact */
     .form-actions {
         margin-top: 4px !important;
@@ -160,6 +186,7 @@
         width: 100% !important;
         flex-direction: row !important;
     }
+
     /* Buttons slightly larger */
     .form-actions .btn,
     .form-actions button.btn,
@@ -179,17 +206,21 @@
         justify-content: center !important;
         white-space: nowrap !important;
     }
+
     /* Drop zone compact */
     .drop-zone {
         padding: 8px !important;
         margin-bottom: 4px !important;
     }
+
     .drop-zone-text {
         font-size: 11px !important;
     }
+
     .drop-zone-hint {
         font-size: 9px !important;
     }
+
     /* File list styling - show full items */
     .file-list {
         max-height: 120px !important;
@@ -197,9 +228,12 @@
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
     }
+
     .file-list::-webkit-scrollbar {
-        display: none !important; /* Chrome, Safari, Opera */
+        display: none !important;
+        /* Chrome, Safari, Opera */
     }
+
     .file-item {
         display: flex !important;
         align-items: center !important;
@@ -210,14 +244,17 @@
         margin-bottom: 4px !important;
         width: 100% !important;
     }
+
     .file-icon {
         font-size: 16px !important;
         flex-shrink: 0 !important;
     }
+
     .file-details {
         flex: 1 !important;
         min-width: 0 !important;
     }
+
     .file-name {
         font-size: 11px !important;
         font-weight: 500 !important;
@@ -225,13 +262,16 @@
         overflow: hidden !important;
         text-overflow: ellipsis !important;
     }
+
     .file-size {
         font-size: 9px !important;
         color: #64748b !important;
     }
+
     .file-actions {
         flex-shrink: 0 !important;
     }
+
     .btn-remove {
         background: none !important;
         border: none !important;
@@ -240,28 +280,37 @@
         font-size: 12px !important;
         padding: 4px !important;
     }
+
     /* Hide any arrows/buttons in file list */
-    .file-list .file-item > *:not(.file-icon):not(.file-details):not(.file-actions) {
+    .file-list .file-item>*:not(.file-icon):not(.file-details):not(.file-actions) {
         display: none !important;
     }
+
     /* Responsive Design */
     @media (max-width: 1400px) {
         .form-row {
             grid-template-columns: repeat(6, 1fr) !important;
         }
     }
+
     @media (max-width: 992px) {
         .form-row {
             grid-template-columns: repeat(4, 1fr) !important;
         }
     }
+
     @media (max-width: 768px) {
         .form-row {
             grid-template-columns: repeat(3, 1fr) !important;
         }
     }
+
     @media (max-width: 576px) {
-        .form-row, .form-row-2, .form-row-3, .form-row-4 {
+
+        .form-row,
+        .form-row-2,
+        .form-row-3,
+        .form-row-4 {
             grid-template-columns: repeat(1, 1fr) !important;
         }
     }
@@ -298,22 +347,31 @@
                 @csrf
 
                 <!-- Row 1: All Basic Fields (8 fields) -->
-                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 0.9fr 0.6fr 0.7fr 0.9fr 0.9fr 0.9fr 1.2fr 1.2fr; gap: 8px !important;">
+                <div class="form-row form-section"
+                    style="padding: 8px !important; grid-template-columns: 0.9fr 0.6fr 0.7fr 0.9fr 0.9fr 0.9fr 1.2fr 1.2fr; gap: 8px !important;">
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-hashtag"></i> رقم المطالبة <span class="text-danger">*</span></label>
-                        <input type="text" name="claim_number" class="form-control" value="{{ old('claim_number') }}" required placeholder="رقم المطالبة" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-hashtag"></i> رقم المطالبة <span class="text-danger">*</span></label>
+                        <input type="text" name="claim_number" class="form-control" value="{{ old('claim_number') }}"
+                            required placeholder="رقم المطالبة"
+                            style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('claim_number') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calculator"></i> عدد الفواتير</label>
-                        <input type="number" name="invoice_count" class="form-control" min="1" value="{{ old('invoice_count') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-calculator"></i> عدد الفواتير</label>
+                        <input type="number" name="invoice_count" class="form-control" min="1"
+                            value="{{ old('invoice_count') }}" required
+                            style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('invoice_count') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar"></i> الشهر</label>
-                        <select name="month" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-calendar"></i> الشهر</label>
+                        <select name="month" class="form-control select2" required
+                            style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر</option>
                             <option value="يناير" {{ old('month') == 'يناير' ? 'selected' : '' }}>يناير</option>
                             <option value="فبراير" {{ old('month') == 'فبراير' ? 'selected' : '' }}>فبراير</option>
@@ -332,26 +390,35 @@
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar-days"></i> تاريخ المطالبة</label>
-                        <input type="date" name="claim_date" class="form-control" value="{{ old('claim_date') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-calendar-days"></i> تاريخ المطالبة</label>
+                        <input type="date" name="claim_date" class="form-control" value="{{ old('claim_date') }}" required
+                            style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('claim_date') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-coins"></i> قيمة المطالبة</label>
-                        <input type="number" step="0.01" id="claimValue" name="claim_value" class="form-control" min="0" value="{{ old('claim_value') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-coins"></i> قيمة المطالبة</label>
+                        <input type="number" step="0.01" id="claimValue" name="claim_value" class="form-control" min="0"
+                            value="{{ old('claim_value') }}" required
+                            style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('claim_value') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-user-check"></i> اسم المراجع</label>
-                        <input type="text" name="reviewer_name" class="form-control" value="{{ old('reviewer_name') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-user-check"></i> اسم المراجع</label>
+                        <input type="text" name="reviewer_name" class="form-control" value="{{ old('reviewer_name') }}"
+                            style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('reviewer_name') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-hospital"></i> المستشفى</label>
-                        <select name="hospital_id" id="hospitalSelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-hospital"></i> المستشفى</label>
+                        <select name="hospital_id" id="hospitalSelect" class="form-control select2" required
+                            style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر المستشفى</option>
                             @php
                                 $isWaitingListHospital = isset($hospital) && !is_numeric($hospital->id ?? '');
@@ -367,7 +434,9 @@
                                 @if($hospitalId == $hosp->id)
                                     @php $hospitalFound = true; @endphp
                                 @endif
-                                <option value="{{ $hosp->id }}" {{ ($hospitalId == $hosp->id) ? 'selected' : '' }}>{{ $hosp->name }}</option>
+                                <option value="{{ $hosp->id }}" {{ ($hospitalId == $hosp->id) ? 'selected' : '' }}>
+                                    {{ $hosp->name }}
+                                </option>
                             @endforeach
                             @if($hospitalId && !$hospitalFound)
                                 <option value="{{ $hospitalId }}" selected>{{ $hospitalName ?: $hospitalId }}</option>
@@ -377,8 +446,10 @@
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-stethoscope"></i> القسم</label>
-                        <select name="department_id" id="departmentSelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-stethoscope"></i> القسم</label>
+                        <select name="department_id" id="departmentSelect" class="form-control select2" required
+                            style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر القسم</option>
                             @php
                                 $isWaitingListDept = isset($department) && !is_numeric($department->id ?? '');
@@ -394,7 +465,8 @@
                                 @if($deptId == $dept->id)
                                     @php $deptFound = true; @endphp
                                 @endif
-                                <option value="{{ $dept->id }}" {{ ($deptId == $dept->id) ? 'selected' : '' }}>{{ $dept->name }}</option>
+                                <option value="{{ $dept->id }}" {{ ($deptId == $dept->id) ? 'selected' : '' }}>{{ $dept->name }}
+                                </option>
                             @endforeach
                             @if($deptId && !$deptFound)
                                 <option value="{{ $deptId }}" selected>{{ $deptName ?: $deptId }}</option>
@@ -405,38 +477,50 @@
                 </div>
 
                 <!-- Row 2: Entity & Related Fields -->
-                <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr 0.9fr 0.9fr; gap: 8px !important;">
+                <div class="form-row form-section"
+                    style="padding: 8px !important; grid-template-columns: 1.5fr 1fr 1fr 1fr 1.5fr 0.9fr 0.9fr; gap: 8px !important;">
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-building"></i> الجهة</label>
-                        <select name="entity_id" id="entitySelect" class="form-control select2" required style="height: 30px !important; font-size: 13px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-building"></i> الجهة</label>
+                        <select name="entity_id" id="entitySelect" class="form-control select2" required
+                            style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر الجهة</option>
                             @foreach($entities as $entity)
                                 @php
                                     $isSelected = (old('entity_id') == $entity->id) || (isset($selectedEntityId) && $selectedEntityId == $entity->id);
                                 @endphp
-                                <option value="{{ $entity->id }}" {{ $isSelected ? 'selected' : '' }} data-metadata='@json($entity->metadata)' data-selected="{{ $isSelected ? 'true' : 'false' }}">{{ $entity->name }}</option>
+                                <option value="{{ $entity->id }}" {{ $isSelected ? 'selected' : '' }}
+                                    data-metadata='@json($entity->metadata)'
+                                    data-selected="{{ $isSelected ? 'true' : 'false' }}">{{ $entity->name }}</option>
                             @endforeach
                         </select>
                         @error('entity_id') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" id="branchContainer" style="display: none; margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-layer-group"></i> الفروع</label>
-                        <select name="branch" id="branchSelect" class="form-control select2" style="height: 30px !important; font-size: 13px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-layer-group"></i> الفروع</label>
+                        <select name="branch" id="branchSelect" class="form-control select2"
+                            style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر الفرع</option>
                         </select>
                     </div>
 
                     <div class="form-group" id="subContainer" style="display: none; margin: 0;">
-                        <label class="form-label" id="subLabel" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-map-marker-alt"></i> المحافظة</label>
-                        <select name="location" id="subSelect" class="form-control select2" style="height: 30px !important; font-size: 13px;">
+                        <label class="form-label" id="subLabel" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-map-marker-alt"></i> المحافظة</label>
+                        <select name="location" id="subSelect" class="form-control select2"
+                            style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر</option>
                         </select>
                     </div>
 
-                    <div class="form-group" id="lawsContainer" style="{{ $law ? 'display: block;' : 'display: none;' }}; margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-file-lines"></i> المستفيدين</label>
-                        <select name="beneficiary" id="lawsSelect" class="form-control select2" style="height: 30px !important; font-size: 13px;">
+                    <div class="form-group" id="lawsContainer"
+                        style="{{ $law ? 'display: block;' : 'display: none;' }}; margin: 0;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-file-lines"></i> المستفيدين</label>
+                        <select name="beneficiary" id="lawsSelect" class="form-control select2"
+                            style="height: 30px !important; font-size: 13px;">
                             <option value="">اختر المستفيد</option>
                             @if($law)
                                 <option value="{{ $law }}" selected>{{ $law }}</option>
@@ -445,36 +529,47 @@
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
-                        <input type="text" name="electronic_invoice_no" class="form-control" value="{{ old('electronic_invoice_no') }}" required style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-barcode"></i> رقم الفاتورة الإلكترونية</label>
+                        <input type="text" name="electronic_invoice_no" class="form-control"
+                            value="{{ old('electronic_invoice_no') }}" required
+                            style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('electronic_invoice_no') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-calendar-check"></i> تاريخ التسليم</label>
-                        <input type="date" name="delivery_date" class="form-control" value="{{ old('delivery_date') }}" style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-calendar-check"></i> تاريخ التسليم</label>
+                        <input type="date" name="delivery_date" class="form-control" value="{{ old('delivery_date') }}"
+                            style="height: 30px !important; font-size: 13px; padding: 4px 8px;">
                         @error('delivery_date') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i class="fa-solid fa-upload"></i> مرفقات التسليم</label>
-                        <div id="deliveryDropZone" style="border: 2px dashed #cbd5e1; border-radius: 6px; padding: 6px; text-align: center; cursor: pointer; background: #f8fafc; min-height: 28px;" onclick="document.getElementById('deliveryFileInput').click();">
+                        <label class="form-label" style="font-size: 12px; margin-bottom: 2px;"><i
+                                class="fa-solid fa-upload"></i> مرفقات التسليم</label>
+                        <div id="deliveryDropZone"
+                            style="border: 2px dashed #cbd5e1; border-radius: 6px; padding: 6px; text-align: center; cursor: pointer; background: #f8fafc; min-height: 28px;"
+                            onclick="document.getElementById('deliveryFileInput').click();">
                             <i class="fa-solid fa-cloud-arrow-up" style="font-size: 12px; color: #64748b;"></i>
                             <span style="font-size: 10px; color: #64748b;">اضغط لاختيار ملفات</span>
-                            <input type="file" name="delivery_attachments[]" id="deliveryFileInput" multiple style="display: none;">
+                            <input type="file" name="delivery_attachments[]" id="deliveryFileInput" multiple
+                                style="display: none;">
                         </div>
                         <div id="deliveryFileList" style="max-height: 50px; overflow-y: auto; margin-top: 2px;"></div>
                     </div>
                 </div>
 
                 <!-- Row 3: Notes & Attachments (Side by Side) -->
-                <div class="form-row-2 form-section" style="padding: 6px !important; gap: 10px !important; margin-bottom: 4px !important;">
+                <div class="form-row-2 form-section"
+                    style="padding: 6px !important; gap: 10px !important; margin-bottom: 4px !important;">
                     <!-- Notes -->
                     <div class="form-group" style="margin: 0;">
                         <label class="form-label" style="font-size: 12px; margin-bottom: 3px; padding: 2px 4px;">
                             <i class="fa-solid fa-note-sticky"></i> ملاحظات
                         </label>
-                        <textarea name="notes" class="form-control" rows="2" style="min-height: 140px !important; height: 140px !important; font-size: 13px; padding: 6px 8px; resize: none;"
+                        <textarea name="notes" class="form-control" rows="2"
+                            style="min-height: 140px !important; height: 140px !important; font-size: 13px; padding: 6px 8px; resize: none;"
                             placeholder="ملاحظات..."></textarea>
                         @error('notes') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
@@ -484,10 +579,12 @@
                         <label class="form-label" style="font-size: 12px; margin-bottom: 3px; padding: 2px 4px;">
                             <i class="fa-solid fa-paperclip"></i> المرفقات
                         </label>
-                        <div class="drop-zone" id="dropZone" style="padding: 10px !important; margin-bottom: 0 !important; min-height: 140px !important; height: 140px !important; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <div class="drop-zone" id="dropZone"
+                            style="padding: 10px !important; margin-bottom: 0 !important; min-height: 140px !important; height: 140px !important; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                             <div class="drop-zone-content" style="display: flex; align-items: center; gap: 10px;">
                                 <i class="fa-solid fa-cloud-arrow-up" style="font-size: 20px;"></i>
-                                <p class="drop-zone-text" style="font-size: 13px; margin: 0;">اسحب الملفات هنا أو اضغط للاختيار</p>
+                                <p class="drop-zone-text" style="font-size: 13px; margin: 0;">اسحب الملفات هنا أو اضغط
+                                    للاختيار</p>
                             </div>
                             <input type="file" name="attachments[]" id="fileInput" multiple style="display: none;">
                         </div>
@@ -497,28 +594,34 @@
 
                 {{-- Waiting Lists Fields (Inline) --}}
                 @if($showWaitingListFields)
-                <div class="form-row-2 form-section" style="padding: 4px 6px !important; gap: 8px !important; margin-bottom: 4px !important; border-top: 1px dashed #cbd5e1;">
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 11px; margin-bottom: 2px;">
-                            <i class="fa-solid fa-file-text"></i> وصف المطالبة
-                        </label>
-                        <textarea name="claim_description" rows="1" style="min-height: 30px !important; height: 30px !important; font-size: 12px; padding: 4px 6px; resize: none;" placeholder="وصف..."></textarea>
+                    <div class="form-row-2 form-section"
+                        style="padding: 4px 6px !important; gap: 8px !important; margin-bottom: 4px !important; border-top: 1px dashed #cbd5e1;">
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label" style="font-size: 11px; margin-bottom: 2px;">
+                                <i class="fa-solid fa-file-text"></i> وصف المطالبة
+                            </label>
+                            <textarea name="claim_description" rows="1"
+                                style="min-height: 30px !important; height: 30px !important; font-size: 12px; padding: 4px 6px; resize: none;"
+                                placeholder="وصف..."></textarea>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label" style="font-size: 11px; margin-bottom: 2px;">
+                                <i class="fa-solid fa-calendar-day"></i> تاريخ الفاتورة
+                            </label>
+                            <input type="date" name="electronic_invoice_date"
+                                style="height: 30px !important; font-size: 12px; padding: 4px 6px;">
+                        </div>
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" style="font-size: 11px; margin-bottom: 2px;">
-                            <i class="fa-solid fa-calendar-day"></i> تاريخ الفاتورة
-                        </label>
-                        <input type="date" name="electronic_invoice_date" style="height: 30px !important; font-size: 12px; padding: 4px 6px;">
-                    </div>
-                </div>
                 @endif
 
                 <!-- Action Buttons -->
                 <div class="form-actions" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e2e8f0;">
-                    <button type="submit" class="btn btn-primary" id="saveBtn" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
+                    <button type="submit" class="btn btn-primary" id="saveBtn"
+                        style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
                         <i class="fa-solid fa-save"></i> حفظ
                     </button>
-                    <a href="{{ route('flow.operations') }}" class="btn btn-secondary" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
+                    <a href="{{ route('flow.operations') }}" class="btn btn-secondary"
+                        style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
                         <i class="fa-solid fa-arrow-right"></i> عودة
                     </a>
                 </div>
@@ -528,7 +631,7 @@
 
     <script>
         // Prevent double submission
-        document.querySelector('form').addEventListener('submit', function(e) {
+        document.querySelector('form').addEventListener('submit', function (e) {
             const saveBtn = document.getElementById('saveBtn');
             if (saveBtn.disabled) {
                 e.preventDefault();
@@ -596,11 +699,11 @@
                 // If it's a waiting list hospital (non-numeric), show specific departments for that hospital
                 if (hospitalId && !$.isNumeric(hospitalId)) {
                     console.log('Waiting list hospital detected:', hospitalId);
-                    
+
                     // Get departments for this waiting list hospital
                     const departments = waitingListHospitalDepartments[hospitalId] || [];
                     console.log('Departments for this hospital:', departments);
-                    
+
                     if (departments.length > 0) {
                         console.log('Adding departments from mapping...');
                         // Add departments from the waiting list mapping
@@ -617,7 +720,7 @@
                             departmentSelect.append(`<option value="${dept.id}" ${isSelected}>${dept.name}</option>`);
                         });
                     }
-                    
+
                     // If there's a selected department that doesn't exist in the list, add it
                     if (selectedDeptId && !$.isNumeric(selectedDeptId)) {
                         const exists = departments.includes(selectedDeptId);
@@ -627,11 +730,11 @@
                             departmentSelect.append(`<option value="${selectedDeptId}" selected>${selectedDeptId}</option>`);
                         }
                     }
-                    
+
                     // Reinitialize Select2 to show the new options
                     console.log('Reinitializing Select2...');
                     departmentSelect.select2('destroy').select2({ dir: "rtl", width: '100%' });
-                    
+
                     // Trigger change to update Select2
                     departmentSelect.trigger('change');
                     console.log('=== POPULATE DEPARTMENTS DONE ===');
@@ -649,7 +752,7 @@
 
                 // Reinitialize Select2 after populating
                 departmentSelect.select2('destroy').select2({ dir: "rtl", width: '100%' });
-                
+
                 if (selectedDeptId && $.isNumeric(selectedDeptId)) {
                     departmentSelect.val(selectedDeptId).trigger('change');
                 }
@@ -694,13 +797,13 @@
             const subLabel = $('#subLabel');
             const lawsContainer = $('#lawsContainer');
             const lawsSelect = $('#lawsSelect');
-            
+
             // Flow type from PHP session
             const flowType = '{{ $entityType ?? '' }}';
             const preselectedBranch = '{{ $branch ?? '' }}';
             const preselectedLocation = '{{ $location ?? '' }}';
             const preselectedLaw = '{{ $law ?? '' }}';
-            
+
             console.log('Flow Type:', flowType);
             console.log('Preselected Branch:', preselectedBranch);
             console.log('Preselected Location:', preselectedLocation);
@@ -886,7 +989,7 @@
             branchSelect.on('change', function () {
                 const selectedBranch = $(this).val();
                 const metadata = entitySelect.find('option:selected').data('metadata');
-                
+
                 if (!selectedBranch || !metadata) {
                     subContainer.hide();
                     return;
@@ -911,7 +1014,7 @@
             subSelect.on('change', function () {
                 const selectedSub = $(this).val();
                 const metadata = entitySelect.find('option:selected').data('metadata');
-                
+
                 if (!selectedSub || !metadata || !metadata.laws) {
                     lawsContainer.hide();
                     return;
@@ -929,7 +1032,7 @@
             const initialEntityId = "{{ old('entity_id', $selectedEntityId ?? '') }}";
             console.log('Initial Entity ID from PHP:', initialEntityId);
             console.log('Preselected values:', { branch: preselectedBranch, location: preselectedLocation, law: preselectedLaw });
-            
+
             if (initialEntityId) {
                 console.log('Setting entity value to:', initialEntityId);
                 entitySelect.val(initialEntityId).trigger('change');
@@ -977,11 +1080,11 @@
                     }, 300);
                 }
             }
-            
+
             // Helper function to populate laws only (for waiting lists)
             function populateLawsOnly(metadata, lawVal) {
                 if (!metadata.laws || metadata.laws.length === 0) return;
-                
+
                 console.log('Populating laws only (waiting list):', metadata.laws);
                 lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
                 metadata.laws.forEach(law => {
@@ -992,7 +1095,7 @@
                 lawsContainer.show();
                 console.log('Laws populated for waiting list with selected:', lawVal);
             }
-            
+
             // Helper function to set location and then law
             function handleLocationAndLaw(metadata, locationVal, lawVal) {
                 // For waiting lists with law but no location, handle differently
@@ -1001,9 +1104,9 @@
                     populateLawsOnly(metadata, lawVal);
                     return;
                 }
-                
+
                 if (!locationVal) return;
-                
+
                 // First populate and show the location dropdown
                 let subItems = metadata.governorates || metadata.locations || [];
                 if (subItems.length > 0) {
@@ -1017,16 +1120,16 @@
                     subContainer.show();
                     console.log('Location dropdown populated and shown');
                 }
-                
+
                 // Check if location exists in dropdown
                 const locationExists = subSelect.find('option[value="' + locationVal + '"]').length > 0;
                 console.log('Location exists in dropdown:', locationExists, 'Value:', locationVal);
-                
+
                 if (locationExists) {
                     // Set the location value
                     subSelect.val(locationVal);
                     console.log('Location set to:', locationVal);
-                    
+
                     // For entities with laws (Insurance), populate laws
                     if (metadata.laws && metadata.laws.length > 0) {
                         console.log('Populating laws from metadata:', metadata.laws);
@@ -1039,13 +1142,13 @@
                         lawsContainer.show();
                         console.log('Laws populated and container shown with selected:', lawVal);
                     }
-                    
+
                     // Trigger change on subSelect ONLY if no laws (to avoid overwriting law selection)
                     if (!metadata.laws || metadata.laws.length === 0) {
                         subSelect.trigger('change');
                     }
                 } else {
-                    console.log('Location not found in dropdown, options are:', subSelect.find('option').map(function() { return $(this).val(); }).get());
+                    console.log('Location not found in dropdown, options are:', subSelect.find('option').map(function () { return $(this).val(); }).get());
                 }
             }
         });
@@ -1117,22 +1220,22 @@
             }
 
             div.innerHTML = `
-                <div class="file-icon" style="color: ${color};">
-                    <i class="fa-solid ${icon}"></i>
-                </div>
-                <div class="file-details">
-                    <div class="file-name">${file.name}</div>
-                    <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                    <div class="progress-container" style="display: block;">
-                        <div class="progress-bar"></div>
-                    </div>
-                </div>
-                <div class="file-actions">
-                    <button type="button" class="btn-remove" title="حذف وإلغاء">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
-            `;
+                        <div class="file-icon" style="color: ${color};">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div class="file-details">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size"><i class="fa-solid fa-hard-drive" style="font-size: 10px;"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                            <div class="progress-container" style="display: block;">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="file-actions">
+                            <button type="button" class="btn-remove" title="حذف وإلغاء">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    `;
 
             div.querySelector('.btn-remove').onclick = () => {
                 if (div.uploadInterval) clearInterval(div.uploadInterval);
@@ -1208,7 +1311,7 @@
         const deliveryFileList = document.getElementById('deliveryFileList');
         let selectedDeliveryFiles = [];
 
-        deliveryFileInput.addEventListener('change', function(e) {
+        deliveryFileInput.addEventListener('change', function (e) {
             Array.from(e.target.files).forEach(file => {
                 if (selectedDeliveryFiles.some(f => f.name === file.name && f.size === file.size)) return;
                 selectedDeliveryFiles.push(file);
@@ -1224,9 +1327,9 @@
             div.style.cssText = 'display:flex;align-items:center;gap:6px;padding:3px 6px;background:#f1f5f9;border-radius:4px;margin-bottom:2px;font-size:10px;';
             const extension = file.name.split('.').pop().toLowerCase();
             let icon = 'fa-file-lines', color = '#3b82f6';
-            if (['jpg','jpeg','png','gif'].includes(extension)) { icon = 'fa-file-image'; color = '#10b981'; }
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) { icon = 'fa-file-image'; color = '#10b981'; }
             else if (extension === 'pdf') { icon = 'fa-file-pdf'; color = '#ef4444'; }
-            else if (['xls','xlsx','csv'].includes(extension)) { icon = 'fa-file-excel'; color = '#059669'; }
+            else if (['xls', 'xlsx', 'csv'].includes(extension)) { icon = 'fa-file-excel'; color = '#059669'; }
 
             div.innerHTML = '<i class="fa-solid ' + icon + '" style="color:' + color + ';font-size:11px;"></i>' +
                 '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;">' + file.name + '</span>' +

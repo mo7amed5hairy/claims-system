@@ -23,12 +23,16 @@
         border-radius: 0 !important;
     }
 
-    /* 9 columns per row for main fields */
+    /* 6 columns per row for main fields */
     .form-row {
         display: grid;
-        grid-template-columns: repeat(9, 1fr) !important;
+        grid-template-columns: repeat(6, 1fr) !important;
         gap: 4px !important;
         margin-bottom: 4px !important;
+    }
+
+    .form-row-6 {
+        grid-template-columns: repeat(6, 1fr) !important;
     }
 
     .form-group {
@@ -203,14 +207,16 @@
 
     /* Responsive Design */
     @media (max-width: 1400px) {
-        .form-row {
+        .form-row,
+        .form-row-6 {
             grid-template-columns: repeat(6, 1fr) !important;
         }
     }
 
     @media (max-width: 992px) {
-        .form-row {
-            grid-template-columns: repeat(4, 1fr) !important;
+        .form-row,
+        .form-row-6 {
+            grid-template-columns: repeat(1, 1fr) !important;
         }
 
         #claimDetailsSection .form-row {
@@ -223,8 +229,9 @@
     }
 
     @media (max-width: 768px) {
-        .form-row {
-            grid-template-columns: repeat(3, 1fr) !important;
+        .form-row,
+        .form-row-6 {
+            grid-template-columns: repeat(1, 1fr) !important;
         }
 
         #claimDetailsSection .form-row {
@@ -237,8 +244,9 @@
     }
 
     @media (max-width: 576px) {
-        .form-row {
-            grid-template-columns: repeat(2, 1fr) !important;
+        .form-row,
+        .form-row-6 {
+            grid-template-columns: repeat(1, 1fr) !important;
         }
 
         #claimDetailsSection .form-row {
@@ -295,8 +303,8 @@
             <form action="{{ route('prepaid-payments.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Main 9 Fields Row -->
-                <div class="form-row">
+                <!-- Row 1: First 6 Fields -->
+                <div class="form-row form-row-6">
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-hospital"></i> المستشفى</label>
                         <select name="payee_hospital_id" id="hospitalSelect" class="form-control select2" required>
@@ -361,7 +369,10 @@
                             value="{{ old('deduction') }}" min="0">
                         @error('deduction') <span class="error-message">{{ $message }}</span> @enderror
                     </div>
+                </div>
 
+                <!-- Row 2: Next 6 Fields -->
+                <div class="form-row form-row-6">
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-percent"></i> ضرائب</label>
                         <input type="number" step="0.01" name="taxes" class="form-control" value="{{ old('taxes') }}"
@@ -675,6 +686,19 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Prevent double submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const saveBtn = document.getElementById('saveBtn');
+            if (saveBtn.disabled) {
+                e.preventDefault();
+                return false;
+            }
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+        });
+    </script>
 @endsection
 
 
@@ -840,6 +864,7 @@
             entitySelect.on('change', function () {
                 const selectedOption = $(this).find('option:selected');
                 const metadata = selectedOption.data('metadata');
+                const selectedEntityName = selectedOption.text().trim();
 
                 // Reset all containers
                 branchContainer.hide();
@@ -847,6 +872,20 @@
                 lawsContainer.hide();
 
                 if (!metadata) return;
+
+                // === حالة خاصة: قوائم انتظار تأمين صحي ===
+                // عند اختيار هذه الجهة، نعرض المستفيدين مباشرة
+                if (selectedEntityName.includes('قوائم انتظار تأمين صحي') || selectedEntityName.includes('قوائم انتظار تامين صحي')) {
+                    if (metadata.laws && metadata.laws.length > 0) {
+                        lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                        metadata.laws.forEach(law => {
+                            lawsSelect.append(`<option value="${law}">${law}</option>`);
+                        });
+                        lawsSelect.select2('destroy').select2({ dir: "rtl", width: '100%', closeOnSelect: true });
+                        lawsContainer.show();
+                    }
+                    return;
+                }
 
                 // === لو الهيئة العامة للتأمين الصحي أو التأمين الصحي الشامل ===
                 if (metadata.laws) {
@@ -950,12 +989,28 @@
                 // Get metadata for the selected entity
                 const selectedOption = entitySelect.find('option:selected');
                 const metadata = selectedOption.data('metadata');
+                const selectedEntityName = selectedOption.text().trim();
 
                 console.log('Selected entity metadata:', metadata);
 
                 if (metadata) {
                     // Wait for the change event to populate the dropdowns
                     setTimeout(() => {
+                        // Special Case: قوائم انتظار تأمين صحي - show laws directly
+                        if (selectedEntityName.includes('قوائم انتظار تأمين صحي') || selectedEntityName.includes('قوائم انتظار تامين صحي')) {
+                            branchContainer.slideUp(300);
+                            subContainer.slideUp(300);
+                            if (metadata.laws && metadata.laws.length > 0) {
+                                lawsSelect.empty().append('<option value="">اختر المستفيد</option>');
+                                metadata.laws.forEach(law => {
+                                    const isSelected = (law === preselectedLaw) ? 'selected' : '';
+                                    lawsSelect.append(`<option value="${law}" ${isSelected}>${law}</option>`);
+                                });
+                                lawsContainer.slideDown(300);
+                            }
+                            return;
+                        }
+
                         // Case 1: Has branch (e.g., Ministry flow)
                         if (preselectedBranch && metadata.branches && metadata.branches.includes(preselectedBranch)) {
                             console.log('Setting branch to:', preselectedBranch);
