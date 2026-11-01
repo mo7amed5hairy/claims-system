@@ -94,6 +94,12 @@
                 </div>
                 @endif
 
+                @if(session('error'))
+                <div class="alert alert-danger" style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    {{ session('error') }}
+                </div>
+                @endif
+
                 @yield('content')
             </div>
         </main>
