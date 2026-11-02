@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Increase file upload limits
+    LimitRequestBody 52428800
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

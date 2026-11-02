@@ -205,7 +205,24 @@
                         @endphp
                         <td style="color: #6366f1; font-weight: 600;">{{ number_format($netAmt, 2) }} ج.م</td>
                         <td>{{ $order->due_date->format('Y-m-d') }}</td>
-                        <td>{{ $order->payerEntity->name ?? '-' }}</td>
+                        <td>
+                            <div style="font-weight:800;font-size:12px;">
+                                {{ $order->payerEntity->name ?? '-' }}
+                            </div>
+
+                            @if(!empty($order->branch) || !empty($order->location))
+                                <div style="font-size:11px;color:#64748b;">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    {{ trim(($order->branch ?? '') . ' - ' . ($order->location ?? ''), ' -') }}
+                                </div>
+                            @endif
+
+                            @if(!empty($order->beneficiary))
+                                <div style="font-size:11px;color:#475569;">
+                                    <i class="fa-solid fa-user-group"></i> المستفيد: {{ $order->beneficiary }}
+                                </div>
+                            @endif
+                        </td>
                         <td style="text-align: center;">
                             @if(!empty($order->attachments) && is_array($order->attachments) && count($order->attachments) > 0)
                                 <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;">

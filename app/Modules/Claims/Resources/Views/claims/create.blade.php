@@ -1183,12 +1183,6 @@
             const container = fileItem.querySelector('.progress-container');
             let width = 0;
 
-            // Disable save button while uploading
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.disabled = true;
-            saveBtn.style.opacity = '0.7';
-            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...';
-
             const interval = setInterval(() => {
                 if (width >= 100) {
                     clearInterval(interval);
@@ -1197,13 +1191,6 @@
                         container.style.opacity = '0';
                         setTimeout(() => {
                             container.style.display = 'none';
-                            // Check if all files are done
-                            const remainingBars = document.querySelectorAll('.progress-container[style*="display: block"]');
-                            if (remainingBars.length === 0) {
-                                saveBtn.disabled = false;
-                                saveBtn.style.opacity = '1';
-                                saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ المطالبة';
-                            }
                         }, 500);
                     }, 500);
                 } else {
@@ -1221,15 +1208,6 @@
             const dt = new DataTransfer();
             selectedFiles.forEach(file => dt.items.add(file));
             fileInput.files = dt.files;
-
-            // Reset save button if no files uploading
-            const remainingBars = document.querySelectorAll('.progress-container[style*="display: block"]');
-            if (remainingBars.length === 0) {
-                const saveBtn = document.getElementById('saveBtn');
-                saveBtn.disabled = false;
-                saveBtn.style.opacity = '1';
-                saveBtn.innerHTML = '<i class="fa-solid fa-save"></i> حفظ المطالبة';
-            }
         }
 
         // Delivery Attachments - Accumulate files

@@ -345,7 +345,7 @@ class PrepaidPaymentOrderController extends Controller
             'location' => 'nullable|string|max:255',
             'beneficiary' => 'nullable|string|max:255',
             'attachments' => 'nullable|array',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx|max:10240',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx|max:20480',
         ];
 
         // Check if hospital_id is numeric (DB hospital) or string (waiting list)
@@ -593,7 +593,7 @@ class PrepaidPaymentOrderController extends Controller
             'location' => 'nullable|string|max:255',
             'beneficiary' => 'nullable|string|max:255',
             'attachments' => 'nullable|array',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx|max:10240',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx|max:20480',
             'remove_attachments' => 'nullable|array',
             'remove_attachments.*' => 'integer',
         ];
