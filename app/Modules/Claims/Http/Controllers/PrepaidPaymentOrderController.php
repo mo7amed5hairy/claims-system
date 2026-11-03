@@ -39,7 +39,7 @@ class PrepaidPaymentOrderController extends Controller
     {
         $this->authorize('viewAny', PaymentOrder::class);
         $orders = PaymentOrder::visibleTo(auth()->user())
-            ->with(['payerEntity', 'payeeHospital', 'department', 'user'])->orderBy('id', 'desc')->get();
+            ->with(['payerEntity', 'payeeHospital', 'department', 'user', 'claim'])->orderBy('id', 'desc')->get();
 
         return view('claims::prepaid-payments.index', compact('orders'));
     }
@@ -507,6 +507,33 @@ class PrepaidPaymentOrderController extends Controller
 
         $data['user_id'] = auth()->id();
 
+        // Add Flow Options (Branch, Location, Beneficiary) if Entity Matches
+        // Only use session data if form data is not provided
+        $flowOptions = session('flow_options', []);
+        if (isset($flowOptions['entity_id']) && $data['payer_entity_id'] == $flowOptions['entity_id']) {
+            $data['branch'] = $data['branch'] ?? $flowOptions['branch'] ?? null;
+            $data['location'] = $data['location'] ?? $flowOptions['location'] ?? null;
+            $data['beneficiary'] = $data['beneficiary'] ?? $flowOptions['beneficiary'] ?? null;
+        }
+
+        // If branch/location/beneficiary are still empty, try to get from linked claim
+        if (empty($data['branch']) && empty($data['location']) && empty($data['beneficiary'])) {
+            $claim = null;
+            if (!empty($data['electronic_invoice_no'])) {
+                $claim = PrepaidClaim::withoutGlobalScopes()->where('electronic_invoice_no', $data['electronic_invoice_no'])
+                    ->where('entity_id', $data['payer_entity_id'])
+                    ->first();
+            } elseif (!empty($data['claim_number'])) {
+                $claim = PrepaidClaim::withoutGlobalScopes()->where('claim_number', $data['claim_number'])->first();
+            }
+
+            if ($claim) {
+                $data['branch'] = $data['branch'] ?? $claim->branch ?? null;
+                $data['location'] = $data['location'] ?? $claim->location ?? null;
+                $data['beneficiary'] = $data['beneficiary'] ?? $claim->beneficiary ?? null;
+            }
+        }
+
         // Handle file attachments
         if ($request->hasFile('attachments')) {
             $attachmentPaths = [];
@@ -517,7 +544,6 @@ class PrepaidPaymentOrderController extends Controller
             $data['attachments'] = $attachmentPaths;
         }
 
-        $data['is_prepaid'] = 1;
         $paymentOrder = $this->paymentOrderService->createPaymentOrder($data);
 
         // Deduct from matching financial receipt
@@ -679,7 +705,7 @@ class PrepaidPaymentOrderController extends Controller
         if (isset($flowOptions['entity_id']) && $data['payer_entity_id'] == $flowOptions['entity_id']) {
             $data['branch'] = $flowOptions['branch'] ?? null;
             $data['location'] = $flowOptions['location'] ?? null;
-            $data['beneficiary'] = $flowOptions['law'] ?? null;
+            $data['beneficiary'] = $flowOptions['beneficiary'] ?? null;
         }
 
         // Business Logic Validation: Amount vs Claim Value

@@ -83,4 +83,37 @@ class PaymentOrder extends Model
         // (Note: some old flows might use electronic_invoice_no instead, but claim_number is standard)
         return $this->belongsTo(Claim::class, 'claim_number', 'claim_number');
     }
+
+    // Accessor to get branch from payment order or linked claim
+    public function getBranchAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        // Try to get from linked claim
+        $claim = $this->claim;
+        return $claim ? $claim->branch : null;
+    }
+
+    // Accessor to get location from payment order or linked claim
+    public function getLocationAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        // Try to get from linked claim
+        $claim = $this->claim;
+        return $claim ? $claim->location : null;
+    }
+
+    // Accessor to get beneficiary from payment order or linked claim
+    public function getBeneficiaryAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        // Try to get from linked claim
+        $claim = $this->claim;
+        return $claim ? $claim->beneficiary : null;
+    }
 }
