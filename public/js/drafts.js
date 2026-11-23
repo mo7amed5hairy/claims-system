@@ -263,7 +263,7 @@
   function applyPayload(form, payload) {
     if (!payload || typeof payload !== 'object') return;
     var keys = Object.keys(payload);
-    var priority = ['hospital_id','department_id','entity_id','branch','location','beneficiary','law'];
+    var priority = ['payee_hospital_id','hospital_id','payer_entity_id','entity_id','department_id','branch','location','beneficiary','law','account_type','month','claim_date'];
     keys.sort(function(a,b){
       var ia = priority.indexOf(a), ib = priority.indexOf(b);
       if (ia === -1 && ib === -1) return 0;
@@ -271,9 +271,9 @@
       if (ib === -1) return -1;
       return ia - ib;
     });
-    keys.forEach(function (key) { applyField(form, key, payload[key]); });
-    setTimeout(function(){ keys.forEach(function(k){ applyField(form,k,payload[k]); }); }, 400);
-    setTimeout(function(){ keys.forEach(function(k){ applyField(form,k,payload[k]); }); }, 1000);
+    var applyAll = function(){ keys.forEach(function(k){ applyField(form,k,payload[k]); }); };
+    applyAll();
+    [300, 700, 1200, 2000, 3500].forEach(function(ms){ setTimeout(applyAll, ms); });
   }
 
   function applyField(form, key, val) {
@@ -287,18 +287,24 @@
         if (Array.isArray(val)) el.checked = val.indexOf(el.value) !== -1;
         else el.checked = String(val) === String(el.value) || val === true;
       } else if (el.tagName === 'SELECT') {
-        if (val == null) return;
+        if (val == null || val === '') return;
         var strVal = String(val);
         var exists = false;
         for (var i=0;i<el.options.length;i++){ if(String(el.options[i].value)===strVal){exists=true;break;} }
-        if (!exists && strVal !== '') {
+        if (!exists) {
           var opt = document.createElement('option');
-          opt.value = strVal; opt.textContent = strVal; opt.selected = true;
+          opt.value = strVal; opt.textContent = strVal;
           el.appendChild(opt);
         }
+        if (String(el.value) === strVal && !el.dataset.draftForce) return;
         el.value = strVal;
-        try { if (window.jQuery && jQuery(el).data('select2')) jQuery(el).trigger('change.select2'); jQuery(el).trigger('change'); }
-        catch(e) { el.dispatchEvent(new Event('change', {bubbles:true})); }
+        try {
+          if (window.jQuery && jQuery(el).data('select2')) {
+            jQuery(el).val(strVal).trigger('change.select2').trigger('change');
+          } else {
+            el.dispatchEvent(new Event('change', {bubbles:true}));
+          }
+        } catch(e) { try { el.dispatchEvent(new Event('change', {bubbles:true})); } catch(_){} }
       } else {
         if (el.value === (val == null ? '' : String(val))) return;
         el.value = val == null ? '' : val;
