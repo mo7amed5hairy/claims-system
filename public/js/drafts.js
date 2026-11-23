@@ -230,38 +230,19 @@
       form.appendChild(input);
     }
 
-    // restore from server-provided draft payload if present
+    // Restore only when explicitly continuing from drafts page (session flash).
     var restorePayload = window.DraftsRestorePayload;
     var restoreUuid = window.DraftsRestoreUuid;
-    if (restorePayload && restoreUuid && !input.value) {
+    var isExplicitRestore = !!(restorePayload && restoreUuid);
+    if (isExplicitRestore) {
       input.value = restoreUuid;
       applyPayload(form, restorePayload);
-      // save local snapshot
       var rec = saveLocal(form);
       if (rec) { rec.dirty = false; lsSet(draftKey(rec.uuid), rec); }
       updateIndicator(form, 'saved');
-    } else if (restorePayload && restoreUuid && input.value === restoreUuid) {
-      applyPayload(form, restorePayload);
-      var rec2 = saveLocal(form);
-      if (rec2) { rec2.dirty = false; lsSet(draftKey(rec2.uuid), rec2); }
-      updateIndicator(form, 'saved');
     } else {
-      var existingUuid = input.value;
-      if (existingUuid) {
-        var local = lsGet(draftKey(existingUuid));
-        if (local && local.payload && !local.closed) {
-          applyPayload(form, local.payload);
-          updateIndicator(form, local.dirty ? 'saving' : 'saved');
-        }
-      } else {
-        // try to find recent local draft for same type+entity
-        var found = findRecentLocalDraft(type, form.dataset.draftEntityId || null);
-        if (found && found.payload && !found.closed) {
-          input.value = found.uuid;
-          applyPayload(form, found.payload);
-          updateIndicator(form, 'saved');
-        }
-      }
+      // Fresh open/refresh: start clean. Draft remains in drafts page for explicit continue.
+      input.value = '';
     }
 
     // Listen for changes
