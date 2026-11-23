@@ -54,6 +54,10 @@ class ProjectBackupService
 
         try {
             $result['db_dump'] = $this->dumpDatabase($sqlFile);
+            $dbDriver = config('database.connections.' . config('project_backup.database_connection') . '.driver');
+            if ($dbDriver === 'mysql' && !$result['db_dump']) {
+                throw new \RuntimeException('فشل أخذ نسخة قاعدة البيانات (mysqldump). تأكد من مسار PROJECT_BACKUP_MYSQLDUMP في .env.');
+            }
 
             if (!class_exists(\ZipArchive::class)) {
                 throw new \RuntimeException('ZipArchive extension غير مفعلة على السيرفر.');
@@ -121,7 +125,11 @@ class ProjectBackupService
             return false;
         }
 
-        $mysqldump = (string) config('project_backup.mysqldump_path', 'mysqldump');
+        $mysqldump = $this->resolveMysqldump((string) config('project_backup.mysqldump_path', 'mysqldump'));
+        if (!$mysqldump) {
+            Log::warning('mysqldump not found');
+            return false;
+        }
         $host = $cfg['host'] ?? '127.0.0.1';
         $port = (string) ($cfg['port'] ?? 3306);
         $db = $cfg['database'] ?? '';
@@ -216,5 +224,43 @@ class ProjectBackupService
         $full = $this->backupPath() . DIRECTORY_SEPARATOR . $filename;
         if (!is_file($full)) return false;
         return @unlink($full);
+    }
+
+    private function resolveMysqldump(string $configured): ?string
+    {
+        $configured = trim($configured);
+        $candidates = [];
+        if ($configured !== '') $candidates[] = $configured;
+        $candidates[] = 'mysqldump';
+        $candidates[] = 'C:/xampp/mysql/bin/mysqldump.exe';
+        $candidates[] = 'C:/Program Files/MySQL/MySQL Server 9.6/bin/mysqldump.exe';
+        $candidates[] = 'C:/Program Files/MySQL/MySQL Server 8.4/bin/mysqldump.exe';
+        $candidates[] = 'C:/Program Files/MySQL/MySQL Server 8.0/bin/mysqldump.exe';
+        $candidates[] = 'C:/Program Files/MariaDB */bin/mysqldump.exe';
+
+        foreach ($candidates as $c) {
+            if (str_contains($c, '*')) {
+                foreach (glob($c) ?: [] as $g) {
+                    if (is_file($g)) return $g;
+                }
+                continue;
+            }
+            // absolute path
+            if (preg_match('/^[A-Za-z]:[\/\\\\]/', $c) || str_starts_with($c, '\\\\')) {
+                if (is_file($c)) return $c;
+                continue;
+            }
+            // command name - try where on Windows
+            if (DIRECTORY_SEPARATOR === '\\') {
+                $out = []; $code = 1;
+                @exec('where ' . escapeshellarg($c) . ' 2>NUL', $out, $code);
+                if ($code === 0 && !empty($out[0]) && is_file(trim($out[0]))) return trim($out[0]);
+            } else {
+                $out = []; $code = 1;
+                @exec('which ' . escapeshellarg($c) . ' 2>/dev/null', $out, $code);
+                if ($code === 0 && !empty($out[0]) && is_file(trim($out[0]))) return trim($out[0]);
+            }
+        }
+        return null;
     }
 }
