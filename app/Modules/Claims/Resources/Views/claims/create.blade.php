@@ -1,4 +1,4 @@
-@extends('claims::layouts.app')
+﻿@extends('claims::layouts.app')
 
 @section('title', 'إنشاء مطالبة جديدة')
 
@@ -323,6 +323,7 @@
         <div class="form-card">
             <form action="{{ route('claims.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" name="draft_uuid" value="{{ request('draft_uuid') }}">
 
                 <!-- Row 1: All Basic Fields (8 fields) -->
                 <div class="form-row form-section" style="padding: 8px !important; grid-template-columns: 0.9fr 0.6fr 0.7fr 0.9fr 0.9fr 0.9fr 1.2fr 1.2fr; gap: 8px !important;">
@@ -544,7 +545,7 @@
 
                 <!-- Action Buttons -->
                 <div class="form-actions" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e2e8f0;">
-                    <button type="submit" class="btn btn-primary" id="saveBtn" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
+                    <span data-draft-indicator style="font-size:11px;color:#64748b;margin-inline-end:8px;"></span>`n                        <button type="submit" class="btn btn-primary" id="saveBtn" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
                         <i class="fa-solid fa-save"></i> حفظ
                     </button>
                     <a href="{{ route('flow.operations') }}" class="btn btn-secondary" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">

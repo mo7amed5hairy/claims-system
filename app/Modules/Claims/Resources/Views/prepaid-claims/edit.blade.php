@@ -279,8 +279,9 @@
 
     <div class="form-container">
         <div class="form-card">
-            <form action="{{ route('prepaid-claims.update', $claim->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('prepaid-claims.update', $claim->id) }}" method="POST" enctype="multipart/form-data" data-draft-type="prepaid_claim_edit" data-draft-entity-id="{{ $claim->id }}" data-draft-entity-key="_claim_id" id="prepaidClaimEditForm">
                 @csrf
+                <input type="hidden" name="draft_uuid" value="{{ request('draft_uuid') }}">
                 @method('PUT')
                 <input type="hidden" name="claim_number" value="{{ $claim->claim_number }}">
 
@@ -496,7 +497,8 @@
 
                 <!-- Action Buttons -->
                 <div class="form-actions" style="margin-top: 8px;">
-                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                    <span data-draft-indicator style="font-size:11px;color:#64748b;margin-inline-end:8px;"></span>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="fa-solid fa-save"></i> حفظ التعديلات
                     </button>
                     <a href="{{ route('prepaid-claims.index') }}" class="btn btn-secondary">

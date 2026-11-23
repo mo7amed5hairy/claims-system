@@ -343,8 +343,9 @@
 
     <div class="form-container">
         <div class="form-card">
-            <form action="{{ route('prepaid-claims.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('prepaid-claims.store') }}" method="POST" enctype="multipart/form-data" data-draft-type="prepaid_claim_create" id="prepaidClaimCreateForm">
                 @csrf
+                <input type="hidden" name="draft_uuid" value="{{ request('draft_uuid') }}">
 
                 <!-- Row 1: All Basic Fields (8 fields) -->
                 <div class="form-row form-section"
@@ -616,7 +617,8 @@
 
                 <!-- Action Buttons -->
                 <div class="form-actions" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e2e8f0;">
-                    <button type="submit" class="btn btn-primary" id="saveBtn"
+                    <span data-draft-indicator style="font-size:11px;color:#64748b;margin-inline-end:8px;"></span>
+                        <button type="submit" class="btn btn-primary" id="saveBtn"
                         style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
                         <i class="fa-solid fa-save"></i> حفظ
                     </button>

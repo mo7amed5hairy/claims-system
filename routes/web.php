@@ -31,3 +31,19 @@ Route::middleware('auth')->group(function () {
  * All other routes are handled by ClaimsModuleServiceProvider
  * and are prefixed with 'dashboard/'
  */
+
+/**
+ * =====================================================
+ * Drafts (Offline Autosave)
+ * =====================================================
+ */
+Route::middleware('auth')->group(function () {
+    Route::get('/drafts', [\App\Http\Controllers\DraftController::class, 'index'])->name('drafts.index');
+    Route::get('/drafts/mine', [\App\Http\Controllers\DraftController::class, 'mine'])->name('drafts.mine');
+    Route::post('/drafts/sync', [\App\Http\Controllers\DraftController::class, 'sync'])->name('drafts.sync');
+    Route::post('/drafts/discard-by-uuid', [\App\Http\Controllers\DraftController::class, 'discardByUuid'])->name('drafts.discardByUuid');
+    Route::post('/drafts/{draft}/finalize', [\App\Http\Controllers\DraftController::class, 'finalize'])->name('drafts.finalize');
+    Route::post('/drafts/{draft}/discard', [\App\Http\Controllers\DraftController::class, 'discard'])->name('drafts.discard');
+    Route::put('/drafts/{draft}', [\App\Http\Controllers\DraftController::class, 'update'])->name('drafts.update');
+    Route::get('/drafts/{draft}/continue', [\App\Http\Controllers\DraftController::class, 'continue'])->name('drafts.continue');
+});

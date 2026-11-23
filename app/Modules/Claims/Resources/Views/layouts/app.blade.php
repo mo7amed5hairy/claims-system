@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="rtl">
 
 <head>
@@ -460,6 +460,10 @@
                         </div>
                     @endif
 
+                    <a href="{{ route('drafts.index') }}" class="nav-item-btn" style="text-decoration: none;">
+                        <i class="fa-solid fa-file-pen"></i> مسوداتي
+                    </a>
+
                     @if(Auth::user()->canAccessPayments())
                         <div class="nav-item-dropdown">
                             <button class="nav-item-btn">
@@ -649,6 +653,24 @@
         });
     </script>
 
+    @if(auth()->check())
+    <script>
+      window.DraftsConfig = {
+        userId: {{ auth()->id() }},
+        csrf: '{{ csrf_token() }}',
+        routes: {
+          sync: '{{ route("drafts.sync") }}',
+          mine: '{{ route("drafts.mine") }}',
+          discardByUuid: '{{ route("drafts.discardByUuid") }}'
+        }
+      };
+      @if(session('draft_restore_uuid') && session('draft_restore_payload'))
+      window.DraftsRestoreUuid = @json(session('draft_restore_uuid'));
+      window.DraftsRestorePayload = @json(session('draft_restore_payload'));
+      @endif
+    </script>
+    <script src="{{ asset('js/drafts.js') }}?v={{ filemtime(public_path('js/drafts.js')) }}"></script>
+    @endif
     @yield('scripts')
 </body>
 

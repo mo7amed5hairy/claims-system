@@ -300,8 +300,9 @@
 
     <div class="form-container">
         <div class="form-card">
-            <form action="{{ route('prepaid-payments.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('prepaid-payments.store') }}" method="POST" enctype="multipart/form-data" data-draft-type="prepaid_payment_create" id="prepaidPaymentCreateForm">
                 @csrf
+                <input type="hidden" name="draft_uuid" value="{{ request('draft_uuid') }}">
 
                 <!-- Row 1: First 6 Fields -->
                 <div class="form-row form-row-6">
@@ -676,7 +677,8 @@
                 </script>
 
                 <div class="form-actions" style="margin-top: 8px;">
-                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                    <span data-draft-indicator style="font-size:11px;color:#64748b;margin-inline-end:8px;"></span>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="fa-solid fa-check"></i> تأكيد أمر الدفع
                     </button>
                     <a href="{{ route('prepaid-payments.index') }}" class="btn btn-secondary">

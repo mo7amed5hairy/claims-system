@@ -269,6 +269,8 @@ class PrepaidClaimController extends Controller
             ])->withInput();
         }
 
+        $this->closeDraftFromRequest($request);
+
         return redirect()->route('prepaid-claims.index')
             ->with('success', trans('messages.claim_created_successfully'));
     }
@@ -382,6 +384,8 @@ class PrepaidClaimController extends Controller
 
         $claim->update($data);
 
+        $this->closeDraftFromRequest($request);
+
         return redirect()->route('prepaid-claims.index')
             ->with('success', trans('messages.claim_updated_successfully'));
     }
@@ -423,5 +427,17 @@ class PrepaidClaimController extends Controller
         $claim->update([$field => $updated]);
 
         return response()->json(['success' => true, 'message' => 'تم حذف المرفق بنجاح']);
+    }
+
+    private function closeDraftFromRequest(\Illuminate\Http\Request $request): void
+    {
+        $uuid = $request->input('draft_uuid');
+        if (!$uuid || !\Illuminate\Support\Str::isUuid($uuid)) return;
+        $draft = \App\Models\Draft::where('uuid', $uuid)->where('user_id', auth()->id())->first();
+        if ($draft && $draft->status === \App\Models\Draft::STATUS_PENDING) {
+            $draft->status = \App\Models\Draft::STATUS_DISCARDED;
+            $draft->save();
+        }
+        \App\Support\DraftClosure::close(auth()->id(), $uuid);
     }
 }

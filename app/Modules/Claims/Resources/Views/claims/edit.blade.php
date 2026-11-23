@@ -1,4 +1,4 @@
-@extends('claims::layouts.app')
+﻿@extends('claims::layouts.app')
 
 @section('title', 'تعديل مطالبة')
 
@@ -279,8 +279,9 @@
 
     <div class="form-container">
         <div class="form-card">
-            <form action="{{ route('claims.update', $claim->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('claims.update', $claim->id) }}" method="POST" enctype="multipart/form-data" data-draft-type="claim_edit" data-draft-entity-id="{{ $claim->id }}" data-draft-entity-key="_claim_id" id="claimEditForm">
                 @csrf
+                <input type="hidden" name="draft_uuid" value="{{ request('draft_uuid') }}">
                 @method('PUT')
                 <input type="hidden" name="claim_number" value="{{ $claim->claim_number }}">
 

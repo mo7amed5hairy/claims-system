@@ -211,8 +211,9 @@
 
     <div class="form-container">
         <div class="form-card">
-            <form action="{{ route('payments.update', $payment->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('payments.update', $payment->id) }}" method="POST" enctype="multipart/form-data" data-draft-type="payment_edit" data-draft-entity-id="{{ $payment->id }}" data-draft-entity-key="_payment_id" id="paymentEditForm">
                 @csrf
+                <input type="hidden" name="draft_uuid" value="{{ request('draft_uuid') }}">
                 @method('PUT')
 
                 <!-- Main 9 Fields Row -->
@@ -571,7 +572,8 @@
                 </script>
 
                 <div class="form-actions" style="margin-top: 8px;">
-                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                    <span data-draft-indicator style="font-size:11px;color:#64748b;margin-inline-end:8px;"></span>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
                         <i class="fa-solid fa-save"></i> حفظ التعديلات
                     </button>
                     <a href="{{ route('payments.index') }}" class="btn btn-secondary">

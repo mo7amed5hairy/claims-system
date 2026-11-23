@@ -507,6 +507,8 @@ class PaymentOrderController extends Controller
         // Auto-create discounted invoice if review values are provided
         $this->handleDiscountedInvoice($paymentOrder, $request);
 
+        $this->closeDraftFromRequest($request);
+
         return redirect()->route('payments.index')
             ->with('success', trans('messages.payment_order_created_successfully'));
     }
@@ -704,6 +706,8 @@ class PaymentOrderController extends Controller
         // Auto-create or update discounted invoice if review values are provided
         $this->handleDiscountedInvoice($payment, $request, true);
 
+        $this->closeDraftFromRequest($request);
+
         return redirect()->route('payments.index')
             ->with('success', trans('messages.payment_order_updated_successfully'));
     }
@@ -789,5 +793,17 @@ class PaymentOrderController extends Controller
                 );
             }
         }
+    }
+
+    private function closeDraftFromRequest(\Illuminate\Http\Request $request): void
+    {
+        $uuid = $request->input('draft_uuid');
+        if (!$uuid || !\Illuminate\Support\Str::isUuid($uuid)) return;
+        $draft = \App\Models\Draft::where('uuid', $uuid)->where('user_id', auth()->id())->first();
+        if ($draft && $draft->status === \App\Models\Draft::STATUS_PENDING) {
+            $draft->status = \App\Models\Draft::STATUS_DISCARDED;
+            $draft->save();
+        }
+        \App\Support\DraftClosure::close(auth()->id(), $uuid);
     }
 }

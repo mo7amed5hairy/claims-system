@@ -268,6 +268,8 @@ class ClaimController extends Controller
             ])->withInput();
         }
 
+        $this->closeDraftFromRequest($request);
+
         return redirect()->route('claims.index')
             ->with('success', trans('messages.claim_created_successfully'));
     }
@@ -386,6 +388,8 @@ class ClaimController extends Controller
             ])->withInput();
         }
 
+        $this->closeDraftFromRequest($request);
+
         return redirect()->route('claims.index')
             ->with('success', trans('messages.claim_updated_successfully'));
     }
@@ -453,5 +457,16 @@ class ClaimController extends Controller
         return redirect()->route('claims.index')
             ->with('success', 'تم تحويل المطالبة إلى مطالبة مسبقة الدفع بنجاح وصارت تظهر في قسم المطالبات مسبقة الدفع.');
     }
-}
 
+    private function closeDraftFromRequest(Request $request): void
+    {
+        $uuid = $request->input('draft_uuid');
+        if (!$uuid || !\Illuminate\Support\Str::isUuid($uuid)) return;
+        $draft = \App\Models\Draft::where('uuid', $uuid)->where('user_id', auth()->id())->first();
+        if ($draft && $draft->status === \App\Models\Draft::STATUS_PENDING) {
+            $draft->status = \App\Models\Draft::STATUS_DISCARDED;
+            $draft->save();
+        }
+        \App\Support\DraftClosure::close(auth()->id(), $uuid);
+    }
+}
