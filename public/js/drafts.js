@@ -306,7 +306,7 @@
     });
     var applyAll = function(){ keys.forEach(function(k){ applyField(form,k,payload[k]); }); };
     applyAll();
-    [300, 700, 1200, 2000, 3500].forEach(function(ms){ setTimeout(applyAll, ms); });
+    [300, 700, 1200, 2000, 3500, 5000, 7000].forEach(function(ms){ setTimeout(applyAll, ms); });
   }
 
   function applyField(form, key, val) {
@@ -329,7 +329,7 @@
           opt.value = strVal; opt.textContent = strVal;
           el.appendChild(opt);
         }
-        if (String(el.value) === strVal && !el.dataset.draftForce) return;
+        if (String(el.value) === strVal) return;
         el.value = strVal;
         try {
           if (window.jQuery && jQuery(el).data('select2')) {
