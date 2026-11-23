@@ -157,6 +157,18 @@
         }).catch(() => { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; });
     }
 
+    var reloadTimer = null;
+    window.addEventListener('drafts:synced', function() {
+        clearTimeout(reloadTimer);
+        reloadTimer = setTimeout(function() {
+            if (isAdmin) {
+                document.querySelectorAll('[id^="user-card-"]').forEach(function(card){ loadUserDrafts(card.dataset.userId, 1); });
+            } else {
+                loadMyDrafts(1);
+            }
+        }, 400);
+    });
+
     if (isAdmin) {
         document.querySelectorAll('[id^="user-card-"]').forEach(function(card){ loadUserDrafts(card.dataset.userId, 1); });
         document.querySelectorAll('.js-discard-user').forEach(function(btn) {

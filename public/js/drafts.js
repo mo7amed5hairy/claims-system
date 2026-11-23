@@ -159,6 +159,7 @@
           lsSet(draftKey(uuid), rec);
           backoff = 1000;
           updateIndicatorByUuid(uuid, 'saved');
+          try { window.dispatchEvent(new CustomEvent('drafts:synced', { detail: { uuid: uuid } })); } catch(e){}
         } else if (res.j && res.j.closed) {
           rec.closed = true; rec.dirty = false;
           lsSet(draftKey(uuid), rec);
