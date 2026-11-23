@@ -11,10 +11,12 @@ return [
         'vendor',
         'node_modules',
         '.git',
+        'storage/app',
         'storage/framework/cache',
         'storage/framework/sessions',
         'storage/framework/views',
         'storage/logs',
         'public/build',
+        'public/storage',
     ],
 ];

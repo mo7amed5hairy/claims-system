@@ -78,6 +78,7 @@ class ProjectBackupService
             );
             foreach ($iterator as $file) {
                 /** @var \SplFileInfo $file */
+                if ($file->isLink()) continue;
                 if (!$file->isFile()) continue;
                 $full = $file->getPathname();
                 $rel = ltrim(str_replace($root, '', $full), '/\\');
@@ -203,5 +204,13 @@ class ProjectBackupService
     {
         $all = $this->listBackups();
         return $all[0] ?? null;
+    }
+
+    public function deleteBackup(string $filename): bool
+    {
+        if (!preg_match('/^backup-[\w\-]+\.zip$/', $filename)) return false;
+        $full = $this->backupPath() . DIRECTORY_SEPARATOR . $filename;
+        if (!is_file($full)) return false;
+        return @unlink($full);
     }
 }

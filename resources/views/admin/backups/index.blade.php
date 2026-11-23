@@ -67,9 +67,18 @@
                     <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ $b['date'] }}</td>
                     <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ number_format($b['size'] / 1024 / 1024, 2) }} MB</td>
                     <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
-                        <a href="{{ route('admin.backups.download', $b['name']) }}" style="background:#dcfce7;color:#166534;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:12px;">
-                            <i class="fa-solid fa-download"></i> تنزيل
-                        </a>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <a href="{{ route('admin.backups.download', $b['name']) }}" style="background:#dcfce7;color:#166534;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:12px;">
+                                <i class="fa-solid fa-download"></i> تنزيل
+                            </a>
+                            <form method="POST" action="{{ route('admin.backups.delete', $b['name']) }}" style="display:inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه النسخة الاحتياطية؟');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" style="background:#fee2e2;color:#dc2626;padding:5px 10px;border-radius:6px;border:none;cursor:pointer;font-size:12px;">
+                                    <i class="fa-solid fa-trash"></i> حذف
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             @empty

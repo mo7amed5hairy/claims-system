@@ -91,4 +91,13 @@ class BackupController extends Controller
         $msg = $new === 'true' ? 'تم تفعيل النسخ الاحتياطي.' : 'تم تعطيل النسخ الاحتياطي.';
         return back()->with('success', $msg);
     }
+
+    public function delete(Request $request, string $filename)
+    {
+        $this->ensureAdmin();
+        if (!$this->service->deleteBackup($filename)) {
+            return back()->with('error', 'تعذر حذف ملف النسخة الاحتياطية.');
+        }
+        return back()->with('success', 'تم حذف النسخة الاحتياطية: ' . $filename);
+    }
 }
