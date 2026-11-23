@@ -273,10 +273,15 @@
       input.value = '';
     }
 
-    // Listen for changes
+    // Listen for changes (native + jQuery/Select2)
     var handler = function () { markDirtyAndSchedule(form); };
     form.addEventListener('input', handler);
     form.addEventListener('change', handler);
+    if (window.jQuery) {
+      try {
+        jQuery(form).on('input change select2:select select2:unselect select2:clear', handler);
+      } catch (e) {}
+    }
 
     // On submit: save final snapshot, but don't close (server closes on success).
     form.addEventListener('submit', function () {
