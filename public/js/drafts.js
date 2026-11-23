@@ -9,7 +9,7 @@
   var CFG = window.DraftsConfig;
   var NS = 'claims_drafts:v1:u' + CFG.userId + ':';
   var INDEX_KEY = NS + '__index';
-  var SYNC_DELAY = 1200;
+  var SYNC_DELAY = 150;
   var MAX_BACKOFF = 30000;
   var timers = {};
   var backoff = 1000;
@@ -152,6 +152,7 @@
         'X-Requested-With': 'XMLHttpRequest'
       },
       credentials: 'same-origin',
+      keepalive: true,
       body: JSON.stringify({ uuid: rec.uuid, type: rec.type, payload: rec.payload, revision: rec.revision }),
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (r) { return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok, status:r.status, j:j}; }); })
@@ -199,10 +200,10 @@
     var el = form.querySelector('[data-draft-indicator]');
     if (!el) return;
     var map = {
-      saving: '<i class="fa-solid fa-cloud-arrow-up"></i> جارٍ حفظ المسودة...',
+      saving: '<i class="fa-solid fa-cloud-arrow-up"></i> جاري حفظ المسودة...',
       saved: '<i class="fa-solid fa-cloud-check" style="color:#16a34a"></i> تم حفظ المسودة',
-      error: '<i class="fa-solid fa-triangle-exclamation" style="color:#dc2626"></i> تعذر مزامنة المسودة',
-      offline: '<i class="fa-solid fa-wifi" style="color:#d97706"></i> أوفلاين - المسودة محفوظة محلياً',
+      error: '<i class="fa-solid fa-triangle-exclamation" style="color:#dc2626"></i> تعذر حفظ المسودة',
+      offline: '<i class="fa-solid fa-wifi" style="color:#d97706"></i> بدون اتصال - سيتم الحفظ عند الاتصال',
       closed: '<i class="fa-solid fa-check"></i> تم إغلاق المسودة'
     };
     el.innerHTML = map[state] || '';
@@ -380,6 +381,8 @@
 
     window.addEventListener('online', function(){ online = true; flushDirty(); });
     window.addEventListener('offline', function(){ online = false; updateAllIndicators('offline'); });
+    document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') flushDirty(); });
+    window.addEventListener('pagehide', function(){ flushDirty(); });
 
     // flush dirty drafts on boot
     flushDirty();

@@ -155,21 +155,23 @@ class DraftController extends Controller
             ->orderByDesc('updated_at')
             ->paginate($perPage);
 
+        $items = $drafts->getCollection()->map(fn($d) => [
+            'id' => $d->id,
+            'uuid' => $d->uuid,
+            'type' => $d->type,
+            'type_label' => $d->typeLabel(),
+            'title' => $d->title ?: 'مسودة بدون عنوان',
+            'updated_at' => $d->updated_at?->format('Y-m-d H:i'),
+            'can_finalize' => in_array($d->type, ['claim_create','claim_edit']),
+            'continue_url' => route('drafts.continue', $d),
+            'discard_url' => route('drafts.discard', $d),
+            'finalize_url' => route('drafts.finalize', $d),
+        ])->values()->all();
+
         return response()->json([
             'ok' => true,
             'user' => ['id' => $user->id, 'name' => $user->name],
-            'drafts' => $drafts->through(fn($d) => [
-                'id' => $d->id,
-                'uuid' => $d->uuid,
-                'type' => $d->type,
-                'type_label' => $d->typeLabel(),
-                'title' => $d->title ?: 'مسودة بدون عنوان',
-                'updated_at' => $d->updated_at?->format('Y-m-d H:i'),
-                'can_finalize' => in_array($d->type, ['claim_create','claim_edit']),
-                'continue_url' => route('drafts.continue', $d),
-                'discard_url' => route('drafts.discard', $d),
-                'finalize_url' => route('drafts.finalize', $d),
-            ]),
+            'drafts' => $items,
             'pagination' => [
                 'current_page' => $drafts->currentPage(),
                 'last_page' => $drafts->lastPage(),
@@ -365,19 +367,21 @@ class DraftController extends Controller
             ->orderByDesc('updated_at')
             ->paginate($perPage);
 
+        $items = $drafts->getCollection()->map(fn($d) => [
+            'id' => $d->id,
+            'uuid' => $d->uuid,
+            'type_label' => $d->typeLabel(),
+            'title' => $d->title ?: 'مسودة بدون عنوان',
+            'updated_at' => $d->updated_at?->format('Y-m-d H:i'),
+            'can_finalize' => in_array($d->type, ['claim_create','claim_edit']),
+            'continue_url' => route('drafts.continue', $d),
+            'discard_url' => route('drafts.discard', $d),
+            'finalize_url' => route('drafts.finalize', $d),
+        ])->values()->all();
+
         return response()->json([
             'ok' => true,
-            'drafts' => $drafts->through(fn($d) => [
-                'id' => $d->id,
-                'uuid' => $d->uuid,
-                'type_label' => $d->typeLabel(),
-                'title' => $d->title ?: 'مسودة بدون عنوان',
-                'updated_at' => $d->updated_at?->format('Y-m-d H:i'),
-                'can_finalize' => in_array($d->type, ['claim_create','claim_edit']),
-                'continue_url' => route('drafts.continue', $d),
-                'discard_url' => route('drafts.discard', $d),
-                'finalize_url' => route('drafts.finalize', $d),
-            ]),
+            'drafts' => $items,
             'pagination' => [
                 'current_page' => $drafts->currentPage(),
                 'last_page' => $drafts->lastPage(),
