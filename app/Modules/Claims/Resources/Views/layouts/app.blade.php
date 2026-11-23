@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="rtl">
 
 <head>
@@ -460,9 +460,6 @@
                         </div>
                     @endif
 
-                    <a href="{{ route('drafts.index') }}" class="nav-item-btn" style="text-decoration: none;">
-                        <i class="fa-solid fa-file-pen"></i> مسوداتي
-                    </a>
 
                     @if(Auth::user()->canAccessPayments())
                         <div class="nav-item-dropdown">
@@ -543,7 +540,13 @@
                                     <a href="{{ route('users.index') }}">
                                         <i class="fa-solid fa-users-cog"></i> إدارة المستخدمين
                                     </a>
+                                    <a href="{{ route('admin.backups.index') }}">
+                                        <i class="fa-solid fa-database"></i> النسخ الاحتياطي
+                                    </a>
                                 @endif
+                                <a href="{{ route('drafts.index') }}">
+                                    <i class="fa-solid fa-file-pen"></i> مسوداتي
+                                </a>
                                 <div class="dropdown-divider"></div>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf

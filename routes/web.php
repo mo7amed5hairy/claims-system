@@ -47,3 +47,14 @@ Route::middleware('auth')->group(function () {
     Route::put('/drafts/{draft}', [\App\Http\Controllers\DraftController::class, 'update'])->name('drafts.update');
     Route::get('/drafts/{draft}/continue', [\App\Http\Controllers\DraftController::class, 'continue'])->name('drafts.continue');
 });
+
+/**
+ * =====================================================
+ * Project Backups (Admin only)
+ * =====================================================
+ */
+Route::middleware('auth')->prefix('admin/backups')->name('admin.backups.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\BackupController::class, 'index'])->name('index');
+    Route::post('/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('run');
+    Route::get('/download/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('download');
+});

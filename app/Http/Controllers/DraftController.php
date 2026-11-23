@@ -17,7 +17,6 @@ class DraftController extends Controller
 {
     public function __construct(private DraftFinalizer $finalizer)
     {
-        $this->middleware('auth');
     }
 
     /**
