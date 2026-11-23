@@ -1,10 +1,10 @@
-﻿@extends('claims::layouts.app')
+@extends('claims::layouts.app')
 
-@section('title', 'مسوداتي')
+@section('title', $isAdmin ? 'مسودات المستخدمين' : 'مسوداتي')
 
 @section('content')
 <style>
-    .drafts-card { background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.06); padding:20px; }
+    .drafts-card { background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.06); padding:20px; margin-bottom:16px; }
     .drafts-table { width:100%; border-collapse:collapse; }
     .drafts-table th,.drafts-table td { padding:10px 12px; border-bottom:1px solid #eee; text-align:right; vertical-align:middle; }
     .drafts-table th { background:#f8fafc; font-weight:700; }
@@ -14,67 +14,223 @@
     .btn-continue { background:#2563eb; color:#fff; }
     .btn-discard { background:#fee2e2; color:#dc2626; }
     .btn-finalize { background:#dcfce7; color:#16a34a; }
+    .btn-danger { background:#dc2626; color:#fff; }
     .drafts-empty { padding:30px; text-align:center; color:#64748b; }
+    .user-card { background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.06); padding:16px; margin-bottom:16px; }
+    .user-card-header { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+    .user-card-title { margin:0; font-size:16px; font-weight:700; }
+    .user-meta { color:#64748b; font-size:12px; }
+    .pager { display:flex; gap:6px; align-items:center; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+    .pager button { padding:4px 10px; border:1px solid #cbd5e1; background:#fff; border-radius:6px; cursor:pointer; font-size:12px; }
+    .pager button.active { background:#2563eb; color:#fff; border-color:#2563eb; }
+    .pager button:disabled { opacity:.5; cursor:not-allowed; }
+    .loading-row { text-align:center; color:#64748b; padding:16px; }
 </style>
 
-<div class="drafts-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap;">
-        <h2 style="margin:0;font-size:20px;"><i class="fa-solid fa-file-pen"></i> مسوداتي</h2>
-        <div style="color:#64748b;font-size:13px;">المسودات يتم حفظها تلقائياً أثناء الكتابة، ويمكنك استكمالها لاحقاً.</div>
+@if($isAdmin)
+    <div class="drafts-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap;">
+            <h2 style="margin:0;font-size:20px;"><i class="fa-solid fa-file-pen"></i> مسودات المستخدمين</h2>
+            <div style="color:#64748b;font-size:13px;">عرض مسودات جميع المستخدمين. يمكنك حذف أي مسودة.</div>
+        </div>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-
-    @if($drafts->count() === 0)
-        <div class="drafts-empty">
-            <i class="fa-solid fa-folder-open" style="font-size:40px;color:#cbd5e1;display:block;margin-bottom:10px;"></i>
-            لا توجد مسودات محفوظة حالياً.
+    @if($draftUsers->count() === 0)
+        <div class="drafts-card">
+            <div class="drafts-empty">
+                <i class="fa-solid fa-folder-open" style="font-size:40px;color:#cbd5e1;display:block;margin-bottom:10px;"></i>
+                لا توجد مسودات معلقة للمستخدمين حالياً.
+            </div>
         </div>
     @else
-        <div style="overflow-x:auto;">
-        <table class="drafts-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>النوع</th>
-                    <th>العنوان / الملخص</th>
-                    <th>آخر تعديل</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach($drafts as $draft)
-                <tr id="draft-row-{{ $draft->id }}">
-                    <td>{{ $draft->id }}</td>
-                    <td><span class="badge-type">{{ $draft->typeLabel() }}</span></td>
-                    <td>{{ $draft->title ?: 'مسودة بدون عنوان' }}</td>
-                    <td style="white-space:nowrap;font-size:12px;color:#475569;">{{ $draft->updated_at?->format('Y-m-d H:i') }}</td>
-                    <td>
-                        <div class="draft-actions">
-                            <a class="btn-sm btn-continue" href="{{ route('drafts.continue', $draft) }}"><i class="fa-solid fa-pen"></i> استكمال</a>
-                            @if(in_array($draft->type, ['claim_create','claim_edit']))
-                            <form method="POST" action="{{ route('drafts.finalize', $draft) }}" style="display:inline" onsubmit="return confirm('سيتم حفظ المسودة كسجل فعلي. هل تريد المتابعة؟');">
-                                @csrf
-                                <button type="submit" class="btn-sm btn-finalize"><i class="fa-solid fa-check"></i> حفظ نهائي</button>
-                            </form>
-                            @endif
-                            <form method="POST" action="{{ route('drafts.discard', $draft) }}" style="display:inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه المسودة؟');">
-                                @csrf
-                                <button type="submit" class="btn-sm btn-discard"><i class="fa-solid fa-trash"></i> حذف</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-        </div>
-        <div style="margin-top:12px;">{{ $drafts->links() }}</div>
+        @foreach($draftUsers as $u)
+            <div class="user-card" id="user-card-{{ $u->id }}" data-user-id="{{ $u->id }}">
+                <div class="user-card-header">
+                    <div>
+                        <h3 class="user-card-title"><i class="fa-solid fa-user"></i> {{ $u->name }}</h3>
+                        <div class="user-meta">عدد المسودات المعلقة: <span class="user-draft-count">{{ $u->drafts_count }}</span></div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn-sm btn-danger js-discard-user" data-user-id="{{ $u->id }}" data-url="{{ route('drafts.admin.discardUser', $u) }}">
+                            <i class="fa-solid fa-trash"></i> حذف كل مسودات المستخدم
+                        </button>
+                    </div>
+                </div>
+                <div class="table-wrap" style="overflow-x:auto;">
+                    <table class="drafts-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>النوع</th>
+                                <th>العنوان / الملخص</th>
+                                <th>آخر تعديل</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drafts-body-{{ $u->id }}">
+                            <tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pager" id="pager-{{ $u->id }}"></div>
+            </div>
+        @endforeach
     @endif
-</div>
+
+    <script>
+    (function() {
+        var csrf = @json(csrf_token());
+        function loadUserDrafts(userId, page) {
+            page = page || 1;
+            var body = document.getElementById('drafts-body-' + userId);
+            var pager = document.getElementById('pager-' + userId);
+            body.innerHTML = '<tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr>';
+            fetch('{{ url("/drafts/admin/users") }}/' + userId + '/drafts?page=' + page + '&per_page=5', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(r => r.json()).then(data => {
+                if (!data.ok) { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; return; }
+                renderRows(userId, data.drafts || []);
+                renderPager(userId, data.pagination || {});
+                var countEl = document.querySelector('#user-card-' + userId + ' .user-draft-count');
+                if (countEl && data.pagination) countEl.textContent = data.pagination.total;
+                if ((data.drafts || []).length === 0) {
+                    body.innerHTML = '<tr><td colspan="5" class="loading-row">لا توجد مسودات لهذا المستخدم.</td></tr>';
+                }
+            }).catch(() => {
+                body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>';
+            });
+        }
+
+        function renderRows(userId, drafts) {
+            var body = document.getElementById('drafts-body-' + userId);
+            if (!drafts.length) return;
+            body.innerHTML = drafts.map(function(d) {
+                var finalizeBtn = d.can_finalize
+                    ? '<form method="POST" action="' + escapeHtml(d.finalize_url) + '" style="display:inline" class="js-draft-action">' +
+                      '<input type="hidden" name="_token" value="' + csrf + '">' +
+                      '<button type="submit" class="btn-sm btn-finalize" onclick="return confirm(\'سيتم حفظ المسودة كسجل فعلي. هل تريد المتابعة؟\')"><i class="fa-solid fa-check"></i> حفظ نهائي</button></form>'
+                    : '';
+                return '<tr>' +
+                    '<td>' + d.id + '</td>' +
+                    '<td><span class="badge-type">' + escapeHtml(d.type_label) + '</span></td>' +
+                    '<td>' + escapeHtml(d.title) + '</td>' +
+                    '<td style="white-space:nowrap;font-size:12px;color:#475569;">' + escapeHtml(d.updated_at || '') + '</td>' +
+                    '<td><div class="draft-actions">' +
+                        '<a class="btn-sm btn-continue" href="' + escapeHtml(d.continue_url) + '"><i class="fa-solid fa-pen"></i> استكمال</a>' +
+                        finalizeBtn +
+                        '<form method="POST" action="' + escapeHtml(d.discard_url) + '" style="display:inline" class="js-draft-action">' +
+                            '<input type="hidden" name="_token" value="' + csrf + '">' +
+                            '<button type="submit" class="btn-sm btn-discard" onclick="return confirm(\'هل أنت متأكد من حذف هذه المسودة؟\')"><i class="fa-solid fa-trash"></i> حذف</button>' +
+                        '</form>' +
+                    '</div></td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        function renderPager(userId, p) {
+            var pager = document.getElementById('pager-' + userId);
+            if (!p || p.last_page <= 1) { pager.innerHTML = ''; return; }
+            var html = '';
+            html += '<button ' + (p.current_page <= 1 ? 'disabled' : '') + ' data-page="' + (p.current_page - 1) + '">السابق</button>';
+            for (var i = 1; i <= p.last_page; i++) {
+                html += '<button class="' + (i === p.current_page ? 'active' : '') + '" data-page="' + i + '">' + i + '</button>';
+            }
+            html += '<button ' + (p.current_page >= p.last_page ? 'disabled' : '') + ' data-page="' + (p.current_page + 1) + '">التالي</button>';
+            pager.innerHTML = html;
+            pager.querySelectorAll('button[data-page]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    if (btn.disabled) return;
+                    loadUserDrafts(userId, parseInt(btn.dataset.page, 10));
+                });
+            });
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        document.querySelectorAll('[id^="user-card-"]').forEach(function(card) {
+            loadUserDrafts(card.dataset.userId, 1);
+        });
+
+        document.querySelectorAll('.js-discard-user').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (!confirm('سيتم حذف جميع مسودات هذا المستخدم. هل أنت متأكد؟')) return;
+                var userId = btn.dataset.userId;
+                fetch(btn.dataset.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({})
+                }).then(r => r.json()).then(data => {
+                    if (data.ok) { loadUserDrafts(userId, 1); }
+                    else alert('تعذر حذف المسودات');
+                }).catch(() => alert('تعذر حذف المسودات'));
+            });
+        });
+    })();
+    </script>
+@else
+    <div class="drafts-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap;">
+            <h2 style="margin:0;font-size:20px;"><i class="fa-solid fa-file-pen"></i> مسوداتي</h2>
+            <div style="color:#64748b;font-size:13px;">المسودات يتم حفظها تلقائياً أثناء الكتابة، ويمكنك استكمالها لاحقاً.</div>
+        </div>
+
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+
+        @if($drafts->count() === 0)
+            <div class="drafts-empty">
+                <i class="fa-solid fa-folder-open" style="font-size:40px;color:#cbd5e1;display:block;margin-bottom:10px;"></i>
+                لا توجد مسودات محفوظة حالياً.
+            </div>
+        @else
+            <div style="overflow-x:auto;">
+            <table class="drafts-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>النوع</th>
+                        <th>العنوان / الملخص</th>
+                        <th>آخر تعديل</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach($drafts as $draft)
+                    <tr id="draft-row-{{ $draft->id }}">
+                        <td>{{ $draft->id }}</td>
+                        <td><span class="badge-type">{{ $draft->typeLabel() }}</span></td>
+                        <td>{{ $draft->title ?: 'مسودة بدون عنوان' }}</td>
+                        <td style="white-space:nowrap;font-size:12px;color:#475569;">{{ $draft->updated_at?->format('Y-m-d H:i') }}</td>
+                        <td>
+                            <div class="draft-actions">
+                                <a class="btn-sm btn-continue" href="{{ route('drafts.continue', $draft) }}"><i class="fa-solid fa-pen"></i> استكمال</a>
+                                @if(in_array($draft->type, ['claim_create','claim_edit']))
+                                <form method="POST" action="{{ route('drafts.finalize', $draft) }}" style="display:inline" onsubmit="return confirm('سيتم حفظ المسودة كسجل فعلي. هل تريد المتابعة؟');">
+                                    @csrf
+                                    <button type="submit" class="btn-sm btn-finalize"><i class="fa-solid fa-check"></i> حفظ نهائي</button>
+                                </form>
+                                @endif
+                                <form method="POST" action="{{ route('drafts.discard', $draft) }}" style="display:inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه المسودة؟');">
+                                    @csrf
+                                    <button type="submit" class="btn-sm btn-discard"><i class="fa-solid fa-trash"></i> حذف</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+            </div>
+            <div style="margin-top:12px;">{{ $drafts->links() }}</div>
+        @endif
+    </div>
+@endif
 @endsection

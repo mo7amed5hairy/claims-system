@@ -174,4 +174,9 @@ class User extends Authenticatable
     {
         return !empty($this->bound_flow) && is_array($this->bound_flow);
     }
+
+    public function drafts()
+    {
+        return $this->hasMany(\App\Models\Draft::class);
+    }
 }

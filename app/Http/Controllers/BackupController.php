@@ -50,4 +50,45 @@ class BackupController extends Controller
         if (!is_file($full)) abort(404);
         return response()->download($full, $filename);
     }
+
+    public function toggle(Request $request)
+    {
+        $this->ensureAdmin();
+        $envPath = base_path('.env');
+        if (!is_file($envPath) || !is_readable($envPath) || !is_writable($envPath)) {
+            return back()->with('error', 'تعذر تعديل ملف .env. تحقق من الصلاحيات.');
+        }
+
+        $content = file_get_contents($envPath);
+        $current = filter_var(env('PROJECT_BACKUP_ENABLED', false), FILTER_VALIDATE_BOOL);
+        $new = $current ? 'false' : 'true';
+
+        if (preg_match('/^PROJECT_BACKUP_ENABLED=.*/m', $content)) {
+            $content = preg_replace('/^PROJECT_BACKUP_ENABLED=.*/m', 'PROJECT_BACKUP_ENABLED=' . $new, $content);
+        } else {
+            $content .= "\nPROJECT_BACKUP_ENABLED=" . $new . "\n";
+        }
+
+        $tmp = $envPath . '.tmp';
+        if (file_put_contents($tmp, $content) === false) {
+            return back()->with('error', 'تعذر كتابة ملف .env المؤقت.');
+        }
+        @chmod($tmp, fileperms($envPath) & 0777);
+        if (!@rename($tmp, $envPath)) {
+            @unlink($tmp);
+            return back()->with('error', 'تعذر تحديث ملف .env.');
+        }
+
+        // Rebuild config cache so the change takes effect
+        try {
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            \Illuminate\Support\Facades\Artisan::call('config:cache');
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'تم تعديل .env لكن فشل تحديث config cache: ' . $e->getMessage());
+        }
+
+        $msg = $new === 'true' ? 'تم تفعيل النسخ الاحتياطي.' : 'تم تعطيل النسخ الاحتياطي.';
+        return back()->with('success', $msg);
+    }
 }

@@ -6,12 +6,20 @@
 <div style="background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
         <h2 style="margin:0;font-size:20px;"><i class="fa-solid fa-database"></i> النسخ الاحتياطي للمشروع وقاعدة البيانات</h2>
-        <form method="POST" action="{{ route('admin.backups.run') }}" onsubmit="return confirm('سيتم إنشاء نسخة احتياطية الآن. قد تستغرق بعض الوقت. هل تريد المتابعة؟');">
-            @csrf
-            <button type="submit" style="background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;">
-                <i class="fa-solid fa-play"></i> نسخ احتياطي الآن
-            </button>
-        </form>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <form method="POST" action="{{ route('admin.backups.toggle') }}" onsubmit="return confirm('{{ $enabled ? 'هل تريد تعطيل النسخ الاحتياطي؟' : 'هل تريد تفعيل النسخ الاحتياطي؟ سيتم تعديل .env وتنفيذ config:cache.' }}');">
+                @csrf
+                <button type="submit" style="background:{{ $enabled ? '#dc2626' : '#16a34a' }};color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;">
+                    <i class="fa-solid fa-power-off"></i> {{ $enabled ? 'تعطيل النسخ الاحتياطي' : 'تفعيل النسخ الاحتياطي' }}
+                </button>
+            </form>
+            <form method="POST" action="{{ route('admin.backups.run') }}" onsubmit="return confirm('سيتم إنشاء نسخة احتياطية الآن. قد تستغرق بعض الوقت. هل تريد المتابعة؟');">
+                @csrf
+                <button type="submit" style="background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;" {{ !$enabled ? 'disabled title="فعّل النسخ الاحتياطي أولاً"' : '' }}>
+                    <i class="fa-solid fa-play"></i> نسخ احتياطي الآن
+                </button>
+            </form>
+        </div>
     </div>
 
     @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif

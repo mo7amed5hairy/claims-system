@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Draft;
+use App\Models\User;
 use App\Services\DraftFinalizer;
 use App\Support\DraftClosure;
 use App\Support\DraftErrorTranslator;
@@ -108,16 +109,94 @@ class DraftController extends Controller
     }
 
     /**
-     * Drafts page (My Drafts).
+     * Drafts page. Admin sees all users' drafts grouped by user; regular users see their own.
      */
     public function index(Request $request)
     {
-        $drafts = Draft::forUser(Auth::id())
+        $user = Auth::user();
+        if ($user->role === 'admin') {
+            $users = User::whereHas('drafts', fn($q) => $q->pending())
+                ->withCount(['drafts' => fn($q) => $q->pending()])
+                ->orderBy('name')
+                ->get();
+            return view('drafts.index', [
+                'isAdmin' => true,
+                'draftUsers' => $users,
+                'drafts' => collect(),
+            ]);
+        }
+
+        $drafts = Draft::forUser($user->id)
             ->pending()
             ->orderByDesc('updated_at')
             ->paginate(30);
 
-        return view('drafts.index', compact('drafts'));
+        return view('drafts.index', [
+            'isAdmin' => false,
+            'draftUsers' => collect(),
+            'drafts' => $drafts,
+        ]);
+    }
+
+    /**
+     * Admin: paginated drafts for a specific user (AJAX).
+     */
+    public function adminUserDrafts(Request $request, User $user)
+    {
+        $admin = Auth::user();
+        if (!$admin || $admin->role !== 'admin') abort(403);
+
+        $perPage = (int) $request->input('per_page', 5);
+        if ($perPage < 1 || $perPage > 20) $perPage = 5;
+
+        $drafts = Draft::where('user_id', $user->id)
+            ->pending()
+            ->orderByDesc('updated_at')
+            ->paginate($perPage);
+
+        return response()->json([
+            'ok' => true,
+            'user' => ['id' => $user->id, 'name' => $user->name],
+            'drafts' => $drafts->through(fn($d) => [
+                'id' => $d->id,
+                'uuid' => $d->uuid,
+                'type' => $d->type,
+                'type_label' => $d->typeLabel(),
+                'title' => $d->title ?: 'مسودة بدون عنوان',
+                'updated_at' => $d->updated_at?->format('Y-m-d H:i'),
+                'can_finalize' => in_array($d->type, ['claim_create','claim_edit']),
+                'continue_url' => route('drafts.continue', $d),
+                'discard_url' => route('drafts.discard', $d),
+                'finalize_url' => route('drafts.finalize', $d),
+            ]),
+            'pagination' => [
+                'current_page' => $drafts->currentPage(),
+                'last_page' => $drafts->lastPage(),
+                'per_page' => $drafts->perPage(),
+                'total' => $drafts->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Admin: discard all pending drafts for a user.
+     */
+    public function adminDiscardUserDrafts(Request $request, User $user)
+    {
+        $admin = Auth::user();
+        if (!$admin || $admin->role !== 'admin') abort(403);
+
+        $drafts = Draft::where('user_id', $user->id)->pending()->get();
+        foreach ($drafts as $draft) {
+            $draft->status = Draft::STATUS_DISCARDED;
+            $draft->save();
+            DraftClosure::close($draft->user_id, $draft->uuid);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'deleted' => $drafts->count()]);
+        }
+        return back()->with('success', 'تم حذف مسودات المستخدم.');
     }
 
     /**

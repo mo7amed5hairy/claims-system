@@ -544,9 +544,15 @@
                                         <i class="fa-solid fa-database"></i> النسخ الاحتياطي
                                     </a>
                                 @endif
+                                @if(Auth::user()->role !== 'admin')
                                 <a href="{{ route('drafts.index') }}">
                                     <i class="fa-solid fa-file-pen"></i> مسوداتي
                                 </a>
+                                @else
+                                <a href="{{ route('drafts.index') }}">
+                                    <i class="fa-solid fa-file-pen"></i> مسودات المستخدمين
+                                </a>
+                                @endif
                                 <div class="dropdown-divider"></div>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
