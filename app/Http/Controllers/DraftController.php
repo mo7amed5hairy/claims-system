@@ -188,9 +188,8 @@ class DraftController extends Controller
 
         $drafts = Draft::where('user_id', $user->id)->pending()->get();
         foreach ($drafts as $draft) {
-            $draft->status = Draft::STATUS_DISCARDED;
-            $draft->save();
             DraftClosure::close($draft->user_id, $draft->uuid);
+            $draft->delete();
         }
 
         if ($request->expectsJson()) {
@@ -232,11 +231,10 @@ class DraftController extends Controller
     public function discard(Request $request, Draft $draft)
     {
         $this->authorizeDraft($draft);
-        if ($draft->status === Draft::STATUS_PENDING) {
-            $draft->status = Draft::STATUS_DISCARDED;
-            $draft->save();
-        }
         DraftClosure::close($draft->user_id, $draft->uuid);
+        if ($draft->exists) {
+            $draft->delete();
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['ok' => true]);
@@ -345,11 +343,46 @@ class DraftController extends Controller
         $userId = Auth::id();
         if (!$uuid || !\Illuminate\Support\Str::isUuid($uuid)) return response()->json(['ok' => false], 422);
         $draft = Draft::where('uuid', $uuid)->where('user_id', $userId)->first();
-        if ($draft && $draft->status === Draft::STATUS_PENDING) {
-            $draft->status = Draft::STATUS_DISCARDED;
-            $draft->save();
-        }
         DraftClosure::close($userId, $uuid);
+        if ($draft) {
+            $draft->delete();
+        }
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Current user's paginated drafts (AJAX).
+     */
+    public function myDrafts(Request $request)
+    {
+        $user = Auth::user();
+        $perPage = (int) $request->input('per_page', 10);
+        if ($perPage < 1 || $perPage > 20) $perPage = 10;
+
+        $drafts = Draft::forUser($user->id)
+            ->pending()
+            ->orderByDesc('updated_at')
+            ->paginate($perPage);
+
+        return response()->json([
+            'ok' => true,
+            'drafts' => $drafts->through(fn($d) => [
+                'id' => $d->id,
+                'uuid' => $d->uuid,
+                'type_label' => $d->typeLabel(),
+                'title' => $d->title ?: 'مسودة بدون عنوان',
+                'updated_at' => $d->updated_at?->format('Y-m-d H:i'),
+                'can_finalize' => in_array($d->type, ['claim_create','claim_edit']),
+                'continue_url' => route('drafts.continue', $d),
+                'discard_url' => route('drafts.discard', $d),
+                'finalize_url' => route('drafts.finalize', $d),
+            ]),
+            'pagination' => [
+                'current_page' => $drafts->currentPage(),
+                'last_page' => $drafts->lastPage(),
+                'per_page' => $drafts->perPage(),
+                'total' => $drafts->total(),
+            ],
+        ]);
     }
 }

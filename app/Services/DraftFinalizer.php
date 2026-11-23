@@ -34,10 +34,8 @@ class DraftFinalizer
                 default => throw ValidationException::withMessages(['type' => 'نوع المسودة غير مدعوم للحفظ النهائي.']),
             };
 
-            $draft->status = Draft::STATUS_FINALIZED;
-            $draft->finalized_at = now();
-            $draft->save();
             DraftClosure::close($draft->user_id, $draft->uuid);
+            $draft->delete();
 
             return $result;
         });

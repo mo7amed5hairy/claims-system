@@ -36,12 +36,7 @@
     </div>
 
     @if($draftUsers->count() === 0)
-        <div class="drafts-card">
-            <div class="drafts-empty">
-                <i class="fa-solid fa-folder-open" style="font-size:40px;color:#cbd5e1;display:block;margin-bottom:10px;"></i>
-                لا توجد مسودات معلقة للمستخدمين حالياً.
-            </div>
-        </div>
+        <div class="drafts-card"><div class="drafts-empty"><i class="fa-solid fa-folder-open" style="font-size:40px;color:#cbd5e1;display:block;margin-bottom:10px;"></i>لا توجد مسودات معلقة للمستخدمين حالياً.</div></div>
     @else
         @foreach($draftUsers as $u)
             <div class="user-card" id="user-card-{{ $u->id }}" data-user-id="{{ $u->id }}">
@@ -56,105 +51,114 @@
                         </button>
                     </div>
                 </div>
-                <div class="table-wrap" style="overflow-x:auto;">
+                <div style="overflow-x:auto;">
                     <table class="drafts-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>النوع</th>
-                                <th>العنوان / الملخص</th>
-                                <th>آخر تعديل</th>
-                                <th>إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="drafts-body-{{ $u->id }}">
-                            <tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr>
-                        </tbody>
+                        <thead><tr><th>#</th><th>النوع</th><th>العنوان / الملخص</th><th>آخر تعديل</th><th>إجراءات</th></tr></thead>
+                        <tbody id="drafts-body-{{ $u->id }}"><tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr></tbody>
                     </table>
                 </div>
                 <div class="pager" id="pager-{{ $u->id }}"></div>
             </div>
         @endforeach
     @endif
+@else
+    <div class="drafts-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap;">
+            <h2 style="margin:0;font-size:20px;"><i class="fa-solid fa-file-pen"></i> مسوداتي</h2>
+            <div style="color:#64748b;font-size:13px;">المسودات يتم حفظها تلقائياً أثناء الكتابة، ويمكنك استكمالها لاحقاً.</div>
+        </div>
+        @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
+        @if(session('error')) <div class="alert alert-danger">{{ session('error') }}</div> @endif
+        <div style="overflow-x:auto;">
+            <table class="drafts-table">
+                <thead><tr><th>#</th><th>النوع</th><th>العنوان / الملخص</th><th>آخر تعديل</th><th>إجراءات</th></tr></thead>
+                <tbody id="my-drafts-body"><tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr></tbody>
+            </table>
+        </div>
+        <div class="pager" id="my-pager"></div>
+    </div>
+@endif
 
-    <script>
-    (function() {
-        var csrf = @json(csrf_token());
-        function loadUserDrafts(userId, page) {
-            page = page || 1;
-            var body = document.getElementById('drafts-body-' + userId);
-            var pager = document.getElementById('pager-' + userId);
-            body.innerHTML = '<tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr>';
-            fetch('{{ url("/drafts/admin/users") }}/' + userId + '/drafts?page=' + page + '&per_page=5', {
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-            }).then(r => r.json()).then(data => {
-                if (!data.ok) { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; return; }
-                renderRows(userId, data.drafts || []);
-                renderPager(userId, data.pagination || {});
-                var countEl = document.querySelector('#user-card-' + userId + ' .user-draft-count');
-                if (countEl && data.pagination) countEl.textContent = data.pagination.total;
-                if ((data.drafts || []).length === 0) {
-                    body.innerHTML = '<tr><td colspan="5" class="loading-row">لا توجد مسودات لهذا المستخدم.</td></tr>';
-                }
-            }).catch(() => {
-                body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>';
-            });
+<script>
+(function() {
+    var csrf = @json(csrf_token());
+    var isAdmin = @json($isAdmin);
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function renderRowsHtml(drafts, emptyColspan) {
+        if (!drafts.length) return '<tr><td colspan="' + emptyColspan + '" class="loading-row">لا توجد مسودات حالياً.</td></tr>';
+        return drafts.map(function(d) {
+            var finalizeBtn = d.can_finalize
+                ? '<form method="POST" action="' + escapeHtml(d.finalize_url) + '" style="display:inline">' +
+                  '<input type="hidden" name="_token" value="' + csrf + '">' +
+                  '<button type="submit" class="btn-sm btn-finalize" onclick="return confirm(\'سيتم حفظ المسودة كسجل فعلي. هل تريد المتابعة؟\')"><i class="fa-solid fa-check"></i> حفظ نهائي</button></form>'
+                : '';
+            return '<tr>' +
+                '<td>' + d.id + '</td>' +
+                '<td><span class="badge-type">' + escapeHtml(d.type_label) + '</span></td>' +
+                '<td>' + escapeHtml(d.title) + '</td>' +
+                '<td style="white-space:nowrap;font-size:12px;color:#475569;">' + escapeHtml(d.updated_at || '') + '</td>' +
+                '<td><div class="draft-actions">' +
+                    '<a class="btn-sm btn-continue" href="' + escapeHtml(d.continue_url) + '"><i class="fa-solid fa-pen"></i> استكمال</a>' +
+                    finalizeBtn +
+                    '<form method="POST" action="' + escapeHtml(d.discard_url) + '" style="display:inline">' +
+                        '<input type="hidden" name="_token" value="' + csrf + '">' +
+                        '<button type="submit" class="btn-sm btn-discard" onclick="return confirm(\'هل أنت متأكد من حذف هذه المسودة؟\')"><i class="fa-solid fa-trash"></i> حذف</button>' +
+                    '</form>' +
+                '</div></td></tr>';
+        }).join('');
+    }
+
+    function renderPager(el, p, onPage) {
+        if (!p || p.last_page <= 1) { el.innerHTML = ''; return; }
+        var html = '';
+        html += '<button ' + (p.current_page <= 1 ? 'disabled' : '') + ' data-page="' + (p.current_page - 1) + '">السابق</button>';
+        for (var i = 1; i <= p.last_page; i++) {
+            html += '<button class="' + (i === p.current_page ? 'active' : '') + '" data-page="' + i + '">' + i + '</button>';
         }
-
-        function renderRows(userId, drafts) {
-            var body = document.getElementById('drafts-body-' + userId);
-            if (!drafts.length) return;
-            body.innerHTML = drafts.map(function(d) {
-                var finalizeBtn = d.can_finalize
-                    ? '<form method="POST" action="' + escapeHtml(d.finalize_url) + '" style="display:inline" class="js-draft-action">' +
-                      '<input type="hidden" name="_token" value="' + csrf + '">' +
-                      '<button type="submit" class="btn-sm btn-finalize" onclick="return confirm(\'سيتم حفظ المسودة كسجل فعلي. هل تريد المتابعة؟\')"><i class="fa-solid fa-check"></i> حفظ نهائي</button></form>'
-                    : '';
-                return '<tr>' +
-                    '<td>' + d.id + '</td>' +
-                    '<td><span class="badge-type">' + escapeHtml(d.type_label) + '</span></td>' +
-                    '<td>' + escapeHtml(d.title) + '</td>' +
-                    '<td style="white-space:nowrap;font-size:12px;color:#475569;">' + escapeHtml(d.updated_at || '') + '</td>' +
-                    '<td><div class="draft-actions">' +
-                        '<a class="btn-sm btn-continue" href="' + escapeHtml(d.continue_url) + '"><i class="fa-solid fa-pen"></i> استكمال</a>' +
-                        finalizeBtn +
-                        '<form method="POST" action="' + escapeHtml(d.discard_url) + '" style="display:inline" class="js-draft-action">' +
-                            '<input type="hidden" name="_token" value="' + csrf + '">' +
-                            '<button type="submit" class="btn-sm btn-discard" onclick="return confirm(\'هل أنت متأكد من حذف هذه المسودة؟\')"><i class="fa-solid fa-trash"></i> حذف</button>' +
-                        '</form>' +
-                    '</div></td>' +
-                '</tr>';
-            }).join('');
-        }
-
-        function renderPager(userId, p) {
-            var pager = document.getElementById('pager-' + userId);
-            if (!p || p.last_page <= 1) { pager.innerHTML = ''; return; }
-            var html = '';
-            html += '<button ' + (p.current_page <= 1 ? 'disabled' : '') + ' data-page="' + (p.current_page - 1) + '">السابق</button>';
-            for (var i = 1; i <= p.last_page; i++) {
-                html += '<button class="' + (i === p.current_page ? 'active' : '') + '" data-page="' + i + '">' + i + '</button>';
-            }
-            html += '<button ' + (p.current_page >= p.last_page ? 'disabled' : '') + ' data-page="' + (p.current_page + 1) + '">التالي</button>';
-            pager.innerHTML = html;
-            pager.querySelectorAll('button[data-page]').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    if (btn.disabled) return;
-                    loadUserDrafts(userId, parseInt(btn.dataset.page, 10));
-                });
-            });
-        }
-
-        function escapeHtml(s) {
-            return String(s == null ? '' : s)
-                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-                .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-        }
-
-        document.querySelectorAll('[id^="user-card-"]').forEach(function(card) {
-            loadUserDrafts(card.dataset.userId, 1);
+        html += '<button ' + (p.current_page >= p.last_page ? 'disabled' : '') + ' data-page="' + (p.current_page + 1) + '">التالي</button>';
+        el.innerHTML = html;
+        el.querySelectorAll('button[data-page]').forEach(function(btn){
+            btn.addEventListener('click', function(){ if (!btn.disabled) onPage(parseInt(btn.dataset.page,10)); });
         });
+    }
 
+    function loadUserDrafts(userId, page) {
+        page = page || 1;
+        var body = document.getElementById('drafts-body-' + userId);
+        var pager = document.getElementById('pager-' + userId);
+        body.innerHTML = '<tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr>';
+        fetch('{{ url("/drafts/admin/users") }}/' + userId + '/drafts?page=' + page + '&per_page=5', {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(r => r.json()).then(data => {
+            if (!data.ok) { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; return; }
+            body.innerHTML = renderRowsHtml(data.drafts || [], 5);
+            renderPager(pager, data.pagination || {}, function(p){ loadUserDrafts(userId,p); });
+            var countEl = document.querySelector('#user-card-' + userId + ' .user-draft-count');
+            if (countEl && data.pagination) countEl.textContent = data.pagination.total;
+        }).catch(() => { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; });
+    }
+
+    function loadMyDrafts(page) {
+        page = page || 1;
+        var body = document.getElementById('my-drafts-body');
+        var pager = document.getElementById('my-pager');
+        if (!body) return;
+        body.innerHTML = '<tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr>';
+        fetch('{{ route("drafts.myData") }}?page=' + page + '&per_page=10', {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(r => r.json()).then(data => {
+            if (!data.ok) { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; return; }
+            body.innerHTML = renderRowsHtml(data.drafts || [], 5);
+            renderPager(pager, data.pagination || {}, loadMyDrafts);
+        }).catch(() => { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; });
+    }
+
+    if (isAdmin) {
+        document.querySelectorAll('[id^="user-card-"]').forEach(function(card){ loadUserDrafts(card.dataset.userId, 1); });
         document.querySelectorAll('.js-discard-user').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 if (!confirm('سيتم حذف جميع مسودات هذا المستخدم. هل أنت متأكد؟')) return;
@@ -164,73 +168,14 @@
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({})
                 }).then(r => r.json()).then(data => {
-                    if (data.ok) { loadUserDrafts(userId, 1); }
+                    if (data.ok) loadUserDrafts(userId, 1);
                     else alert('تعذر حذف المسودات');
                 }).catch(() => alert('تعذر حذف المسودات'));
             });
         });
-    })();
-    </script>
-@else
-    <div class="drafts-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap;">
-            <h2 style="margin:0;font-size:20px;"><i class="fa-solid fa-file-pen"></i> مسوداتي</h2>
-            <div style="color:#64748b;font-size:13px;">المسودات يتم حفظها تلقائياً أثناء الكتابة، ويمكنك استكمالها لاحقاً.</div>
-        </div>
-
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
-
-        @if($drafts->count() === 0)
-            <div class="drafts-empty">
-                <i class="fa-solid fa-folder-open" style="font-size:40px;color:#cbd5e1;display:block;margin-bottom:10px;"></i>
-                لا توجد مسودات محفوظة حالياً.
-            </div>
-        @else
-            <div style="overflow-x:auto;">
-            <table class="drafts-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>النوع</th>
-                        <th>العنوان / الملخص</th>
-                        <th>آخر تعديل</th>
-                        <th>إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach($drafts as $draft)
-                    <tr id="draft-row-{{ $draft->id }}">
-                        <td>{{ $draft->id }}</td>
-                        <td><span class="badge-type">{{ $draft->typeLabel() }}</span></td>
-                        <td>{{ $draft->title ?: 'مسودة بدون عنوان' }}</td>
-                        <td style="white-space:nowrap;font-size:12px;color:#475569;">{{ $draft->updated_at?->format('Y-m-d H:i') }}</td>
-                        <td>
-                            <div class="draft-actions">
-                                <a class="btn-sm btn-continue" href="{{ route('drafts.continue', $draft) }}"><i class="fa-solid fa-pen"></i> استكمال</a>
-                                @if(in_array($draft->type, ['claim_create','claim_edit']))
-                                <form method="POST" action="{{ route('drafts.finalize', $draft) }}" style="display:inline" onsubmit="return confirm('سيتم حفظ المسودة كسجل فعلي. هل تريد المتابعة؟');">
-                                    @csrf
-                                    <button type="submit" class="btn-sm btn-finalize"><i class="fa-solid fa-check"></i> حفظ نهائي</button>
-                                </form>
-                                @endif
-                                <form method="POST" action="{{ route('drafts.discard', $draft) }}" style="display:inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه المسودة؟');">
-                                    @csrf
-                                    <button type="submit" class="btn-sm btn-discard"><i class="fa-solid fa-trash"></i> حذف</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                @endforeach
-                </tbody>
-            </table>
-            </div>
-            <div style="margin-top:12px;">{{ $drafts->links() }}</div>
-        @endif
-    </div>
-@endif
+    } else {
+        loadMyDrafts(1);
+    }
+})();
+</script>
 @endsection

@@ -434,10 +434,9 @@ class PrepaidClaimController extends Controller
         $uuid = $request->input('draft_uuid');
         if (!$uuid || !\Illuminate\Support\Str::isUuid($uuid)) return;
         $draft = \App\Models\Draft::where('uuid', $uuid)->where('user_id', auth()->id())->first();
-        if ($draft && $draft->status === \App\Models\Draft::STATUS_PENDING) {
-            $draft->status = \App\Models\Draft::STATUS_DISCARDED;
-            $draft->save();
-        }
         \App\Support\DraftClosure::close(auth()->id(), $uuid);
+        if ($draft) {
+            $draft->delete();
+        }
     }
 }

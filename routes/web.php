@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/drafts', [\App\Http\Controllers\DraftController::class, 'index'])->name('drafts.index');
     Route::get('/drafts/mine', [\App\Http\Controllers\DraftController::class, 'mine'])->name('drafts.mine');
+    Route::get('/drafts/data', [\App\Http\Controllers\DraftController::class, 'myDrafts'])->name('drafts.myData');
     Route::get('/drafts/admin/users/{user}/drafts', [\App\Http\Controllers\DraftController::class, 'adminUserDrafts'])->name('drafts.admin.userDrafts');
     Route::post('/drafts/admin/users/{user}/discard-all', [\App\Http\Controllers\DraftController::class, 'adminDiscardUserDrafts'])->name('drafts.admin.discardUser');
     Route::post('/drafts/sync', [\App\Http\Controllers\DraftController::class, 'sync'])->name('drafts.sync');
