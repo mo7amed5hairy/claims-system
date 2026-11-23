@@ -32,6 +32,10 @@ class ProjectBackupService
      */
     public function create(): array
     {
+        @set_time_limit(0);
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
+
         $path = $this->ensurePath();
         $ts = now()->format('Y-m-d_His');
         $dbName = (string) config('database.connections.' . config('project_backup.database_connection') . '.database', 'database');
