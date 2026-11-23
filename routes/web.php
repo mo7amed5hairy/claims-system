@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->prefix('admin/backups')->name('admin.backups.')->group(function () {
     Route::get('/', [\App\Http\Controllers\BackupController::class, 'index'])->name('index');
     Route::post('/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('run');
+    Route::post('/run-full', [\App\Http\Controllers\BackupController::class, 'runFull'])->name('runFull');
     Route::post('/toggle', [\App\Http\Controllers\BackupController::class, 'toggle'])->name('toggle');
     Route::get('/download/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('download');
     Route::delete('/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('delete');

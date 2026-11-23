@@ -100,4 +100,17 @@ class BackupController extends Controller
         }
         return back()->with('success', 'تم حذف النسخة الاحتياطية: ' . $filename);
     }
+
+    public function runFull(Request $request)
+    {
+        $this->ensureAdmin();
+        if (!$this->service->enabled()) {
+            return back()->with('error', 'النسخ الاحتياطي غير مفعل. اضبط PROJECT_BACKUP_ENABLED=true في .env ثم نفذ config:cache.');
+        }
+        $result = $this->service->create(true);
+        if ($result['ok']) {
+            return back()->with('success', 'تم إنشاء النسخة الكاملة بنجاح: ' . basename($result['zip']));
+        }
+        return back()->with('error', 'فشل النسخ الاحتياطي الكامل: ' . ($result['error'] ?? 'خطأ غير معروف'));
+    }
 }

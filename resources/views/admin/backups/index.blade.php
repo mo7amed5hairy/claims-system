@@ -13,10 +13,16 @@
                     <i class="fa-solid fa-power-off"></i> {{ $enabled ? 'تعطيل النسخ الاحتياطي' : 'تفعيل النسخ الاحتياطي' }}
                 </button>
             </form>
-            <form method="POST" action="{{ route('admin.backups.run') }}" onsubmit="return confirm('سيتم إنشاء نسخة احتياطية الآن. قد تستغرق بعض الوقت. هل تريد المتابعة؟');">
+            <form method="POST" action="{{ route('admin.backups.run') }}" onsubmit="return confirm('سيتم إنشاء نسخة احتياطية (بدون ملفات التخزين الكبيرة). هل تريد المتابعة؟');">
                 @csrf
                 <button type="submit" style="background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;" {{ !$enabled ? 'disabled title="فعّل النسخ الاحتياطي أولاً"' : '' }}>
                     <i class="fa-solid fa-play"></i> نسخ احتياطي الآن
+                </button>
+            </form>
+            <form method="POST" action="{{ route('admin.backups.runFull') }}" onsubmit="return confirm('سيتم إنشاء نسخة كاملة تشمل storage/المرفقات وقد تكون كبيرة جدًا. هل تريد المتابعة؟');">
+                @csrf
+                <button type="submit" style="background:#7c3aed;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;" {{ !$enabled ? 'disabled title="فعّل النسخ الاحتياطي أولاً"' : '' }}>
+                    <i class="fa-solid fa-database"></i> أخذ نسخة كاملة
                 </button>
             </form>
         </div>

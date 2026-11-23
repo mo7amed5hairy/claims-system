@@ -30,7 +30,7 @@ class ProjectBackupService
     /**
      * Create backup zip. Returns array with status info.
      */
-    public function create(): array
+    public function create(bool $full = false): array
     {
         @set_time_limit(0);
         @ini_set('max_execution_time', '0');
@@ -40,7 +40,8 @@ class ProjectBackupService
         $ts = now()->format('Y-m-d_His');
         $dbName = (string) config('database.connections.' . config('project_backup.database_connection') . '.database', 'database');
         $sqlFile = $path . DIRECTORY_SEPARATOR . $dbName . '_' . $ts . '.sql';
-        $zipFile = $path . DIRECTORY_SEPARATOR . 'backup-' . $ts . '.zip';
+        $prefix = $full ? 'backup-full-' : 'backup-';
+        $zipFile = $path . DIRECTORY_SEPARATOR . $prefix . $ts . '.zip';
 
         $result = [
             'ok' => false,
@@ -71,6 +72,9 @@ class ProjectBackupService
             // add project files
             $root = base_path();
             $exclusions = array_map(fn($e) => str_replace(['/', '\\'], DIRECTORY_SEPARATOR, trim($e)), (array) config('project_backup.exclusions', []));
+            if ($full) {
+                $exclusions = array_values(array_filter($exclusions, fn($e) => !in_array($e, ['storage' . DIRECTORY_SEPARATOR . 'app', 'public' . DIRECTORY_SEPARATOR . 'storage'])));
+            }
             $filesAdded = 0;
             $iterator = new \RecursiveIteratorIterator(
                 new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS),
