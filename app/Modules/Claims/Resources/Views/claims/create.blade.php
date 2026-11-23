@@ -321,7 +321,7 @@
 
     <div class="form-container">
         <div class="form-card">
-            <form action="{{ route('claims.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('claims.store') }}" method="POST" enctype="multipart/form-data" data-draft-type="claim_create" id="claimCreateForm">
                 @csrf
                 <input type="hidden" name="draft_uuid" value="{{ request('draft_uuid') }}">
 

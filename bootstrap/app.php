@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             '/login',
         ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\FinalizeDraftAfterSave::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Handle 419 Page Expired (CSRF Token Mismatch)

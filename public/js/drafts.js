@@ -326,8 +326,57 @@
     });
   }
 
+  function activeDraftUuids() {
+    var uuids = [];
+    document.querySelectorAll('form[data-draft-type] [name="draft_uuid"]').forEach(function(inp){
+      if (inp.value && uuids.indexOf(inp.value) === -1) uuids.push(inp.value);
+    });
+    return uuids;
+  }
+
+  function closeLocalDraft(uuid) {
+    var rec = lsGet(draftKey(uuid));
+    if (!rec) return;
+    rec.closed = true;
+    rec.dirty = false;
+    lsSet(draftKey(uuid), rec);
+    var idx = getIndex();
+    if (idx[uuid]) { delete idx[uuid]; setIndex(idx); }
+    updateIndicatorByUuid(uuid, 'closed');
+  }
+
+  function patchFetch() {
+    if (!window.fetch || window.fetch.__draftsPatched) return;
+    var nativeFetch = window.fetch.bind(window);
+    var patched = function(input, init) {
+      init = init || {};
+      var url = typeof input === 'string' ? input : (input && input.url) || '';
+      var method = String((init.method || (input && input.method) || 'GET')).toUpperCase();
+      var mutating = ['POST','PUT','PATCH','DELETE'].indexOf(method) !== -1;
+      var uuids = mutating ? activeDraftUuids() : [];
+      var draftUuid = uuids.length === 1 ? uuids[0] : null;
+      if (draftUuid && !/\/drafts(?:\/|$)/.test(url)) {
+        if (init.headers instanceof Headers) {
+          if (!init.headers.has('X-Draft-UUID')) init.headers.set('X-Draft-UUID', draftUuid);
+        } else {
+          init.headers = Object.assign({}, init.headers || {});
+          if (!init.headers['X-Draft-UUID'] && !init.headers['x-draft-uuid']) init.headers['X-Draft-UUID'] = draftUuid;
+        }
+      }
+      return nativeFetch(input, init).then(function(res) {
+        if (mutating && draftUuid && res && res.ok && !/\/drafts(?:\/|$)/.test(url)) {
+          closeLocalDraft(draftUuid);
+        }
+        return res;
+      });
+    };
+    patched.__draftsPatched = true;
+    window.fetch = patched;
+  }
+
   function boot() {
     document.querySelectorAll('form[data-draft-type]').forEach(attachToForm);
+    patchFetch();
 
     window.addEventListener('online', function(){ online = true; flushDirty(); });
     window.addEventListener('offline', function(){ online = false; updateAllIndicators('offline'); });
