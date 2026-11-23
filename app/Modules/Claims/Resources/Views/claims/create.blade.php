@@ -545,7 +545,8 @@
 
                 <!-- Action Buttons -->
                 <div class="form-actions" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e2e8f0;">
-                    <span data-draft-indicator style="font-size:11px;color:#64748b;margin-inline-end:8px;"></span>`n                        <button type="submit" class="btn btn-primary" id="saveBtn" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
+                    <span data-draft-indicator style="font-size:11px;color:#64748b;margin-inline-end:8px;"></span>
+                        <button type="submit" class="btn btn-primary" id="saveBtn" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
                         <i class="fa-solid fa-save"></i> حفظ
                     </button>
                     <a href="{{ route('flow.operations') }}" class="btn btn-secondary" style="height: 28px !important; font-size: 12px; padding: 4px 12px;">
