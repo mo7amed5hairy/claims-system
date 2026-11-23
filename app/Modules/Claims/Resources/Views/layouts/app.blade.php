@@ -668,9 +668,9 @@
         userId: {{ auth()->id() }},
         csrf: '{{ csrf_token() }}',
         routes: {
-          sync: '{{ route("drafts.sync") }}',
-          mine: '{{ route("drafts.mine") }}',
-          discardByUuid: '{{ route("drafts.discardByUuid") }}'
+          sync: '{{ route("drafts.sync", [], false) }}',
+          mine: '{{ route("drafts.mine", [], false) }}',
+          discardByUuid: '{{ route("drafts.discardByUuid", [], false) }}'
         }
       };
       @if(session('draft_restore_uuid') && session('draft_restore_payload'))

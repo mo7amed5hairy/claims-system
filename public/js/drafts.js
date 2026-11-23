@@ -141,6 +141,8 @@
     if (syncing) { setTimeout(function(){ syncDraft(uuid); }, 1000); return; }
     syncing = true;
 
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timeoutId = setTimeout(function(){ try { if (ctrl) ctrl.abort(); } catch(e){} }, 15000);
     fetch(CFG.routes.sync, {
       method: 'POST',
       headers: {
@@ -149,16 +151,27 @@
         'X-CSRF-TOKEN': CFG.csrf,
         'X-Requested-With': 'XMLHttpRequest'
       },
-      body: JSON.stringify({ uuid: rec.uuid, type: rec.type, payload: rec.payload, revision: rec.revision })
+      credentials: 'same-origin',
+      body: JSON.stringify({ uuid: rec.uuid, type: rec.type, payload: rec.payload, revision: rec.revision }),
+      signal: ctrl ? ctrl.signal : undefined
     }).then(function (r) { return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok, status:r.status, j:j}; }); })
       .then(function (res) {
+        clearTimeout(timeoutId);
         syncing = false;
         if (res.ok && res.j && res.j.ok) {
-          rec.dirty = false;
-          rec.serverRevision = res.j.draft ? res.j.draft.revision : rec.revision;
-          lsSet(draftKey(uuid), rec);
+          var latest = lsGet(draftKey(uuid)) || rec;
+          var sentRev = rec.revision;
+          if ((latest.revision || 0) <= sentRev) {
+            latest.dirty = false;
+            latest.serverRevision = res.j.draft ? res.j.draft.revision : sentRev;
+            lsSet(draftKey(uuid), latest);
+            updateIndicatorByUuid(uuid, 'saved');
+          } else {
+            // user edited while syncing - keep dirty and re-sync
+            lsSet(draftKey(uuid), latest);
+            setTimeout(function(){ syncDraft(uuid); }, 200);
+          }
           backoff = 1000;
-          updateIndicatorByUuid(uuid, 'saved');
           try { window.dispatchEvent(new CustomEvent('drafts:synced', { detail: { uuid: uuid } })); } catch(e){}
         } else if (res.j && res.j.closed) {
           rec.closed = true; rec.dirty = false;
@@ -166,12 +179,17 @@
           updateIndicatorByUuid(uuid, 'closed');
         } else {
           backoff = Math.min(backoff * 1.5, MAX_BACKOFF);
+          try { console.warn('Draft sync failed', res.status, res.j); } catch(e){}
+          try { localStorage.setItem(NS+'__last_sync_error', JSON.stringify({at:Date.now(),status:res.status,body:res.j,uuid:uuid})); } catch(e){}
           updateIndicatorByUuid(uuid, 'error');
           setTimeout(function(){ syncDraft(uuid); }, backoff);
         }
-      }).catch(function () {
+      }).catch(function (err) {
+        clearTimeout(timeoutId);
         syncing = false;
         backoff = Math.min(backoff * 1.5, MAX_BACKOFF);
+        try { console.warn('Draft sync network error', err); } catch(e){}
+        try { localStorage.setItem(NS+'__last_sync_error', JSON.stringify({at:Date.now(),error:String(err),uuid:uuid})); } catch(e){}
         updateIndicatorByUuid(uuid, 'offline');
         setTimeout(function(){ syncDraft(uuid); }, backoff);
       });

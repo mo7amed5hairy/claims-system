@@ -38,6 +38,7 @@ class DraftController extends Controller
      */
     public function sync(Request $request)
     {
+        \Log::info('draft.sync.hit', ['user' => Auth::id(), 'uuid' => $request->input('uuid'), 'type' => $request->input('type')]);
         $data = $request->validate([
             'uuid' => ['required','string','max:64'],
             'type' => ['required','string', Rule::in(array_keys(Draft::TYPES))],

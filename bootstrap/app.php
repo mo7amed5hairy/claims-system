@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Handle 419 Page Expired (CSRF Token Mismatch)
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException && $e->getStatusCode() === 419) {
+                \Log::warning('419.csrf', ['url' => $request->fullUrl(), 'user' => auth()->id(), 'ajax' => $request->expectsJson()]);
                 if ($request->expectsJson()) {
                     return response()->json(['message' => 'Session expired. Please refresh the page.'], 419);
                 }

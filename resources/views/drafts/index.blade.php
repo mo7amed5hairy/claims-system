@@ -76,6 +76,7 @@
             </table>
         </div>
         <div class="pager" id="my-pager"></div>
+        <div id="drafts-local-diag"></div>
     </div>
 @endif
 
@@ -131,7 +132,7 @@
         var body = document.getElementById('drafts-body-' + userId);
         var pager = document.getElementById('pager-' + userId);
         body.innerHTML = '<tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr>';
-        fetch('{{ url("/drafts/admin/users") }}/' + userId + '/drafts?page=' + page + '&per_page=5', {
+        fetch('{{ route("drafts.admin.userDrafts", ["user" => "__UID__"], false) }}'.replace('__UID__', userId) + '?page=' + page + '&per_page=5', {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         }).then(r => r.json()).then(data => {
             if (!data.ok) { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; return; }
@@ -142,21 +143,45 @@
         }).catch(() => { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; });
     }
 
+    function showLocalDiag() {
+        var el = document.getElementById('drafts-local-diag');
+        if (!el || !window.DraftsConfig) return;
+        try {
+            var ns = 'claims_drafts:v1:u' + window.DraftsConfig.userId + ':';
+            var idx = JSON.parse(localStorage.getItem(ns + '__index') || '{}');
+            var dirty = [];
+            Object.keys(idx).forEach(function(uuid){
+                var rec = JSON.parse(localStorage.getItem(ns + uuid) || 'null');
+                if (rec && rec.dirty && !rec.closed) dirty.push({uuid:uuid,type:rec.type,rev:rec.revision,at:rec.updatedAt});
+            });
+            var lastErr = null;
+            try { lastErr = JSON.parse(localStorage.getItem(ns + '__last_sync_error') || 'null'); } catch(e){}
+            if (dirty.length > 0) {
+                var html = '<div style="margin-top:12px;padding:10px 12px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:12px;">' +
+                    '<strong><i class="fa-solid fa-triangle-exclamation"></i> يوجد ' + dirty.length + ' مسودة محلية لم تُزامَن مع السيرفر بعد.</strong>' +
+                    '<div style="margin-top:4px;color:#7c2d12;">سيتم مزامنتها تلقائيًا عند توفر الاتصال. إذا استمرت المشكلة افتح Console وابحث عن Draft sync.</div>';
+                if (lastErr) html += '<div style="margin-top:4px;direction:ltr;text-align:left;color:#991b1b;">Last sync error: ' + escapeHtml(JSON.stringify(lastErr).slice(0,300)) + '</div>';
+                html += '</div>';
+                el.innerHTML = html;
+            } else { el.innerHTML = ''; }
+        } catch(e) {}
+    }
+
     function loadMyDrafts(page) {
         page = page || 1;
         var body = document.getElementById('my-drafts-body');
         var pager = document.getElementById('my-pager');
         if (!body) return;
         body.innerHTML = '<tr><td colspan="5" class="loading-row">جارٍ التحميل...</td></tr>';
-        fetch('{{ route("drafts.myData") }}?page=' + page + '&per_page=10', {
+        fetch('{{ route("drafts.myData", [], false) }}?page=' + page + '&per_page=10', {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         }).then(r => r.json()).then(data => {
-            if (!data.ok) { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; return; }
+            if (!data.ok) { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; showLocalDiag(); return; }
             body.innerHTML = renderRowsHtml(data.drafts || [], 5);
             renderPager(pager, data.pagination || {}, loadMyDrafts);
-        }).catch(() => { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; });
+            showLocalDiag();
+        }).catch(() => { body.innerHTML = '<tr><td colspan="5" class="loading-row">تعذر تحميل المسودات</td></tr>'; showLocalDiag(); });
     }
-
     var reloadTimer = null;
     window.addEventListener('drafts:synced', function() {
         clearTimeout(reloadTimer);
