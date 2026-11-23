@@ -245,31 +245,43 @@
       updateIndicator(form, 'saved');
     }
 
-    if (restorePayload && restoreUuid) {
-      doRestore(restoreUuid, restorePayload);
-    } else if (explicitUuid) {
-      var local = lsGet(draftKey(explicitUuid));
-      if (local && local.payload && !local.closed) {
-        doRestore(explicitUuid, local.payload);
+    function runRestore() {
+      if (restorePayload && restoreUuid) {
+        doRestore(restoreUuid, restorePayload);
+        form.__draftRestorePending = false;
+      } else if (explicitUuid) {
+        var local = lsGet(draftKey(explicitUuid));
+        if (local && local.payload && !local.closed) {
+          doRestore(explicitUuid, local.payload);
+          form.__draftRestorePending = false;
+        } else {
+          // Fallback: fetch from server (handles refresh where session flash is gone)
+          fetch(CFG.routes.mine, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            .then(function(r){ return r.json(); })
+            .then(function(j){
+              var list = (j && j.drafts) ? j.drafts : [];
+              var found = null;
+              for (var i=0;i<list.length;i++){ if (String(list[i].uuid) === String(explicitUuid)) { found = list[i]; break; } }
+              if (found && found.payload) {
+                doRestore(explicitUuid, found.payload);
+              } else {
+                input.value = '';
+              }
+            }).catch(function(){ input.value = ''; })
+            .finally(function(){ form.__draftRestorePending = false; });
+        }
       } else {
-        // Fallback: fetch from server (handles refresh where session flash is gone)
-        form.__draftRestorePending = true;
-        fetch(CFG.routes.mine, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
-          .then(function(r){ return r.json(); })
-          .then(function(j){
-            var list = (j && j.drafts) ? j.drafts : [];
-            var found = null;
-            for (var i=0;i<list.length;i++){ if (String(list[i].uuid) === String(explicitUuid)) { found = list[i]; break; } }
-            if (found && found.payload) {
-              doRestore(explicitUuid, found.payload);
-            } else {
-              input.value = '';
-            }
-          }).catch(function(){ input.value = ''; })
-          .finally(function(){ form.__draftRestorePending = false; });
+        // Fresh open/refresh: start clean. Draft remains in drafts page for explicit continue.
+        input.value = '';
+        form.__draftRestorePending = false;
       }
+    }
+
+    if (restorePayload && restoreUuid || explicitUuid) {
+      // Defer restore so page-specific handlers (Select2/cascade) are bound first.
+      form.__draftRestorePending = true;
+      setTimeout(runRestore, 400);
     } else {
-      // Fresh open/refresh: start clean. Draft remains in drafts page for explicit continue.
       input.value = '';
     }
 
