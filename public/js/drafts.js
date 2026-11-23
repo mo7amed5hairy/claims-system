@@ -230,16 +230,44 @@
       form.appendChild(input);
     }
 
-    // Restore only when explicitly continuing from drafts page (session flash).
+    // Restore only when explicitly continuing (session flash or draft_uuid in URL/input).
     var restorePayload = window.DraftsRestorePayload;
     var restoreUuid = window.DraftsRestoreUuid;
-    var isExplicitRestore = !!(restorePayload && restoreUuid);
-    if (isExplicitRestore) {
-      input.value = restoreUuid;
-      applyPayload(form, restorePayload);
+    var urlDraftUuid = '';
+    try { urlDraftUuid = new URLSearchParams(location.search).get('draft_uuid') || ''; } catch(e) {}
+    var explicitUuid = restoreUuid || input.value || urlDraftUuid;
+
+    function doRestore(uuid, payload) {
+      input.value = uuid;
+      applyPayload(form, payload);
       var rec = saveLocal(form);
       if (rec) { rec.dirty = false; lsSet(draftKey(rec.uuid), rec); }
       updateIndicator(form, 'saved');
+    }
+
+    if (restorePayload && restoreUuid) {
+      doRestore(restoreUuid, restorePayload);
+    } else if (explicitUuid) {
+      var local = lsGet(draftKey(explicitUuid));
+      if (local && local.payload && !local.closed) {
+        doRestore(explicitUuid, local.payload);
+      } else {
+        // Fallback: fetch from server (handles refresh where session flash is gone)
+        form.__draftRestorePending = true;
+        fetch(CFG.routes.mine, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            var list = (j && j.drafts) ? j.drafts : [];
+            var found = null;
+            for (var i=0;i<list.length;i++){ if (String(list[i].uuid) === String(explicitUuid)) { found = list[i]; break; } }
+            if (found && found.payload) {
+              doRestore(explicitUuid, found.payload);
+            } else {
+              input.value = '';
+            }
+          }).catch(function(){ input.value = ''; })
+          .finally(function(){ form.__draftRestorePending = false; });
+      }
     } else {
       // Fresh open/refresh: start clean. Draft remains in drafts page for explicit continue.
       input.value = '';
@@ -257,7 +285,7 @@
     }, true);
 
     // initial snapshot
-    setTimeout(function(){ saveLocal(form); }, 500);
+    setTimeout(function(){ if (!form.__draftRestorePending) saveLocal(form); }, 500);
   }
 
   function applyPayload(form, payload) {
