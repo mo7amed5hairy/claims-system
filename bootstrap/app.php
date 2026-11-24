@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\FinalizeDraftAfterSave::class,
+            \App\Http\Middleware\RunAutomaticMaintenance::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

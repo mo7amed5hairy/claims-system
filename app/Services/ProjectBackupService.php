@@ -2,12 +2,16 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 
 class ProjectBackupService
 {
+    public const RETRY_AFTER_MINUTES = 60;
+
     public function enabled(): bool
     {
         return (bool) config('project_backup.enabled');
@@ -16,6 +20,50 @@ class ProjectBackupService
     public function backupPath(): string
     {
         return rtrim((string) config('project_backup.path'), '/\\');
+    }
+
+    public function isDue(?Carbon $now = null): bool
+    {
+        if (!$this->enabled()) {
+            return false;
+        }
+
+        $now = $now ? $now->copy() : now();
+        $dailyAt = (string) config('project_backup.daily_at', '02:30');
+        if (!preg_match('/^\d{2}:\d{2}$/', $dailyAt)) {
+            $dailyAt = '02:30';
+        }
+
+        $runAt = $now->copy()->setTimeFromTimeString($dailyAt);
+        if ($now->lt($runAt)) {
+            return false;
+        }
+
+        $lastSuccess = Cache::get('project_backup:last_success_at');
+        if ($lastSuccess && Carbon::parse($lastSuccess)->isSameDay($now)) {
+            return false;
+        }
+
+        $lastAttempt = Cache::get('project_backup:last_attempt_at');
+        if ($lastAttempt && Carbon::parse($lastAttempt)->gt($now->copy()->subMinutes(self::RETRY_AFTER_MINUTES))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function runIfDue(?Carbon $now = null): ?array
+    {
+        if (!$this->isDue($now)) {
+            return null;
+        }
+
+        return $this->run();
+    }
+
+    public function run(): array
+    {
+        return $this->create(false);
     }
 
     public function ensurePath(): string
@@ -53,6 +101,7 @@ class ProjectBackupService
         ];
 
         try {
+            Cache::put('project_backup:last_attempt_at', now()->toDateTimeString(), now()->addDays(2));
             $result['db_dump'] = $this->dumpDatabase($sqlFile);
             $dbDriver = config('database.connections.' . config('project_backup.database_connection') . '.driver');
             if ($dbDriver === 'mysql' && !$result['db_dump']) {
@@ -107,8 +156,17 @@ class ProjectBackupService
             if (is_file($sqlFile)) @unlink($sqlFile);
 
             $this->prune();
+
+            if ($result['ok']) {
+                Cache::put('project_backup:last_success_at', now()->toDateTimeString(), now()->addDays(30));
+                Cache::forget('project_backup:last_error');
+            } else {
+                $result['error'] = $result['error'] ?: 'فشل إنشاء ملف النسخة الاحتياطية.';
+                Cache::put('project_backup:last_error', $result['error'], now()->addDays(2));
+            }
         } catch (\Throwable $e) {
             $result['error'] = $e->getMessage();
+            Cache::put('project_backup:last_error', $e->getMessage(), now()->addDays(2));
             Log::error('Project backup failed: ' . $e->getMessage(), ['exception' => $e]);
             if (is_file($sqlFile)) @unlink($sqlFile);
         }
